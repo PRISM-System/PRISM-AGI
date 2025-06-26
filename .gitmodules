@@ -1,3 +1,12 @@
 [submodule "Orch"]
 	path = Orch
 	url = https://github.com/PRISM-System/PRISM-Orch.git
+[submodule "Pred"]
+	path = Pred
+	url = https://github.com/PRISM-System/PRISM-Pred
+[submodule "Monitor"]
+	path = Monitor
+	url = https://github.com/PRISM-System/PRISM-Monitor
+[submodule "AutoControl"]
+	path = AutoControl
+	url = https://github.com/PRISM-System/PRISM-AutoControl
