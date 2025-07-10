@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+        <div class="container">
+            <a class="navbar-brand text-dark" href="{% url 'control_agent:dashboard' %}">
+                <i class="fas fa-cog"></i> 자율제어 AI 에이전트
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="{% url 'control_agent:dashboard' %}">대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/">메인 플랫폼</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{{ title }}</h5>
+                        <small class="text-muted">{{ description }}</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-5">
+                            <i class="fas fa-cog fa-5x text-warning mb-4"></i>
+                            <h3>자율제어 AI 에이전트</h3>
+                            <p class="lead">제조 시스템 자동 제어 기능이 곧 준비됩니다.</p>
+                            <div class="row mt-4">
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <i class="fas fa-play fa-2x text-success mb-2"></i>
+                                            <h6>자동 제어</h6>
+                                            <p class="small text-muted">시스템 자동 제어</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <i class="fas fa-shield-alt fa-2x text-danger mb-2"></i>
+                                            <h6>안전 규칙</h6>
+                                            <p class="small text-muted">안전 규칙 적용</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <i class="fas fa-check-circle fa-2x text-primary mb-2"></i>
+                                            <h6>승인 프로세스</h6>
+                                            <p class="small text-muted">명령 승인 시스템</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <i class="fas fa-history fa-2x text-info mb-2"></i>
+                                            <h6>실행 로그</h6>
+                                            <p class="small text-muted">모든 실행 이력 기록</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

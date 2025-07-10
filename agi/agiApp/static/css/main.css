@@ -1,0 +1,347 @@
+/* AI 에이전트 플랫폼 메인 스타일 */
+
+/* 히어로 섹션 */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 0;
+}
+
+/* 에이전트 카드 */
+.agent-card {
+    transition: transform 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.agent-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.agent-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* 섹션 스타일 */
+.features-section {
+    padding: 60px 0;
+}
+
+.footer {
+    background-color: #343a40;
+    color: white;
+    padding: 40px 0;
+}
+
+/* 배경 블러 효과 */
+.backdrop-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* NLP 인터페이스 */
+.nlp-interface {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+}
+
+/* 진행률 컨테이너 */
+.progress-container {
+    position: relative;
+}
+
+/* 워크플로우 단계 */
+.workflow-step {
+    transition: all 0.3s ease;
+    border-left: 3px solid #dee2e6;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.workflow-step.active {
+    border-left-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.workflow-step.completed {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+/* 에이전트 결과 카드 */
+.agent-result-card {
+    transition: all 0.3s ease;
+}
+
+.agent-result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* 질문 예시 */
+.query-examples {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.query-examples.show {
+    max-height: 200px;
+}
+
+/* 펄스 애니메이션 */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* 타이핑 인디케이터 */
+.typing-indicator {
+    display: inline-block;
+}
+
+.typing-indicator span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #007bff;
+    margin: 0 1px;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) { 
+    animation-delay: -0.32s; 
+}
+
+.typing-indicator span:nth-child(2) { 
+    animation-delay: -0.16s; 
+}
+
+@keyframes typing {
+    0%, 80%, 100% { 
+        transform: scale(0); 
+    }
+    40% { 
+        transform: scale(1); 
+    }
+}
+
+/* 슬라이드 업 애니메이션 */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 토스트 컨테이너 */
+.toast-container {
+    z-index: 9999;
+}
+
+/* 알림 아이템 */
+.alert-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.alert-item:hover {
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+/* 모니터링 상태 */
+.monitoring-stats {
+    font-size: 0.9rem;
+}
+
+/* 로그 컨테이너 */
+.log-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* 도구 카드 호버 효과 */
+.list-group-item-action:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* 분석 결과 차트 영역 */
+.analysis-chart {
+    height: 300px;
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+}
+
+/* 템플릿 카드 */
+.template-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.template-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+}
+
+/* 상태 배지 */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* 연결 상태 표시 */
+.connection-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.connection-status.connected {
+    background-color: #28a745;
+}
+
+.connection-status.disconnected {
+    background-color: #dc3545;
+}
+
+.connection-status.pending {
+    background-color: #ffc107;
+}
+
+/* 스크롤바 스타일 */
+.scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* 로딩 스피너 */
+.spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* 작은 버튼 스타일 */
+.btn-xs {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* 연결된 도구 목록 스타일 */
+.connected-tools-section .alert {
+    margin-bottom: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 0;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .agent-icon {
+        font-size: 2rem;
+    }
+    
+    .features-section {
+        padding: 40px 0;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* 다크 모드 지원 (선택사항) */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .text-muted {
+        color: #a0aec0 !important;
+    }
+}
+
+/* 섹션 전환 애니메이션 */
+section {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* 네비게이션 드롭다운 */
+.navbar .dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* 커스텀 버튼 스타일 */
+.btn-group-vertical .btn {
+    border-radius: 0;
+}
+
+.btn-group-vertical .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+}
+
+.btn-group-vertical .btn:last-child {
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
