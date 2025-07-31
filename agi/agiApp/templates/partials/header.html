@@ -1,0 +1,165 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/" onclick="showMainPage()">
+            <i class="fas fa-brain"></i> AI 에이전트 플랫폼
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#main-question">질문하기</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#agents">시스템</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        관리도구
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="managementDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="showSection('agent-settings')"><i class="fas fa-cog me-2"></i>에이전트 설정</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showSection('logs-history')"><i class="fas fa-history me-2"></i>로그 및 이력</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showSection('external-tools')"><i class="fas fa-tools me-2"></i>외부 도구</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="showSection('advanced-analytics')"><i class="fas fa-chart-line me-2"></i>고급 분석</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">기능</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">소개</a>
+                </li>
+                <!-- 알림 센터 -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link position-relative" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadAlertHistory()">
+                        <i class="fas fa-bell"></i>
+                        <span id="alert-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: block;">8</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="alertsDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                        <h6 class="dropdown-header">
+                            <i class="fas fa-bell me-2"></i>알림 센터
+                            <button class="btn btn-sm btn-outline-secondary float-end" onclick="clearAllAlerts()">
+                                <i class="fas fa-check-double"></i> 모두 확인
+                            </button>
+                        </h6>
+                        <div class="dropdown-divider"></div>
+                        <div id="alert-history" class="px-3">
+                            <div class="alert-item p-2 mb-2 border-bottom bg-light" data-alert-id="1753750556150">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <h6 class="mb-1 small fw-bold">압력센서 이상 감지</h6>
+                                        <p class="mb-1 small text-muted">압력 센서에서 비정상적인 값이 감지되었습니다....</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">방금 전</small>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="acknowledgeAlert(1753750556150)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="showAlertDetails(1753750556150)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert-item p-2 mb-2 border-bottom bg-light" data-alert-id="1753750556151">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <h6 class="mb-1 small fw-bold">진동센서 이상 감지</h6>
+                                        <p class="mb-1 small text-muted">진동 센서에서 비정상적인 값이 감지되었습니다....</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">1시간 전</small>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="acknowledgeAlert(1753750556151)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="showAlertDetails(1753750556151)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert-item p-2 mb-2 border-bottom bg-light" data-alert-id="1753750556152">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <h6 class="mb-1 small fw-bold">습도센서 이상 감지</h6>
+                                        <p class="mb-1 small text-muted">습도 센서에서 비정상적인 값이 감지되었습니다....</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">2시간 전</small>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="acknowledgeAlert(1753750556152)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="showAlertDetails(1753750556152)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert-item p-2 mb-2 border-bottom " data-alert-id="1753750556153">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-bell text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <h6 class="mb-1 small ">진동센서 이상 감지</h6>
+                                        <p class="mb-1 small text-muted">진동 센서에서 비정상적인 값이 감지되었습니다....</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">3시간 전</small>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-info" onclick="showAlertDetails(1753750556153)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert-item p-2 mb-2 border-bottom " data-alert-id="1753750556154">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <h6 class="mb-1 small ">습도센서 이상 감지</h6>
+                                        <p class="mb-1 small text-muted">습도 센서에서 비정상적인 값이 감지되었습니다....</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">4시간 전</small>
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-info" onclick="showAlertDetails(1753750556154)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="text-center p-2">
+                            <a href="#" class="btn btn-sm btn-primary" onclick="showAllAlerts()">
+                                <i class="fas fa-list"></i> 모든 알림 보기
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
