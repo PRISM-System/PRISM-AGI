@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRISM-AGI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
 
     <link rel="stylesheet" href="{% static 'css/reset.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -24,7 +25,22 @@
             <div class="chat-messages empty" id="chatMessages">
                 <div class="welcome-message">
                     <h2 class="welcome-title">무엇을 도와드릴까요?</h2>
-                    <p class="welcome-subtitle">PRISM-AGI Assistant에게 무엇이든 물어보세요.</p>
+                    
+                    <div class="welcome-input-area">
+                        <div class="chat-input-container">
+                            <textarea 
+                                class="chat-input" 
+                                id="chatInput" 
+                                placeholder="PRISM-AGI Assistant에게 무엇이든 물어보세요."
+                                rows="1"
+                            ></textarea>
+                            <button class="send-button" id="sendButton">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             

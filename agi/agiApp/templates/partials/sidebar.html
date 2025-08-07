@@ -1,6 +1,9 @@
-<!-- 좌측 사이드바 -->
+{% load static %}
 <div class="chat-sidebar" id="chatSidebar">
     <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="{% static 'img/image_logo.png' %}" alt="PRISM-AGI Logo" class="sidebar-logo">
+        </div>
         <button class="sidebar-toggle-btn" id="sidebarToggle">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/>

@@ -20,7 +20,7 @@ body {
 
 /* 좌측 사이드바 */
 .chat-sidebar {
-    width: 260px;
+    width: 300px;
     background: #202123;
     border-right: 1px solid #4d4d4f;
     display: flex;
@@ -35,8 +35,9 @@ body {
 
 /* 축소된 사이드바 스타일 */
 .chat-sidebar.collapsed .sidebar-header {
-    flex-direction: column;
-    gap: 4px;
+    justify-content: center;
+    flex-direction: row;
+    gap: 0;
 }
 
 .chat-sidebar.collapsed .sidebar-header .chat-item {
@@ -90,15 +91,83 @@ body {
     padding: 12px;
     border-bottom: 1px solid #4d4d4f;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
 }
 
-.sidebar-toggle-btn {
-    width: 40px;
-    height: 40px;
+.logo-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.sidebar-logo {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* 축소된 사이드바에서 로고 숨김 */
+.chat-sidebar.collapsed .logo-container {
+    display: none;
+}
+
+.chat-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+}
+
+/* 축소된 상태에서 토글 버튼 스타일 */
+.chat-sidebar.collapsed .sidebar-toggle-btn {
+    width: 48px;
+    height: 48px;
     background: transparent;
-    border: 1px solid #4d4d4f;
+    border: none;
     border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 축소된 상태에서 기본적으로 로고 표시 */
+.chat-sidebar.collapsed .sidebar-toggle-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    background-image: url('/static/img/image_logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* 축소된 상태에서 햄버거 아이콘 숨김 */
+.chat-sidebar.collapsed .sidebar-toggle-btn svg {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* 마우스 오버 시 로고 숨기고 햄버거 아이콘 표시 */
+.chat-sidebar.collapsed .sidebar-toggle-btn:hover::before {
+    opacity: 0;
+}
+
+.chat-sidebar.collapsed .sidebar-toggle-btn:hover svg {
+    opacity: 1;
+}
+
+.chat-sidebar.collapsed .sidebar-toggle-btn:hover {
+    background: #2a2b32;
+}
+
+.sidebar-toggle-btn {
+    width: 48px;
+    height: 48px;
+    background: transparent;
     color: #ffffff;
     cursor: pointer;
     display: flex;
@@ -120,10 +189,10 @@ body {
 
 .chat-item {
     padding: 8px 12px;
-    margin: 2px 0;
+    margin: 4px 0;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
     color: #acacbe;
     transition: background 0.2s;
     display: flex;
@@ -136,7 +205,6 @@ body {
 }
 
 .chat-item.active {
-    background: #343541;
     color: #ffffff;
 }
 
@@ -179,6 +247,7 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
+    position: relative;
 }
 
 .welcome-message {
@@ -186,14 +255,14 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 24px;
-    max-width: 600px;
+    max-width: 1200px;
+    min-width: 900px;
 }
 
 .welcome-title {
     font-size: 32px;
     font-weight: 600;
     color: #ffffff;
-    margin-bottom: 8px;
 }
 
 .welcome-subtitle {
@@ -202,10 +271,61 @@ body {
     margin-bottom: 32px;
 }
 
+/* 빈 상태에서 입력창을 환영 메시지 아래에 배치 */
+.chat-messages.empty .welcome-input-area {
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 32px;
+}
+
+.chat-messages.empty .welcome-input-area .chat-input-container {
+    margin: 0;
+    border-radius: 16px;
+    border: 2px solid #565869;
+    background: #40414f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    width: 100%;
+}
+
+.chat-messages.empty .welcome-input-area .chat-input {
+    width: 100%;
+    padding: 20px 60px 20px 20px;
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 60px;
+    box-sizing: border-box;
+    text-align: left;
+    overflow-y: hidden;
+}
+
+.chat-messages.empty .welcome-input-area .chat-input::placeholder {
+    text-align: left;
+}
+
+.chat-messages.empty .welcome-input-area .send-button {
+    width: 40px;
+    height: 40px;
+    right: 16px;
+}
+
+/* 일반 상태에서는 환영 입력창 숨김 */
+.welcome-input-area {
+    display: none;
+}
+
+.chat-messages.empty .welcome-input-area {
+    display: block;
+}
+
+/* 빈 상태에서는 하단 입력창 숨김 */
+.chat-messages.empty ~ .chat-input-area {
+    display: none;
+}
+
 .message {
     display: flex;
     gap: 16px;
-    max-width: 768px;
+    max-width: 900px;
     margin: 0 auto;
     width: 100%;
 }
@@ -240,6 +360,12 @@ body {
 
 .message.user .message-content {
     color: #ffffff;
+    text-align: right;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+    margin-left: auto;
 }
 
 /* 입력 영역 */
@@ -248,7 +374,7 @@ body {
 }
 
 .chat-input-container {
-    max-width: 768px;
+    max-width: 900px;
     margin: 0 auto;
     position: relative;
     background: #40414f;
@@ -266,7 +392,9 @@ body {
     font-size: 16px;
     line-height: 1.5;
     resize: none;
+    min-height: 24px;
     max-height: 120px;
+    overflow-y: hidden;
 }
 
 .chat-input::placeholder {
@@ -278,7 +406,6 @@ body {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    background: #19c37d;
     border: none;
     border-radius: 6px;
     width: 32px;
@@ -292,7 +419,7 @@ body {
 }
 
 .send-button:hover:not(:disabled) {
-    background: #0fa972;
+    background: #2a2b32;
 }
 
 .send-button:disabled {

@@ -41,6 +41,8 @@ function initChatFeatures() {
             welcomeMessage.remove();
         }
         
+        // 하단 입력창 표시 (CSS에서 자동으로 처리됨)
+        
         // 사용자 메시지 추가
         const userMessage = createMessageElement('user', message);
         chatMessages.appendChild(userMessage);
@@ -86,9 +88,57 @@ function initChatFeatures() {
             <div class="welcome-message">
                 <h2 class="welcome-title">무엇을 도와드릴까요?</h2>
                 <p class="welcome-subtitle">PRISM-AGI Assistant에게 무엇이든 물어보세요.</p>
+                
+                <div class="welcome-input-area">
+                    <div class="chat-input-container">
+                        <textarea 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="메시지를 보내주세요..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-button" id="sendButton">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         `;
         chatMessages.classList.add('empty');
+        
+        // 이벤트 리스너 다시 연결
+        reinitializeInputEvents();
+    }
+    
+    // 이벤트 리스너 재연결 함수
+    function reinitializeInputEvents() {
+        const newChatInput = document.getElementById('chatInput');
+        const newSendButton = document.getElementById('sendButton');
+        
+        if (newSendButton) {
+            newSendButton.addEventListener('click', sendMessage);
+        }
+        
+        if (newChatInput) {
+            newChatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // 자동 높이 조절
+            newChatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+        
+        // 전역 변수 업데이트
+        chatInput = newChatInput;
+        sendButton = newSendButton;
     }
     
     // 이벤트 리스너
