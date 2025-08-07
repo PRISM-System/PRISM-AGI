@@ -24,12 +24,27 @@ function initSidebarToggle() {
 function initChatFeatures() {
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
+    const bottomChatInput = document.getElementById('bottomChatInput');
+    const bottomSendButton = document.getElementById('bottomSendButton');
     const chatMessages = document.getElementById('chatMessages');
     const newChatBtn = document.getElementById('newChatBtn');
     
     // 메시지 전송 기능
     function sendMessage() {
-        const message = chatInput.value.trim();
+        // 현재 활성화된 입력창에서 메시지 가져오기
+        let message = '';
+        let activeInput = null;
+        
+        if (chatInput && !chatMessages.classList.contains('empty')) {
+            // 환영 상태가 아닐 때는 하단 입력창 사용
+            message = bottomChatInput ? bottomChatInput.value.trim() : '';
+            activeInput = bottomChatInput;
+        } else if (chatInput) {
+            // 환영 상태일 때는 환영 입력창 사용
+            message = chatInput.value.trim();
+            activeInput = chatInput;
+        }
+        
         if (!message) return;
         
         // 빈 상태 클래스 제거
@@ -48,7 +63,10 @@ function initChatFeatures() {
         chatMessages.appendChild(userMessage);
         
         // 입력창 초기화
-        chatInput.value = '';
+        if (activeInput) {
+            activeInput.value = '';
+            activeInput.style.height = 'auto'; // 높이도 초기화
+        }
         
         // 스크롤을 최하단으로
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -146,6 +164,10 @@ function initChatFeatures() {
         sendButton.addEventListener('click', sendMessage);
     }
     
+    if (bottomSendButton) {
+        bottomSendButton.addEventListener('click', sendMessage);
+    }
+    
     if (chatInput) {
         chatInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -156,6 +178,21 @@ function initChatFeatures() {
         
         // 자동 높이 조절
         chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    }
+    
+    if (bottomChatInput) {
+        bottomChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // 자동 높이 조절
+        bottomChatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
