@@ -125,12 +125,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
 
+# 개발 환경에서 static files 경로
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'agiApp' / 'static',
 ]
+
+# 배포 환경에서 static files 수집 경로
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
 MEDIA_URL = 'media/'
