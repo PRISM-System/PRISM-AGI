@@ -20,8 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('agiApp.urls')),
+    path('admin/', admin.site.urls),
     
     # AI 에이전트 URL들
     path('monitoring/', include('agents.monitoring_agent.urls')),

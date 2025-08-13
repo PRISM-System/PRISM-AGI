@@ -5,7 +5,33 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework.response import Response
 import json
+
+class AgentsView(APIView):
+    permission_classes = [AllowAny]  # 공개가 아니면 적절히 수정
+
+    # 프리플라이트 대응
+    def options(self, request, *args, **kwargs):
+        return Response(status=204)
+
+    # 목록 조회 (GET)
+    def get(self, request, *args, **kwargs):
+        # TODO: 실제 목록 로직
+        data = [
+            # 예시 데이터
+            {"name": "freezing-funny-bot", "description": "쓸쓸개그 봇"}
+        ]
+        return Response(data)
+
+    # 생성 (POST)
+    def post(self, request, *args, **kwargs):
+        # TODO: 실제 생성 로직
+        return Response({"ok": True})
+        
 
 def index(request):
     return render(request, 'index.html')
