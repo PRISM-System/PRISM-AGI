@@ -23,11 +23,17 @@ urlpatterns = [
     path('', include('agiApp.urls')),
     path('admin/', admin.site.urls),
     
-    # AI 에이전트 URL들
-    path('monitoring/', include('agents.monitoring_agent.urls')),
-    path('prediction/', include('agents.prediction_agent.urls')),
-    path('control/', include('agents.control_agent.urls')),
-    path('orchestration/', include('agents.orchestration_agent.urls')),
+    # API 엔드포인트들
+    path('api/', include('agiApp.urls')),
+    
+    # 프록시를 직접 /api/agents로 매핑
+    path('api/agents', include('proxy.urls')),
+    path('api/agents/', include('proxy.urls')),
+    
+    path('api/monitoring/', include('agents.monitoring_agent.urls')),
+    path('api/prediction/', include('agents.prediction_agent.urls')),
+    path('api/control/', include('agents.control_agent.urls')),
+    path('api/orchestration/', include('agents.orchestration_agent.urls')),
 ]
 
 # 개발 환경에서 미디어 파일 서빙

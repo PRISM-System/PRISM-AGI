@@ -1,11 +1,10 @@
 // ===============================
 // 환경 설정(필요에 맞게 바꿔 사용)
 // ===============================
-const API_BASE = 'http://127.0.0.1:8000'; // 로컬 서버 (프록시 서버)
-const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
-const USE_GET_FOR_LIST = false;           // true면 GET으로 목록 우회(프리플라이트 줄이기)
-const USE_CREDENTIALS = false;            // 세션/쿠키 사용 시 true + 서버 CORS allow_credentials 필요
-const ACCESS_TOKEN_KEY = 'access_token';  // 로컬스토리지 토큰 키 이름
+const API_BASE = 'http://147.47.39.144:8000'; // 백엔드 베이스 URL
+const USE_GET_FOR_LIST = false;               // true면 GET으로 목록 우회(프리플라이트 줄이기)
+const USE_CREDENTIALS = false;                // 세션/쿠키 사용 시 true + 서버 CORS allow_credentials 필요
+const ACCESS_TOKEN_KEY = 'access_token';      // 로컬스토리지 토큰 키 이름
 
 // 토큰 가져오기(필요 없으면 비워 둬도 됨)
 function getAccessToken() {
@@ -96,25 +95,21 @@ function initChatFeatures() {
     async function fetchAgents(userMessage) {
         try {
             const token = getAccessToken();
-            
-            // "프로젝트 목록" 키워드 감지
-            const shouldUseGet = userMessage && userMessage.includes('프로젝트 목록');
-            const actualMethod = shouldUseGet ? 'GET' : (USE_GET_FOR_LIST ? 'GET' : 'POST');
 
             // 공통 헤더
             const headers = { 'Accept': 'application/json' };
-            if (actualMethod === 'POST') headers['Content-Type'] = 'application/json';
+            if (!USE_GET_FOR_LIST) headers['Content-Type'] = 'application/json';
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
             // fetch 옵션
             const fetchOpts = {
-                method: actualMethod,
+                method: USE_GET_FOR_LIST ? 'GET' : 'POST',
                 headers,
             };
             if (USE_CREDENTIALS) fetchOpts.credentials = 'include';
 
             // POST일 때만 바디 포함
-            if (actualMethod === 'POST') {
+            if (!USE_GET_FOR_LIST) {
                 fetchOpts.body = JSON.stringify({
                     name: userMessage || 'user_agent',
                     description: `사용자 요청: ${userMessage}`,
@@ -122,11 +117,7 @@ function initChatFeatures() {
                 });
             }
 
-            // 프록시를 통해 /api/agents로 요청
-            const endpoint = '/api/agents';
-            const url = `${API_BASE}${endpoint}`;
-            
-            console.log(`Sending ${actualMethod} request to ${url}`, shouldUseGet ? '(프로젝트 목록 감지)' : '');
+            const url = `${API_BASE}/api/agents`;
             const response = await fetch(url, fetchOpts);
 
             // 상태 체크

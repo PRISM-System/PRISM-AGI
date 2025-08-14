@@ -18,6 +18,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://172.31.36.95",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "http://147.47.39.144:8000",  # 클라이언트 IP 추가
 ]
 CORS_ALLOW_CREDENTIALS = False  # 세션/쿠키 cross-site 필요 시 True로 (그땐 화이트리스트 필수)
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
@@ -27,6 +28,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://172.31.36.95",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "http://147.47.39.144:8000",  # 클라이언트 IP 추가
 ]
 
 INSTALLED_APPS = [
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'agiApp',
+    'proxy',  # 프록시 서버 앱 추가
     'agents.monitoring_agent',
     'agents.prediction_agent',
     'agents.control_agent',
@@ -140,6 +143,9 @@ CELERY_TIMEZONE = TIME_ZONE
 
 OPENAI_API_KEY = ''
 ANTHROPIC_API_KEY = ''
+
+# Proxy Server 설정
+PROXY_REMOTE_SERVER = 'http://147.47.39.144:8000'
 
 LOGGING = {
     'version': 1,
