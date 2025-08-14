@@ -65,6 +65,11 @@ body {
     display: none;
 }
 
+/* 축소 상태에서 메뉴 구분선 텍스트 숨기기 */
+.chat-sidebar.collapsed .menu-divider {
+    display: none;
+}
+
 .chat-sidebar.collapsed .user-info span {
     display: none;
 }
@@ -208,6 +213,54 @@ body {
     color: #ffffff;
 }
 
+/* 메뉴 구분선 스타일 */
+.menu-divider {
+    padding: 16px 12px 8px 12px;
+    margin: 8px 0 4px 0;
+    position: relative;
+}
+
+.divider-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+    background: #202123;
+    padding-right: 8px;
+}
+
+.menu-divider::before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #4d4d4f 20%, #4d4d4f 80%, transparent);
+    z-index: 1;
+}
+
+/* 에이전트 관련 메뉴 특별 스타일 */
+.chat-item#createAgentMenu,
+.chat-item#manageAgentsMenu {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-item#createAgentMenu:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+.chat-item#manageAgentsMenu:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
 .sidebar-footer {
     padding: 12px;
     border-top: 1px solid #4d4d4f;
@@ -328,6 +381,7 @@ body {
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
+    align-items: flex-start; /* 아바타를 상단에 고정 */
 }
 
 .message-avatar {
@@ -340,6 +394,7 @@ body {
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
+    margin-top: 2px; /* 메시지 텍스트와 맞춤을 위한 약간의 상단 여백 */
 }
 
 .user-avatar {
@@ -446,5 +501,612 @@ body {
 
 .chat-messages::-webkit-scrollbar-thumb:hover,
 .chat-history::-webkit-scrollbar-thumb:hover {
+    background: #6f7079;
+}
+
+/* ========================================
+   공정 진행 상태 사이드바
+======================================== */
+
+.process-sidebar {
+    width: 0;
+    min-width: 0; /* 기본 상태에서는 최소 너비 없음 */
+    max-width: 80%; /* 최대 너비 */
+    background: #1a1b26;
+    border-left: 1px solid #4d4d4f;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.process-sidebar.active {
+    width: 1215px; /* 초기 크기 */
+    min-width: 400px; /* active 상태에서만 최소 너비 적용 */
+}
+
+/* 크기 조절 핸들 */
+.resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 10;
+    transition: background 0.2s ease;
+}
+
+.resize-handle:hover {
+    background: #3b82f6;
+}
+
+.resize-handle::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 40px;
+    background: #4d4d4f;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.resize-handle:hover::before {
+    opacity: 1;
+}
+
+.process-header {
+    padding: 24px; /* 20px에서 24px로 증가 */
+    background: #202123;
+    border-bottom: 1px solid #4d4d4f;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 헤더 첫 번째 행 (제목과 닫기 버튼) */
+.process-header > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* 에이전트 통신 상태 컨테이너 */
+.agent-status-container {
+    display: flex;
+    gap: clamp(10px, 1.0vw, 16px);
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.agent-status {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 0.6vw, 10px);
+    padding: clamp(8px, 0.8vw, 12px) clamp(12px, 1.2vw, 16px);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: clamp(10px, 1.0vw, 16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: clamp(12px, 1.2vw, 14px);
+    font-weight: 600;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: fit-content;
+    position: relative;
+    overflow: hidden;
+}
+
+.agent-status:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 통신 중일 때 배경 효과 */
+.agent-status.communicating::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+    animation: sweep 1.2s infinite;
+    z-index: 1;
+}
+
+.agent-status.online::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.15), transparent);
+    z-index: 1;
+}
+
+.agent-status.error::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.4), transparent);
+    animation: sweep-error 0.8s infinite;
+    z-index: 1;
+}
+
+@keyframes sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes sweep-error {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes comm-pulse {
+    0% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% { 
+        transform: scale(1.05);
+        opacity: 0.7;
+    }
+    100% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.agent-indicator {
+    width: clamp(10px, 1.0vw, 14px);
+    height: clamp(10px, 1.0vw, 14px);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.agent-indicator.offline {
+    background: #6b7280;
+    box-shadow: 0 0 clamp(6px, 0.6vw, 10px) rgba(107, 114, 128, 0.4);
+}
+
+.agent-indicator.online {
+    background: #10b981;
+    box-shadow: 0 0 clamp(10px, 1.0vw, 16px) rgba(16, 185, 129, 0.8);
+    animation: pulse-green 2s infinite;
+}
+
+.agent-indicator.communicating {
+    background: #3b82f6;
+    box-shadow: 0 0 clamp(12px, 1.2vw, 18px) rgba(59, 130, 246, 0.9);
+    animation: pulse-blue 0.8s infinite;
+}
+
+.agent-indicator.error {
+    background: #ef4444;
+    box-shadow: 0 0 clamp(12px, 1.2vw, 18px) rgba(239, 68, 68, 0.9);
+    animation: pulse-red 0.8s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+        box-shadow: 0 0 clamp(10px, 1.0vw, 16px) rgba(16, 185, 129, 0.8);
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: scale(1.1);
+        box-shadow: 0 0 clamp(15px, 1.5vw, 24px) rgba(16, 185, 129, 1);
+    }
+}
+
+@keyframes pulse-blue {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+        box-shadow: 0 0 clamp(12px, 1.2vw, 18px) rgba(59, 130, 246, 0.9);
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: scale(1.15);
+        box-shadow: 0 0 clamp(20px, 2.0vw, 30px) rgba(59, 130, 246, 1);
+    }
+}
+
+@keyframes pulse-red {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+        box-shadow: 0 0 clamp(12px, 1.2vw, 18px) rgba(239, 68, 68, 0.9);
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: scale(1.15);
+        box-shadow: 0 0 clamp(20px, 2.0vw, 30px) rgba(239, 68, 68, 1);
+    }
+}
+
+.agent-name {
+    font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 13px);
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.agent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 2;
+    position: relative;
+}
+
+.agent-status-text {
+    font-size: clamp(9px, 0.9vw, 11px);
+    font-weight: 400;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.process-title {
+    font-size: 18px; /* 16px에서 18px로 증가 */
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.process-close-btn {
+    background: transparent;
+    border: none;
+    color: #8e8ea0;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.process-close-btn:hover {
+    background: #40414f;
+    color: #ffffff;
+}
+
+.process-content {
+    flex: 1;
+    padding: 24px; /* 20px에서 24px로 증가 */
+    overflow-y: auto;
+}
+
+.process-status {
+    display: flex;
+    align-items: center;
+    gap: 16px; /* 12px에서 16px로 증가 */
+    padding: 20px; /* 16px에서 20px로 증가 */
+    background: #2d2e3f;
+    border-radius: 10px; /* 8px에서 10px로 증가 */
+    margin-bottom: 24px; /* 20px에서 24px로 증가 */
+    font-size: 15px; /* 14px에서 15px로 증가 */
+    font-weight: 500;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.status-indicator.ready {
+    background: #6b7280;
+}
+
+.status-indicator.processing {
+    background: #3b82f6;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.success {
+    background: #10b981;
+}
+
+.status-indicator.error {
+    background: #ef4444;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.process-steps {
+    margin-bottom: 24px; /* 20px에서 24px로 증가 */
+}
+
+/* ========================================
+   가로 진행바 스타일 (새로운 스타일)
+======================================== */
+
+.process-progress-bar {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 1vw, 12px); /* 동적 간격 */
+    margin-bottom: clamp(16px, 2vw, 32px);
+    padding: clamp(16px, 3vw, 40px); /* 동적 패딩 */
+    background: #2d2e3f;
+    border-radius: clamp(8px, 1vw, 16px);
+    overflow-x: auto;
+    min-height: 80px;
+}
+
+.progress-step {
+    flex: 1;
+    min-width: clamp(60px, 8vw, 140px); /* 동적 최소 너비 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin: 0 clamp(2px, 0.5vw, 12px);
+}
+
+.progress-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: clamp(14px, 2vw, 22px);
+    right: -50%;
+    width: calc(100% - clamp(20px, 3vw, 44px));
+    height: clamp(2px, 0.3vw, 6px);
+    background: #374151;
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.progress-step.completed:not(:last-child)::after {
+    background: #10b981;
+}
+
+.progress-step.active:not(:last-child)::after {
+    background: linear-gradient(to right, #3b82f6 50%, #374151 50%);
+}
+
+.progress-indicator {
+    width: clamp(24px, 4vw, 48px); /* 동적 크기 */
+    height: clamp(24px, 4vw, 48px);
+    border-radius: 50%;
+    background: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(10px, 1.5vw, 18px); /* 동적 폰트 크기 */
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: clamp(6px, 1vw, 16px);
+    position: relative;
+    z-index: 2;
+    border: clamp(2px, 0.5vw, 6px) solid #1a1b26;
+}
+
+.progress-indicator.active {
+    background: #3b82f6;
+    animation: pulse 2s infinite;
+}
+
+.progress-indicator.completed {
+    background: #10b981;
+}
+
+.progress-indicator.error {
+    background: #ef4444;
+}
+
+.progress-label {
+    font-size: clamp(9px, 1.2vw, 16px); /* 동적 폰트 크기 */
+    color: #8e8ea0;
+    text-align: center;
+    line-height: 1.4;
+    max-width: clamp(60px, 10vw, 160px); /* 동적 최대 너비 */
+    word-wrap: break-word;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.progress-label.active {
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.progress-label.completed {
+    color: #10b981;
+    font-weight: 500;
+}
+
+/* 현재 진행 중인 스텝의 상세 정보 */
+.current-step-detail {
+    background: #2d2e3f;
+    border-radius: 12px; /* 10px에서 12px로 증가 */
+    padding: 28px; /* 20px에서 28px로 증가 */
+    margin-bottom: 24px; /* 20px에서 24px로 증가 */
+    border-left: 6px solid #3b82f6; /* 4px에서 6px로 증가 */
+}
+
+.current-step-title {
+    font-size: 20px; /* 16px에서 20px로 증가 */
+    font-weight: 600;
+    color: #3b82f6;
+    margin-bottom: 12px; /* 8px에서 12px로 증가 */
+}
+
+.current-step-description {
+    font-size: 16px; /* 14px에서 16px로 증가 */
+    color: #ffffff;
+    line-height: 1.6; /* 1.5에서 1.6으로 증가 */
+    margin-bottom: 12px; /* 8px에서 12px로 증가 */
+}
+
+.current-step-time {
+    font-size: 14px; /* 12px에서 14px로 증가 */
+    color: #6b7280;
+}
+
+/* 기존 세로 스타일은 숨김 */
+
+/* 기존 세로 스타일은 숨김 */
+.process-step {
+    display: none; /* 가로 진행바 사용시 숨김 */
+    align-items: flex-start;
+    gap: 16px; /* 12px에서 16px로 증가 */
+    padding: 16px 0; /* 12px에서 16px로 증가 */
+    border-left: 3px solid #374151; /* 2px에서 3px로 증가 */
+    padding-left: 20px; /* 16px에서 20px로 증가 */
+    margin-left: 8px; /* 6px에서 8px로 증가 */
+    position: relative;
+}
+
+.process-step.active {
+    border-left-color: #3b82f6;
+}
+
+.process-step.completed {
+    border-left-color: #10b981;
+}
+
+.process-step.error {
+    border-left-color: #ef4444;
+}
+
+.step-indicator {
+    width: 24px; /* 20px에서 24px로 증가 */
+    height: 24px; /* 20px에서 24px로 증가 */
+    border-radius: 50%;
+    background: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px; /* 10px에서 11px로 증가 */
+    font-weight: bold;
+    color: #ffffff;
+    position: absolute;
+    left: -13px; /* -11px에서 -13px로 조정 */
+    top: 16px; /* 12px에서 16px로 조정 */
+}
+
+.step-indicator.active {
+    background: #3b82f6;
+    animation: pulse 2s infinite;
+}
+
+.step-indicator.completed {
+    background: #10b981;
+}
+
+.step-indicator.error {
+    background: #ef4444;
+}
+
+.step-content {
+    flex: 1;
+    margin-left: 24px; /* 20px에서 24px로 증가 */
+}
+
+.step-title {
+    font-size: 15px; /* 14px에서 15px로 증가 */
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 6px; /* 4px에서 6px로 증가 */
+}
+
+.step-description {
+    font-size: 13px; /* 12px에서 13px로 증가 */
+    color: #8e8ea0;
+    line-height: 1.5; /* 1.4에서 1.5로 증가 */
+}
+
+.step-time {
+    font-size: 12px; /* 11px에서 12px로 증가 */
+    color: #6b7280;
+    margin-top: 6px; /* 4px에서 6px로 증가 */
+}
+
+.process-details {
+    background: #2d2e3f;
+    border-radius: 10px; /* 8px에서 10px로 증가 */
+    padding: 20px; /* 16px에서 20px로 증가 */
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0; /* 8px에서 10px로 증가 */
+    border-bottom: 1px solid #374151;
+    font-size: 14px; /* 13px에서 14px로 증가 */
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #8e8ea0;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+}
+
+/* 채팅 레이아웃 조정 - 공정 사이드바가 열릴 때 */
+.chat-layout.process-active .chat-main {
+    width: calc(100% - 300px - 1215px); /* 좌측 사이드바(300px) + 우측 사이드바(1215px) */
+}
+
+/* 공정 사이드바 스크롤바 커스터마이징 */
+.process-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.process-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.process-content::-webkit-scrollbar-thumb {
+    background: #565869;
+    border-radius: 3px;
+}
+
+.process-content::-webkit-scrollbar-thumb:hover {
     background: #6f7079;
 }

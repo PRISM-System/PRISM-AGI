@@ -164,3 +164,12 @@ def check_email_api(request):
         return JsonResponse({'error': '잘못된 JSON 형식입니다.'}, status=400)
     except Exception as e:
         return JsonResponse({'error': '서버 오류가 발생했습니다.'}, status=500)
+
+
+def create_agent_page(request):
+    """에이전트 생성 페이지"""
+    return render(request, 'create_agent.html')
+
+def manage_agents_page(request):
+    """에이전트 관리 페이지"""
+    return render(request, 'manage_agents.html')

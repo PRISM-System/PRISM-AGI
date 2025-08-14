@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에이전트 생성 - PRISM-AGI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/agent-creator.css' %}">
+</head>
+<body class="agent-creator-page">
+    <div class="chat-layout">
+        <!-- 좌측 사이드바 -->
+        {% include 'partials/sidebar.html' %}
+        
+        <!-- 메인 에이전트 생성 영역 -->
+        <div class="chat-main">
+            <div class="agent-creator-container">
+                <div class="creator-header">
+                    <button class="back-button" id="backToChat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 12H5l6-6V9l-7 7 7 7v-3l-6-6z"/>
+                        </svg>
+                        채팅으로 돌아가기
+                    </button>
+                    
+                    <h1 class="creator-title">에이전트 생성</h1>
+                    <p class="creator-subtitle">에이전트 생성 페이지</p>
+                </div>
+
+                <div class="creator-content">
+                    <form class="agent-form" id="agentForm">
+                        <!-- 좌측 컬럼: 기본 정보 -->
+                        <div class="form-column-left">
+                            <div class="form-section">
+                                <h2 class="section-title">기본 정보</h2>
+                                
+                                <div class="form-group">
+                                    <label for="agentName" class="form-label">에이전트 이름</label>
+                                    <input type="text" id="agentName" name="name" class="form-input" 
+                                           placeholder="예: 제조공정 최적화 에이전트" required>
+                                    <small class="form-help">에이전트의 역할을 명확히 나타내는 이름을 입력하세요</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="agentDescription" class="form-label">설명</label>
+                                    <textarea id="agentDescription" name="description" class="form-textarea" 
+                                              placeholder="이 에이전트가 수행하는 주요 기능과 목적을 설명하세요" 
+                                              rows="4" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 우측 컬럼: 코드 및 알고리즘 -->
+                        <div class="form-column-right">
+                            <div class="form-section">
+                                <h2 class="section-title">코드 & 알고리즘</h2>
+                                
+                                <!-- 코드 입력 방식 선택 -->
+                                <div class="form-group">
+                                    <label class="form-label">코드 입력 방식</label>
+                                    <div class="code-input-tabs">
+                                        <button type="button" class="tab-button active" data-tab="direct-code">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M8 3v2H6v2H4v2h2v2h2v2h2v-2h2V9h2V7h-2V5h-2V3h-2zm2 4v2h2V7h-2z"/>
+                                            </svg>
+                                            직접 코드 입력
+                                        </button>
+                                        <button type="button" class="tab-button" data-tab="file-upload">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                            </svg>
+                                            파일 업로드
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 직접 코드 입력 탭 -->
+                                <div class="tab-content active" id="direct-code">
+                                    <div class="code-files-container">
+                                        <div class="code-files-header">
+                                            <h3>코드 파일 관리</h3>
+                                            <button type="button" class="btn btn-secondary btn-sm" id="addCodeFile">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2v20m10-10H2"/>
+                                                </svg>
+                                                파일 추가
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="code-files-list" id="codeFilesList">
+                                            <!-- 첫 번째 코드 파일 (기본) -->
+                                            <div class="code-file-item" data-file-id="0">
+                                                <div class="code-file-header">
+                                                    <div class="file-info">
+                                                        <input type="text" class="file-name-input" placeholder="main.py" value="main.py">
+                                                        <select class="file-language-select">
+                                                            <option value="python">Python</option>
+                                                            <option value="javascript">JavaScript</option>
+                                                            <option value="java">Java</option>
+                                                            <option value="cpp">C++</option>
+                                                            <option value="csharp">C#</option>
+                                                            <option value="go">Go</option>
+                                                            <option value="rust">Rust</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="button" class="file-remove-btn" onclick="removeCodeFile(0)" style="display: none;">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div class="code-editor-container">
+                                                    <textarea class="form-textarea code-textarea" 
+                                                              placeholder="# Python 예시&#10;class MyAgent:&#10;    def __init__(self):&#10;        self.name = 'MyAgent'&#10;    &#10;    def process(self, data):&#10;        # 데이터 처리 로직&#10;        return processed_data&#10;    &#10;    def analyze(self, input_data):&#10;        # 분석 로직&#10;        return analysis_result" 
+                                                              rows="10"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="dependencies" class="form-label">의존성 패키지</label>
+                                            <input type="text" id="dependencies" name="dependencies" class="form-input" 
+                                                   placeholder="numpy, pandas, tensorflow (쉼표로 구분)">
+                                            <small class="form-help">필요한 라이브러리나 패키지를 입력하세요</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="entryPointCode" class="form-label">진입점 (Entry Point)</label>
+                                            <input type="text" id="entryPointCode" name="entry_point_code" class="form-input" 
+                                                   placeholder="main.py:main_function 또는 MyClass.process_method">
+                                            <small class="form-help">실행할 메인 함수나 클래스 메서드를 지정하세요</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 파일 업로드 탭 -->
+                                <div class="tab-content" id="file-upload">
+                                    <div class="form-group">
+                                        <label for="algorithmFile" class="form-label">알고리즘 파일</label>
+                                        <div class="file-upload-area" id="fileUploadArea">
+                                            <input type="file" id="algorithmFile" name="algorithm_file" 
+                                                   accept=".py,.js,.java,.cpp,.cs,.go,.rs,.txt" multiple>
+                                            <div class="file-upload-content">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                                </svg>
+                                                <p><strong>파일을 드래그하거나 클릭하여 업로드</strong></p>
+                                                <p class="file-help">지원 형식: .py, .js, .java, .cpp, .cs, .go, .rs, .txt</p>
+                                            </div>
+                                        </div>
+                                        <div class="uploaded-files" id="uploadedFiles"></div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="entryPoint" class="form-label">진입점 (Entry Point)</label>
+                                        <input type="text" id="entryPoint" name="entry_point" class="form-input" 
+                                               placeholder="main.py:main_function 또는 MyClass.process_method">
+                                        <small class="form-help">실행할 메인 함수나 클래스 메서드를 지정하세요</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 액션 버튼 -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="previewAgent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                                미리보기
+                            </button>
+                            
+                            <button type="submit" class="btn btn-primary" id="createAgent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                에이전트 생성
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 미리보기 모달 -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>에이전트 미리보기</h3>
+                <button class="modal-close" id="closePreview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- 미리보기 내용이 여기에 표시됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/chat.js' %}"></script>
+    <script src="{% static 'js/agent-creator.js' %}"></script>
+</body>
+</html>
