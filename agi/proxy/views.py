@@ -14,30 +14,29 @@ logger = logging.getLogger(__name__)
 REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://147.47.39.144:8000')
 
 @csrf_exempt
-def proxy_agents(request):
+def proxy_generate(request):
     """
-    /proxy/agents 요청을 원격 서버로 프록시합니다.
+    /api/generate 요청을 원격 서버로 프록시합니다.
     """
     
     # OPTIONS 요청 (CORS 프리플라이트)
     if request.method == 'OPTIONS':
         return create_cors_response()
     
+    # POST 요청만 허용 (텍스트 생성은 POST만 사용)
+    if request.method != 'POST':
+        return create_error_response("Method not allowed. Use POST for text generation.", 405)
+    
     try:
         # 원격 서버로 요청 전달
-        url = f"{REMOTE_SERVER}/api/agents"
+        url = f"{REMOTE_SERVER}/api/generate"
         logger.info(f"Proxying {request.method} request to {url}")
         
-        if request.method == 'GET':
-            remote_response = requests.get(url, timeout=10)
-        elif request.method == 'POST':
-            # POST 데이터 전달
-            headers = {'Content-Type': 'application/json'}
-            body = request.body.decode('utf-8') if request.body else '{}'
-            logger.debug(f"POST body: {body}")
-            remote_response = requests.post(url, data=body, headers=headers, timeout=10)
-        else:
-            return create_error_response("Method not allowed", 405)
+        # POST 데이터 전달
+        headers = {'Content-Type': 'application/json'}
+        body = request.body.decode('utf-8') if request.body else '{}'
+        logger.debug(f"POST body: {body}")
+        remote_response = requests.post(url, data=body, headers=headers, timeout=30)  # 텍스트 생성은 시간이 걸릴 수 있음
         
         logger.info(f"Remote server response: {remote_response.status_code}")
         

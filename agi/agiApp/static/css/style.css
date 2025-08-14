@@ -4446,3 +4446,95 @@ select.form-input {
         text-align: center;
     }
 }
+
+/* ========================================
+   타이핑 효과 스타일
+======================================== */
+
+/* 타이핑 중인 메시지에 커서 효과 */
+.message-content.typing {
+    position: relative;
+}
+
+.message-content.typing::after {
+    content: '|';
+    color: #007bff;
+    font-weight: bold;
+    animation: blink 1s infinite;
+    margin-left: 2px;
+}
+
+/* 커서 깜빡임 애니메이션 */
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* AI 응답 메시지 스타일 개선 */
+.message.assistant .message-content {
+    /* background-color: #f8f9fa;
+    border-left: 3px solid #007bff; */
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* 사용자 메시지 스타일 */
+.message.user .message-content {
+    /* background-color: #007bff; */
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+    line-height: 1.5;
+    font-size: 14px;
+    margin-left: auto;
+    max-width: 70%;
+}
+
+/* 메시지 컨테이너 */
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    max-width: 100%;
+    align-items: center;
+}
+
+.message.user {
+    justify-content: flex-end;
+}
+
+.message.assistant {
+    justify-content: flex-start;
+}
+
+/* 아바타 스타일 */
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+.assistant-avatar {
+    background-color: #007bff;
+    color: white;
+}
+
+.user-avatar {
+    background-color: #28a745;
+    color: white;
+}

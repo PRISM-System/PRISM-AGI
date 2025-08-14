@@ -86,47 +86,42 @@ function initChatFeatures() {
         // 스크롤 하단
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 사용자 메시지를 기반으로 에이전트 목록/생성 요청
-        fetchAgents(message);
+        // 사용자 메시지를 기반으로 텍스트 생성 요청
+        generateResponse(message);
     }
 
     // ---------------------------
-    // 에이전트 목록/생성 요청
+    // AI 응답 생성 요청
     // ---------------------------
-    async function fetchAgents(userMessage) {
+    async function generateResponse(userMessage) {
         try {
             const token = getAccessToken();
-            
-            // "프로젝트 목록" 키워드 감지
-            const shouldUseGet = userMessage && userMessage.includes('프로젝트 목록');
-            const actualMethod = shouldUseGet ? 'GET' : (USE_GET_FOR_LIST ? 'GET' : 'POST');
 
             // 공통 헤더
-            const headers = { 'Accept': 'application/json' };
-            if (actualMethod === 'POST') headers['Content-Type'] = 'application/json';
+            const headers = { 
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
             // fetch 옵션
             const fetchOpts = {
-                method: actualMethod,
+                method: 'POST',
                 headers,
+                body: JSON.stringify({
+                    prompt: userMessage,
+                    max_tokens: 1024,
+                    temperature: 0.7,
+                    stop: ["string"]
+                })
             };
             if (USE_CREDENTIALS) fetchOpts.credentials = 'include';
 
-            // POST일 때만 바디 포함
-            if (actualMethod === 'POST') {
-                fetchOpts.body = JSON.stringify({
-                    name: userMessage || 'user_agent',
-                    description: `사용자 요청: ${userMessage}`,
-                    role_prompt: `사용자가 "${userMessage}"라고 요청했습니다. 이에 대한 적절한 응답을 제공해주세요.`
-                });
-            }
-
-            // 프록시를 통해 /api/agents로 요청
-            const endpoint = '/api/agents';
+            // /api/generate로 요청
+            const endpoint = '/api/generate';
             const url = `${API_BASE}${endpoint}`;
             
-            console.log(`Sending ${actualMethod} request to ${url}`, shouldUseGet ? '(프로젝트 목록 감지)' : '');
+            console.log(`Sending POST request to ${url} with prompt: "${userMessage}"`);
             const response = await fetch(url, fetchOpts);
 
             // 상태 체크
@@ -136,29 +131,70 @@ function initChatFeatures() {
             }
 
             const data = await response.json();
-            const list = Array.isArray(data) ? data : [data];
-
-            // 목록 포맷팅
-            let agentListText = '현재 사용 가능한 AI 에이전트 목록입니다:\n\n';
-            list.forEach((agent, index) => {
-                const name = agent?.name ?? '(이름 없음)';
-                const description = agent?.description ?? '-';
-                const role = agent?.role_prompt ?? '-';
-                agentListText += `${index + 1}. **${name}**\n`;
-                agentListText += `   - 설명: ${description}\n`;
-                agentListText += `   - 역할: ${role}\n\n`;
-            });
-
-            const aiResponse = createMessageElement('assistant', agentListText);
-            chatMessages.appendChild(aiResponse);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // AI 응답을 타이핑 효과로 표시
+            const aiResponseText = data.response || data.text || data.content || '응답을 생성했습니다.';
+            displayTypingResponse(aiResponseText);
+            
         } catch (error) {
-            console.error('에이전트 목록을 불러오는데 실패했습니다:', error);
-            const errorResponse = createMessageElement(
-                'assistant',
-                '에이전트 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.'
-            );
-            chatMessages.appendChild(errorResponse);
+            console.error('AI 응답 생성 실패:', error);
+            displayTypingResponse('죄송합니다. 응답을 생성하는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+        }
+    }
+
+    // ---------------------------
+    // 타이핑 효과로 응답 표시
+    // ---------------------------
+    function displayTypingResponse(text) {
+        // 빈 메시지 요소 생성
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message assistant';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar assistant-avatar';
+        avatarDiv.textContent = 'AI';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content typing'; // typing 클래스 추가
+        contentDiv.textContent = ''; // 처음에는 빈 텍스트
+
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+
+        // 타이핑 효과 시작
+        typeText(contentDiv, text, 0);
+    }
+
+    // ---------------------------
+    // 텍스트 타이핑 효과
+    // ---------------------------
+    function typeText(element, text, index) {
+        if (index < text.length) {
+            const char = text.charAt(index);
+            element.textContent += char;
+            
+            // 스크롤을 하단으로 유지
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // 문자 타입에 따라 다른 딜레이 적용
+            let delay;
+            if (char === ' ' || char === '\n') {
+                // 공백이나 줄바꿈은 빠르게
+                delay = 10;
+            } else if (char === '.' || char === ',' || char === '!' || char === '?') {
+                // 구두점은 약간 긴 딜레이
+                delay = Math.random() * 15 + 25;
+            } else {
+                // 일반 문자는 빠른 타이핑 (10-25ms)
+                delay = Math.random() * 15 + 10;
+            }
+            
+            setTimeout(() => typeText(element, text, index + 1), delay);
+        } else {
+            // 타이핑 완료 후 커서 제거
+            element.classList.remove('typing');
+            // 마지막 스크롤
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     }

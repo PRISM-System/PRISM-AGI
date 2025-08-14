@@ -26,8 +26,8 @@ urlpatterns = [
     # API 엔드포인트들
     path('api/', include('agiApp.urls')),
     
-    # 프록시를 직접 /api/agents로 매핑
-    path('api/agents', include('proxy.urls')),
+    # 프록시를 직접 /api/generate로 매핑
+    path('api/generate', include('proxy.urls')),
     path('api/agents/', include('proxy.urls')),
     
     path('api/monitoring/', include('agents.monitoring_agent.urls')),
