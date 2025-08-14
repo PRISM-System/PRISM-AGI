@@ -250,7 +250,7 @@ body {
 }
 
 .chat-item#createAgentMenu:hover {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff;
     transform: translateX(2px);
 }
@@ -1109,4 +1109,154 @@ body {
 
 .process-content::-webkit-scrollbar-thumb:hover {
     background: #6f7079;
+}
+
+/* ===============================
+   에이전트 목록 스타일
+   =============================== */
+
+/* 에이전트 아이템 */
+.agent-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 8px 12px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin: 2px 8px;
+}
+
+.agent-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.agent-item.active {
+    background: rgba(16, 163, 127, 0.2);
+}
+
+/* 에이전트 아이콘 */
+.agent-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.agent-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 에이전트 정보 */
+.agent-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.agent-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.agent-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.agent-status span {
+    color: #8e8ea0;
+}
+
+.agent-status.active span {
+    color: #4ade80;
+}
+
+.agent-status.inactive span {
+    color: #94a3b8;
+}
+
+.agent-status.error span {
+    color: #ef4444;
+}
+
+/* 에이전트 목록 로딩 상태 */
+.loading-agents .chat-item {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading-agents .chat-item svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 빈 상태 */
+.agent-item.empty {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.agent-item.empty:hover {
+    background: transparent;
+}
+
+/* 에러 상태 */
+.agent-item.error {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.agent-item.error:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* 축소된 사이드바에서 에이전트 목록 숨기기 */
+.chat-sidebar.collapsed .agent-item .agent-info {
+    display: none;
+}
+
+.chat-sidebar.collapsed .agent-item {
+    justify-content: center;
+    padding: 8px;
+    margin: 2px 4px;
+}
+
+.chat-sidebar.collapsed .agent-icon {
+    margin: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .agent-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    
+    .agent-name {
+        font-size: 14px;
+    }
+    
+    .agent-status {
+        font-size: 12px;
+    }
 }

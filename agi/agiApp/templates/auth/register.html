@@ -1,115 +1,108 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="ko">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>회원가입 - AGI-Agent</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - PRISM-AGI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
 
-		<link rel="stylesheet" href="{% static 'css/reset.css' %}" />
-		<link rel="stylesheet" href="{% static 'css/auth.css' %}" />
-	</head>
-	<body>
-		<div class="auth-container">
-			<div class="auth-card">
-				<div class="auth-header">
-					<div class="logo-container">
-						<div class="logo-icon">
-							<svg
-								width="40"
-								height="40"
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									d="M12 2L2 7V17L12 22L22 17V7L12 2Z"
-									stroke="#3B82F6"
-									stroke-width="2"
-									stroke-linejoin="round"
-								/>
-								<path d="M12 2V22" stroke="#3B82F6" stroke-width="2" />
-								<path d="M2 7L12 12L22 7" stroke="#3B82F6" stroke-width="2" stroke-linejoin="round" />
-							</svg>
-						</div>
-						<h1 class="logo-text">AGI-Agent</h1>
-					</div>
-				</div>
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-container">
+                    <img src="{% static 'img/image_logo.png' %}" alt="PRISM-AGI Logo" class="auth-logo">
+                    <h1 class="logo-text">PRISM-AGI</h1>
+                    <p class="logo-subtitle">Advanced AI System</p>
+                </div>
+            </div>
 
-				<form class="auth-form" method="post" action="{% url 'register' %}">
-					{% csrf_token %} {% if error_message %}
-					<div class="error-message">{{ error_message }}</div>
-					{% endif %}
+            <form class="auth-form" method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+                {% if error_message %}
+                <div class="error-message">{{ error_message }}</div>
+                {% endif %}
 
-					<div class="form-group">
-						<label for="email" class="form-label">이메일(아이디)</label>
-						<input
-							type="email"
-							id="email"
-							name="email"
-							class="form-input"
-							placeholder="사용할 이메일을 입력하세요"
-							required
-							value="{{ form.email.value|default:'' }}"
-						/>
-						{% if form.email.errors %}
-						<div class="field-error">{{ form.email.errors.0 }}</div>
-						{% endif %}
-					</div>
+                <div class="form-group">
+                    <label for="email" class="form-label">이메일 주소</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-input"
+                        placeholder="이메일을 입력하세요"
+                        required
+                        value="{{ form.email.value|default:'' }}"
+                    />
+                    {% if form.email.errors %}
+                    <div class="field-error">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-					<div class="form-group">
-						<label for="password1" class="form-label">비밀번호</label>
-						<input
-							type="password"
-							id="password1"
-							name="password1"
-							class="form-input"
-							placeholder="비밀번호를 입력하세요"
-							required
-						/>
-						{% if form.password1.errors %}
-						<div class="field-error">{{ form.password1.errors.0 }}</div>
-						{% endif %}
-					</div>
+                <div class="form-group">
+                    <label for="password1" class="form-label">비밀번호</label>
+                    <input
+                        type="password"
+                        id="password1"
+                        name="password1"
+                        class="form-input"
+                        placeholder="비밀번호를 입력하세요"
+                        required
+                    />
+                    {% if form.password1.errors %}
+                    <div class="field-error">{{ form.password1.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-					<div class="form-group">
-						<label for="password2" class="form-label">비밀번호 확인</label>
-						<input
-							type="password"
-							id="password2"
-							name="password2"
-							class="form-input"
-							placeholder="비밀번호를 다시 입력하세요"
-							required
-						/>
-						{% if form.password2.errors %}
-						<div class="field-error">{{ form.password2.errors.0 }}</div>
-						{% endif %}
-					</div>
+                <div class="form-group">
+                    <label for="password2" class="form-label">비밀번호 확인</label>
+                    <input
+                        type="password"
+                        id="password2"
+                        name="password2"
+                        class="form-input"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        required
+                    />
+                    {% if form.password2.errors %}
+                    <div class="field-error">{{ form.password2.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-					<div class="form-group">
-						<label class="checkbox-container">
-							<input type="checkbox" name="agree_terms" required />
-							<span class="checkmark"></span>
-							<span class="terms-text">
-								<a href="#" class="terms-link">이용약관</a> 및
-								<a href="#" class="terms-link">개인정보처리방침</a>에 동의합니다
-							</span>
-						</label>
-					</div>
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="agree_terms" required />
+                        <span class="checkmark"></span>
+                        <span class="terms-text">
+                            <a href="#" class="terms-link">이용약관</a> 및
+                            <a href="#" class="terms-link">개인정보처리방침</a>에 동의합니다
+                        </span>
+                    </label>
+                </div>
 
-					<button type="submit" class="auth-button primary">회원가입</button>
-				</form>
+                <button type="submit" class="auth-button primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    PRISM-AGI 가입하기
+                </button>
+            </form>
 
-				<div class="auth-footer">
-					<p class="signup-prompt">
-						이미 계정이 있으신가요?
-						<a href="{% url 'login' %}" class="signup-link">로그인</a>
-					</p>
-				</div>
-			</div>
-		</div>
+            <div class="auth-footer">
+                <p class="signup-prompt">
+                    이미 계정이 있으신가요?
+                    <a href="{% url 'login' %}" class="signup-link">로그인하기</a>
+                </p>
+            </div>
+        </div>
+    </div>
 
-		<script src="{% static 'js/auth.js' %}"></script>
-	</body>
+    <script src="{% static 'js/auth.js' %}"></script>
+</body>
 </html>
