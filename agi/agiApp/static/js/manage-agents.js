@@ -135,80 +135,31 @@ class AgentManager {
     }
 
     async fetchAgentsFromAPI() {
-        // 임시 데모 데이터 (실제로는 API 호출)
-        await new Promise(resolve => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
-        
-        this.agents = [
-            {
-                id: 1,
-                name: 'Data Analyzer Pro',
-                description: '고급 데이터 분석 및 시각화를 수행하는 Python 기반 에이전트입니다. 대용량 데이터 처리와 머신러닝 모델 훈련이 가능합니다.',
-                language: 'python',
-                status: 'active',
-                created: '2024-12-19',
-                lastModified: '2024-12-19',
-                codeFiles: [
-                    { name: 'main.py', language: 'python', code: 'import pandas as pd\nimport numpy as np\n\nclass DataAnalyzer:\n    def __init__(self):\n        self.data = None\n    \n    def load_data(self, file_path):\n        self.data = pd.read_csv(file_path)\n        return self.data' },
-                    { name: 'visualizer.py', language: 'python', code: 'import matplotlib.pyplot as plt\nimport seaborn as sns\n\nclass Visualizer:\n    def create_plot(self, data):\n        plt.figure(figsize=(10, 6))\n        sns.heatmap(data.corr(), annot=True)\n        plt.show()' }
-                ],
-                metrics: {
-                    executions: 145,
-                    successRate: 98.5,
-                    avgRuntime: '2.3초'
-                }
-            },
-            {
-                id: 2,
-                name: 'Web Scraper Bot',
-                description: '웹사이트에서 데이터를 수집하고 정제하는 JavaScript 기반 에이전트입니다.',
-                language: 'javascript',
-                status: 'active',
-                created: '2024-12-18',
-                lastModified: '2024-12-19',
-                codeFiles: [
-                    { name: 'scraper.js', language: 'javascript', code: 'const puppeteer = require("puppeteer");\n\nclass WebScraper {\n    async scrapeData(url) {\n        const browser = await puppeteer.launch();\n        const page = await browser.newPage();\n        await page.goto(url);\n        // 스크래핑 로직\n        await browser.close();\n    }\n}' }
-                ],
-                metrics: {
-                    executions: 67,
-                    successRate: 94.2,
-                    avgRuntime: '5.1초'
-                }
-            },
-            {
-                id: 3,
-                name: 'File Processor',
-                description: '다양한 파일 형식을 처리하고 변환하는 범용 파일 처리 에이전트입니다.',
-                language: 'java',
-                status: 'inactive',
-                created: '2024-12-17',
-                lastModified: '2024-12-17',
-                codeFiles: [
-                    { name: 'FileProcessor.java', language: 'java', code: 'public class FileProcessor {\n    public void processFile(String filePath) {\n        // 파일 처리 로직\n    }\n}' }
-                ],
-                metrics: {
-                    executions: 23,
-                    successRate: 87.0,
-                    avgRuntime: '1.8초'
-                }
-            },
-            {
-                id: 4,
-                name: 'API Monitor',
-                description: 'REST API 상태를 모니터링하고 알림을 보내는 Go 기반 에이전트입니다.',
-                language: 'go',
-                status: 'error',
-                created: '2024-12-16',
-                lastModified: '2024-12-18',
-                codeFiles: [
-                    { name: 'monitor.go', language: 'go', code: 'package main\n\nimport (\n    "fmt"\n    "net/http"\n    "time"\n)\n\nfunc checkAPI(url string) {\n    resp, err := http.Get(url)\n    if err != nil {\n        fmt.Printf("Error: %v\\n", err)\n        return\n    }\n    defer resp.Body.Close()\n}' }
-                ],
-                metrics: {
-                    executions: 12,
-                    successRate: 75.0,
-                    avgRuntime: '0.5초'
-                }
+        try {
+            // 외부 API에서 에이전트 목록 가져오기
+            const response = await fetch('/api/agents/');
+
+            if (!response.ok) {
+                throw new Error(`API 요청 실패: ${response.status}`);
             }
-        ];
+
+            const agentsData = await response.json();
+            
+            // API 응답 데이터를 내부 형식으로 변환
+            this.agents = agentsData.map((agent, index) => ({
+                name: agent.name || '이름 없음',
+                description: agent.description || '설명 없음',
+                role_prompt: agent.role_prompt || ''
+            }));
+
+            console.log('에이전트 목록 로딩 성공:', this.agents);
+            
+        } catch (error) {
+            console.error('API 요청 실패:', error);
+            // 에러 발생 시 빈 배열로 설정
+            this.agents = [];
+            throw error;
+        }
     }
 
     filterAgents() {
@@ -260,45 +211,32 @@ class AgentManager {
     }
 
     createAgentCard(agent) {
-        const statusClass = agent.status;
-        const languageNames = {
-            'python': 'Python',
-            'javascript': 'JavaScript',
-            'java': 'Java',
-            'cpp': 'C++',
-            'csharp': 'C#',
-            'go': 'Go',
-            'rust': 'Rust'
-        };
-
         return `
-            <div class="agent-card" data-agent-id="${agent.id}">
+            <div class="agent-card" data-agent-name="${agent.name}">
                 <div class="agent-header">
                     <h3 class="agent-name">${agent.name}</h3>
-                    <span class="agent-status ${statusClass}">${this.getStatusText(agent.status)}</span>
+                    <span class="agent-status active">활성</span>
                 </div>
                 <p class="agent-description">${agent.description}</p>
                 <div class="agent-meta">
                     <div class="agent-language">
-                        <span class="language-badge">${languageNames[agent.language] || agent.language}</span>
-                        <span>${agent.codeFiles.length}개 파일</span>
+                        <span class="language-badge">Python</span>
                     </div>
-                    <span class="agent-date">${this.formatDate(agent.created)}</span>
                 </div>
                 <div class="agent-actions">
-                    <button class="action-btn view" data-action="view" data-agent-id="${agent.id}">
+                    <button class="action-btn view" data-action="view" data-agent-name="${agent.name}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                         </svg>
                         상세보기
                     </button>
-                    <button class="action-btn edit" data-action="edit" data-agent-id="${agent.id}">
+                    <button class="action-btn edit" data-action="edit" data-agent-name="${agent.name}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                         </svg>
                         편집
                     </button>
-                    <button class="action-btn delete" data-action="delete" data-agent-id="${agent.id}">
+                    <button class="action-btn delete" data-action="delete" data-agent-name="${agent.name}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </svg>
@@ -316,8 +254,8 @@ class AgentManager {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const action = button.dataset.action;
-                const agentId = parseInt(button.dataset.agentId);
-                const agent = this.agents.find(a => a.id === agentId);
+                const agentName = button.dataset.agentName;
+                const agent = this.agents.find(a => a.name === agentName);
                 
                 if (!agent) return;
                 
@@ -341,8 +279,8 @@ class AgentManager {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.action-btn')) return;
                 
-                const agentId = parseInt(card.dataset.agentId);
-                const agent = this.agents.find(a => a.id === agentId);
+                const agentName = card.dataset.agentName;
+                const agent = this.agents.find(a => a.name === agentName);
                 if (agent) {
                     this.viewAgentDetails(agent);
                 }
@@ -371,7 +309,7 @@ class AgentManager {
             <div class="agent-detail">
                 <div class="detail-header">
                     <h2>${agent.name}</h2>
-                    <span class="agent-status ${agent.status}">${this.getStatusText(agent.status)}</span>
+                    <span class="agent-status active">활성</span>
                 </div>
                 
                 <div class="detail-section">
@@ -380,54 +318,8 @@ class AgentManager {
                 </div>
                 
                 <div class="detail-section">
-                    <h4>기본 정보</h4>
-                    <div class="detail-grid">
-                        <div>
-                            <strong>언어:</strong> ${languageNames[agent.language] || agent.language}
-                        </div>
-                        <div>
-                            <strong>생성일:</strong> ${this.formatDate(agent.created)}
-                        </div>
-                        <div>
-                            <strong>수정일:</strong> ${this.formatDate(agent.lastModified)}
-                        </div>
-                        <div>
-                            <strong>파일 수:</strong> ${agent.codeFiles.length}개
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="detail-section">
-                    <h4>성능 지표</h4>
-                    <div class="metrics-grid">
-                        <div class="metric-item">
-                            <span class="metric-value">${agent.metrics.executions}</span>
-                            <span class="metric-label">실행 횟수</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value">${agent.metrics.successRate}%</span>
-                            <span class="metric-label">성공률</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value">${agent.metrics.avgRuntime}</span>
-                            <span class="metric-label">평균 실행시간</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="detail-section">
-                    <h4>코드 파일</h4>
-                    <div class="code-files-list">
-                        ${agent.codeFiles.map(file => `
-                            <div class="code-file-item">
-                                <div class="file-header">
-                                    <span class="file-name">${file.name}</span>
-                                    <span class="language-badge">${languageNames[file.language] || file.language}</span>
-                                </div>
-                                <pre class="code-preview"><code>${this.escapeHtml(file.code.substring(0, 200))}${file.code.length > 200 ? '...' : ''}</code></pre>
-                            </div>
-                        `).join('')}
-                    </div>
+                    <h4>역할 프롬프트</h4>
+                    <p>${agent.role_prompt}</p>
                 </div>
                 
                 <div class="detail-actions">
@@ -464,19 +356,47 @@ class AgentManager {
         if (!this.selectedAgent) return;
         
         try {
-            // API 호출로 에이전트 삭제 (임시로 로컬에서 제거)
-            this.agents = this.agents.filter(agent => agent.id !== this.selectedAgent.id);
-            this.filterAgents(); // 필터링된 목록 업데이트
-            
-            this.closeModal('deleteConfirmModal');
-            this.closeModal('agentDetailModal');
-            
-            this.showSuccess(`에이전트 "${this.selectedAgent.name}"이(가) 삭제되었습니다.`);
-            this.selectedAgent = null;
+            // 로딩 표시
+            const confirmButton = document.getElementById('confirmDelete');
+            if (confirmButton) {
+                confirmButton.disabled = true;
+                confirmButton.textContent = '삭제 중...';
+            }
+
+            // API 호출로 에이전트 삭제
+            const response = await fetch(`/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCsrfToken()
+                }
+            });
+
+            if (response.ok) {
+                // 로컬 목록에서 제거
+                this.agents = this.agents.filter(agent => agent.name !== this.selectedAgent.name);
+                this.filterAgents(); // 필터링된 목록 업데이트
+                
+                this.closeModal('deleteConfirmModal');
+                this.closeModal('agentDetailModal');
+                
+                this.showSuccess(`에이전트 "${this.selectedAgent.name}"이(가) 삭제되었습니다.`);
+                this.selectedAgent = null;
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `삭제 실패: ${response.status}`);
+            }
             
         } catch (error) {
             console.error('에이전트 삭제 실패:', error);
-            this.showError('에이전트 삭제에 실패했습니다.');
+            this.showError(error.message || '에이전트 삭제에 실패했습니다.');
+        } finally {
+            // 버튼 상태 복원
+            const confirmButton = document.getElementById('confirmDelete');
+            if (confirmButton) {
+                confirmButton.disabled = false;
+                confirmButton.textContent = '삭제';
+            }
         }
     }
 
@@ -552,6 +472,21 @@ class AgentManager {
                 document.body.removeChild(notification);
             }, 300);
         }, 3000);
+    }
+
+    getCsrfToken() {
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+        
+        const csrfCookie = document.cookie.split(';')
+            .find(cookie => cookie.trim().startsWith('csrftoken='));
+        if (csrfCookie) {
+            return csrfCookie.split('=')[1];
+        }
+        
+        return '';
     }
 }
 

@@ -173,3 +173,7 @@ def create_agent_page(request):
 def manage_agents_page(request):
     """에이전트 관리 페이지"""
     return render(request, 'manage_agents.html')
+
+def register_tool_page(request):
+    """도구 등록 페이지"""
+    return render(request, 'register_tool.html')

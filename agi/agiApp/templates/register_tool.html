@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도구 등록 - PRISM-AGI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tool-register.css' %}">
+</head>
+<body class="tool-register-page">
+    {% csrf_token %}
+    <div class="chat-layout">
+        <!-- 좌측 사이드바 -->
+        {% include 'partials/sidebar.html' %}
+        
+        <!-- 메인 도구 등록 영역 -->
+        <div class="chat-main">
+            <div class="tool-register-container">
+                <div class="register-header">
+                    <button class="back-button" id="backButton">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 12H5l6-6V9l-7 7 7 7v-3l-6-6z"/>
+                        </svg>
+                        채팅으로 돌아가기
+                    </button>
+                    
+                    <h1 class="register-title">도구 등록</h1>
+                    <p class="register-subtitle">외부 API를 활용한 새로운 도구를 등록하세요</p>
+                </div>
+
+        <!-- 메인 컨텐츠 -->
+        <div class="tool-register-main">
+            <div class="tool-register-container">
+                <div class="tool-register-form">
+                    <form id="toolRegisterForm">
+                        {% csrf_token %}
+                        
+                        <!-- 기본 정보 섹션 -->
+                        <div class="form-section">
+                            <h2 class="section-title">기본 정보</h2>
+                            
+                            <div class="form-group">
+                                <label for="toolName" class="form-label">도구 이름 *</label>
+                                <input 
+                                    type="text" 
+                                    id="toolName" 
+                                    name="name" 
+                                    class="form-input" 
+                                    placeholder="예: weather_api, database_query"
+                                    required
+                                >
+                                <div class="form-help">도구의 고유한 이름을 입력하세요. 영문, 숫자, 언더스코어만 사용 가능합니다.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="toolDescription" class="form-label">도구 설명 *</label>
+                                <textarea 
+                                    id="toolDescription" 
+                                    name="description" 
+                                    class="form-textarea" 
+                                    placeholder="이 도구가 무엇을 하는지 설명해주세요."
+                                    rows="3"
+                                    required
+                                ></textarea>
+                                <div class="form-help">도구의 기능과 용도를 자세히 설명해주세요.</div>
+                            </div>
+                        </div>
+
+                        <!-- 입력 스키마 섹션 -->
+                        <div class="form-section">
+                            <h2 class="section-title">입력 스키마</h2>
+                            <div class="form-help section-help">도구가 받을 수 있는 입력 매개변수를 JSON 스키마 형식으로 정의하세요.</div>
+                            
+                            <div class="form-group">
+                                <label for="inputSchema" class="form-label">JSON 스키마 *</label>
+                                <textarea 
+                                    id="inputSchema" 
+                                    name="input_schema" 
+                                    class="form-code-textarea" 
+                                    placeholder='{"type": "object", "properties": {"query": {"type": "string", "description": "검색 쿼리"}}, "required": ["query"]}'
+                                    rows="8"
+                                    required
+                                ></textarea>
+                                <div class="schema-help">
+                                    <div class="help-title">예시:</div>
+                                    <pre class="help-code">{
+  "type": "object",
+  "properties": {
+    "city": {
+      "type": "string",
+      "description": "도시 이름"
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["celsius", "fahrenheit"],
+      "description": "온도 단위"
+    }
+  },
+  "required": ["city"]
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 엔드포인트 섹션 -->
+                        <div class="form-section">
+                            <h2 class="section-title">엔드포인트 설정</h2>
+                            
+                            <div class="form-group">
+                                <label for="endpointUrl" class="form-label">API URL *</label>
+                                <input 
+                                    type="url" 
+                                    id="endpointUrl" 
+                                    name="endpoint_url" 
+                                    class="form-input" 
+                                    placeholder="https://api.example.com/v1/weather"
+                                    required
+                                >
+                                <div class="form-help">도구가 호출할 API의 전체 URL을 입력하세요.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endpointMethod" class="form-label">HTTP 메서드 *</label>
+                                <select id="endpointMethod" name="endpoint_method" class="form-select" required>
+                                    <option value="">메서드 선택</option>
+                                    <option value="GET">GET</option>
+                                    <option value="POST" selected>POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="PATCH">PATCH</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endpointHeaders" class="form-label">HTTP 헤더 (선택사항)</label>
+                                <textarea 
+                                    id="endpointHeaders" 
+                                    name="endpoint_headers" 
+                                    class="form-code-textarea" 
+                                    placeholder='{"Authorization": "Bearer YOUR_TOKEN", "Content-Type": "application/json"}'
+                                    rows="4"
+                                ></textarea>
+                                <div class="form-help">API 호출에 필요한 헤더를 JSON 형식으로 입력하세요.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endpointTimeout" class="form-label">타임아웃 (초)</label>
+                                <input 
+                                    type="number" 
+                                    id="endpointTimeout" 
+                                    name="endpoint_timeout" 
+                                    class="form-input" 
+                                    placeholder="10"
+                                    min="1"
+                                    max="300"
+                                    value="10"
+                                >
+                                <div class="form-help">API 응답을 기다릴 최대 시간 (1-300초)</div>
+                            </div>
+                        </div>
+
+                        <!-- 버튼 영역 -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelButton">취소</button>
+                            <button type="submit" class="btn btn-primary" id="submitButton">
+                                <span class="button-text">도구 등록</span>
+                                <div class="button-spinner" style="display: none;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 도움말 사이드바 -->
+                <div class="tool-register-sidebar">
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">💡 도구 등록 가이드</h3>
+                        <div class="sidebar-content">
+                            <div class="guide-item">
+                                <h4>1. 도구 이름</h4>
+                                <p>API나 함수를 식별할 수 있는 고유한 이름을 사용하세요.</p>
+                            </div>
+                            <div class="guide-item">
+                                <h4>2. 입력 스키마</h4>
+                                <p>JSON Schema 형식으로 매개변수를 정의합니다. type, properties, required 필드를 포함하세요.</p>
+                            </div>
+                            <div class="guide-item">
+                                <h4>3. 엔드포인트</h4>
+                                <p>실제 호출될 API의 URL과 HTTP 메서드를 정확히 입력하세요.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">🔧 자주 사용되는 스키마</h3>
+                        <div class="sidebar-content">
+                            <div class="schema-template" data-template="weather">
+                                <h4>날씨 API</h4>
+                                <p>도시별 날씨 정보 조회</p>
+                            </div>
+                            <div class="schema-template" data-template="search">
+                                <h4>검색 API</h4>
+                                <p>키워드 기반 검색</p>
+                            </div>
+                            <div class="schema-template" data-template="translation">
+                                <h4>번역 API</h4>
+                                <p>텍스트 번역 서비스</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/tool-register.js' %}"></script>
+</body>
+</html>

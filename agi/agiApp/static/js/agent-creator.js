@@ -164,22 +164,28 @@ function addNewCodeFile() {
 
 // 코드 파일 HTML 생성
 function createCodeFileItemHtml(file) {
+    const fileId = file.id;
+    const fileName = file.name;
+    const fileLanguage = file.language;
+    const fileContent = file.content;
+    const hideRemoveBtn = fileId === 0 ? 'style="display: none;"' : '';
+    
     return `
-        <div class="code-file-item" data-file-id="${file.id}">
+        <div class="code-file-item" data-file-id="${fileId}">
             <div class="code-file-header">
                 <div class="file-info">
-                    <input type="text" class="file-name-input" placeholder="filename.py" value="${file.name}">
+                    <input type="text" class="file-name-input" placeholder="filename.py" value="${fileName}">
                     <select class="file-language-select">
-                        <option value="python" ${file.language === 'python' ? 'selected' : ''}>Python</option>
-                        <option value="javascript" ${file.language === 'javascript' ? 'selected' : ''}>JavaScript</option>
-                        <option value="java" ${file.language === 'java' ? 'selected' : ''}>Java</option>
-                        <option value="cpp" ${file.language === 'cpp' ? 'selected' : ''}>C++</option>
-                        <option value="csharp" ${file.language === 'csharp' ? 'selected' : ''}>C#</option>
-                        <option value="go" ${file.language === 'go' ? 'selected' : ''}>Go</option>
-                        <option value="rust" ${file.language === 'rust' ? 'selected' : ''}>Rust</option>
+                        <option value="python" ${fileLanguage === 'python' ? 'selected' : ''}>Python</option>
+                        <option value="javascript" ${fileLanguage === 'javascript' ? 'selected' : ''}>JavaScript</option>
+                        <option value="java" ${fileLanguage === 'java' ? 'selected' : ''}>Java</option>
+                        <option value="cpp" ${fileLanguage === 'cpp' ? 'selected' : ''}>C++</option>
+                        <option value="csharp" ${fileLanguage === 'csharp' ? 'selected' : ''}>C#</option>
+                        <option value="go" ${fileLanguage === 'go' ? 'selected' : ''}>Go</option>
+                        <option value="rust" ${fileLanguage === 'rust' ? 'selected' : ''}>Rust</option>
                     </select>
                 </div>
-                <button type="button" class="file-remove-btn" onclick="removeCodeFile(${file.id})" ${file.id === 0 ? 'style="display: none;"' : ''}>
+                <button type="button" class="file-remove-btn" onclick="removeCodeFile(${fileId})" ${hideRemoveBtn}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
                     </svg>
@@ -187,8 +193,8 @@ function createCodeFileItemHtml(file) {
             </div>
             <div class="code-editor-container">
                 <textarea class="form-textarea code-textarea" 
-                          placeholder="# 여기에 ${file.language} 코드를 입력하세요" 
-                          rows="10">${file.content}</textarea>
+                          placeholder="# 여기에 ${fileLanguage} 코드를 입력하세요" 
+                          rows="10">${fileContent}</textarea>
             </div>
         </div>
     `;
@@ -222,7 +228,7 @@ function setupCodeFileEvents(fileId) {
             
             // placeholder 업데이트
             if (textarea) {
-                textarea.placeholder = `# 여기에 ${e.target.value} 코드를 입력하세요`;
+                textarea.placeholder = '# 여기에 ' + e.target.value + ' 코드를 입력하세요';
             }
         });
     }
@@ -495,22 +501,16 @@ function showPreview() {
 
 // 에이전트 생성
 async function createAgent() {
-    const formData = gatherFormData();
     const createButton = document.getElementById('createAgent');
 
-    if (!formData.name || !formData.description) {
-        alert('필수 필드를 모두 입력해주세요.');
-        return;
-    }
+    // 기본 정보 수집
+    const name = document.getElementById('agentName').value.trim();
+    const description = document.getElementById('agentDescription').value.trim();
+    const rolePrompt = document.getElementById('rolePrompt').value.trim();
 
-    // 코드 입력 방식에 따른 검증
-    if (formData.input_method === 'direct-code') {
-        if (codeFiles.length === 0 || codeFiles.every(file => !file.content.trim())) {
-            alert('최소 하나의 코드 파일에 내용을 입력해주세요.');
-            return;
-        }
-    } else if (formData.input_method === 'file-upload' && uploadedFiles.length === 0) {
-        alert('알고리즘 파일을 업로드해주세요.');
+    // 필수 필드 검증
+    if (!name || !description || !rolePrompt) {
+        alert('모든 필드를 입력해주세요.');
         return;
     }
 
@@ -525,53 +525,38 @@ async function createAgent() {
     createButton.disabled = true;
 
     try {
-        // FormData 객체 생성 (파일 업로드를 위해)
-        const submitData = new FormData();
-        submitData.append('name', formData.name);
-        submitData.append('description', formData.description);
-        submitData.append('input_method', formData.input_method);
+        // API 요청 데이터 준비
+        const requestData = {
+            name: name,
+            description: description,
+            role_prompt: rolePrompt
+        };
 
-        if (formData.input_method === 'direct-code') {
-            submitData.append('code_files', JSON.stringify(formData.code_files));
-            submitData.append('dependencies', formData.dependencies);
-            submitData.append('entry_point', formData.entry_point);
-        } else {
-            submitData.append('entry_point', formData.entry_point);
-            uploadedFiles.forEach((file, index) => {
-                submitData.append(`files_${index}`, file);
-            });
-        }
+        console.log('요청 데이터 (객체):', requestData);
+        console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
+        console.log('CSRF 토큰:', getCsrfToken());
 
-        const response = await fetch('/api/agents', {
+        const response = await fetch('/api/agents/', {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCsrfToken()
             },
-            body: submitData
+            body: JSON.stringify(requestData)
         });
+
+        console.log('응답 상태:', response.status);
+        console.log('응답 헤더:', response.headers);
 
         if (response.ok) {
             const result = await response.json();
+            console.log('응답 결과:', result);
             
             // 성공 메시지 표시
             alert('에이전트가 성공적으로 생성되었습니다!');
             
             // 폼 초기화
             document.getElementById('agentForm').reset();
-            codeFiles = [{
-                id: 0,
-                name: 'main.py',
-                language: 'python',
-                content: ''
-            }];
-            uploadedFiles = [];
-            document.getElementById('uploadedFiles').innerHTML = '';
-            
-            // 코드 파일 목록 초기화
-            const codeFilesList = document.getElementById('codeFilesList');
-            codeFilesList.innerHTML = createCodeFileItemHtml(codeFiles[0]);
-            setupCodeFileEvents(0);
-            updateRemoveButtons();
             
             // 채팅 페이지로 이동
             setTimeout(() => {
@@ -579,12 +564,13 @@ async function createAgent() {
             }, 1000);
             
         } else {
-            const error = await response.json();
-            alert('에이전트 생성에 실패했습니다: ' + (error.detail || '알 수 없는 오류'));
+            const errorText = await response.text();
+            console.error('API Error:', response.status, errorText);
+            alert(`에이전트 생성에 실패했습니다: ${response.status} - ${errorText}`);
         }
     } catch (error) {
         console.error('에이전트 생성 오류:', error);
-        alert('에이전트 생성 중 오류가 발생했습니다.');
+        alert(`에이전트 생성 중 오류가 발생했습니다: ${error.message}`);
     } finally {
         // 버튼 상태 복원
         createButton.innerHTML = originalText;

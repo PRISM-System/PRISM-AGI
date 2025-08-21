@@ -7,7 +7,7 @@ body:has(.agent-creator-container) .chat-main,
 .agent-creator-page .chat-main {
     max-width: none;
     width: calc(100% - 280px); /* 사이드바 너비만큼 빼기 */
-    margin-left: 280px; /* 사이드바 너비만큼 마진 */
+    /* margin-left: 280px; 사이드바 너비만큼 마진 */
 }
 
 /* 사이드바가 닫혔을 때 */
@@ -555,14 +555,14 @@ body:has(.agent-creator-container) .chat-sidebar.collapsed ~ .chat-main,
     display: flex;
     justify-content: center;
     gap: 16px;
-    margin-top: 32px;
-    padding-top: 24px;
+    padding-top: 10px;
     border-top: 1px solid #374151;
 }
 
 .btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 12px 24px;
     border-radius: 8px;
@@ -572,6 +572,7 @@ body:has(.agent-creator-container) .chat-sidebar.collapsed ~ .chat-main,
     transition: all 0.3s ease;
     border: none;
     text-decoration: none;
+    width: 160px;
 }
 
 .btn-primary {

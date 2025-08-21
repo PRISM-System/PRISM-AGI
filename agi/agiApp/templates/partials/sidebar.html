@@ -38,6 +38,13 @@
             <span>에이전트 관리</span>
         </div>
         
+        <div class="chat-item" id="registerToolMenu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4zM6.7 8.8c-.7.7-1.9.7-2.6 0-.7-.7-.7-1.9 0-2.6.7-.7 1.9-.7 2.6 0 .7.7.7 1.9 0 2.6z"/>
+            </svg>
+            <span>도구 등록</span>
+        </div>
+        
         <!-- 에이전트 목록 섹션 -->
         <div class="menu-divider">
             <span class="divider-text">에이전트 목록</span>
@@ -45,14 +52,7 @@
         
         <div id="agentsList">
             <!-- 에이전트들이 동적으로 여기에 추가됩니다 -->
-            <div class="loading-agents">
-                <div class="chat-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2v20"/>
-                    </svg>
-                    <span>에이전트 로딩 중...</span>
-                </div>
-            </div> 
+            <!-- 로딩 상태는 JavaScript에서 동적으로 처리 -->
         </div>
         
         <!-- 기존 메뉴들 -->

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/manage-agents.css' %}">
 </head>
 <body class="manage-agents-page">
+    {% csrf_token %}
     <div class="chat-layout">
         <!-- 좌측 사이드바 -->
         {% include 'partials/sidebar.html' %}

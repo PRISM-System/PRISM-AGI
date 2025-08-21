@@ -1,6 +1,8 @@
 // ===============================
 // 환경 설정(필요에 맞게 바꿔 사용)
 // ===============================
+console.log('🔧 chat.js 파일 로드됨');
+
 const API_BASE = 'http://127.0.0.1:8000'; // 로컬 서버 (프록시 서버)
 const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
 const USE_GET_FOR_LIST = false;           // true면 GET으로 목록 우회(프리플라이트 줄이기)
@@ -1203,6 +1205,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function initSidebarMenuEvents() {
     const createAgentMenu = document.getElementById('createAgentMenu');
     const manageAgentsMenu = document.getElementById('manageAgentsMenu');
+    const registerToolMenu = document.getElementById('registerToolMenu');
     
     if (createAgentMenu) {
         createAgentMenu.addEventListener('click', () => {
@@ -1216,13 +1219,21 @@ function initSidebarMenuEvents() {
         });
     }
     
+    if (registerToolMenu) {
+        registerToolMenu.addEventListener('click', () => {
+            window.location.href = '/register-tool/';
+        });
+    }
+    
     // 에이전트 목록 로드
-    loadAgentsInSidebar();
+    // loadAgentsInSidebar(); // 주석 처리: SidebarAgentManager로 대체됨
 }
 
 // ===============================
-// 사이드바 에이전트 목록 관리
+// 사이드바 에이전트 목록 관리 (기존 코드 - 주석 처리됨)
+// SidebarAgentManager로 대체됨
 // ===============================
+/*
 async function loadAgentsInSidebar() {
     const agentsList = document.getElementById('agentsList');
     if (!agentsList) return;
@@ -1322,6 +1333,7 @@ function renderAgentsInSidebar(agents) {
         });
     });
 }
+*/
 
 function getAgentStatusIcon(status) {
     switch (status) {
@@ -1369,3 +1381,185 @@ function getStatusText(status) {
             return '알 수 없음';
     }
 }
+
+// ===============================
+// Sidebar 에이전트 목록 관리
+// ===============================
+class SidebarAgentManager {
+    constructor() {
+        console.log('🚀 SidebarAgentManager 초기화 시작');
+        this.agentsListContainer = document.getElementById('agentsList');
+        console.log('📋 agentsList 컨테이너:', this.agentsListContainer);
+        this.loadAgents();
+        this.bindMenuEvents();
+    }
+
+    async loadAgents() {
+        try {
+            console.log('🔄 에이전트 목록 로딩 시작...');
+            
+            // 로딩 상태 표시
+            this.showLoading();
+            
+            const response = await fetch('/api/agents/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('📡 API 응답 상태:', response.status);
+
+            if (response.ok) {
+                const agents = await response.json();
+                console.log('✅ 에이전트 데이터 수신:', agents);
+                this.renderAgents(agents);
+            } else {
+                console.error('❌ API 요청 실패:', response.status, response.statusText);
+                this.renderError('에이전트 목록을 불러올 수 없습니다.');
+            }
+        } catch (error) {
+            console.error('❌ 에이전트 목록 로딩 실패:', error);
+            this.renderError('에이전트 목록을 불러올 수 없습니다.');
+        }
+    }
+
+    renderAgents(agents) {
+        if (!this.agentsListContainer) return;
+
+        console.log('🖼️ 에이전트 렌더링 시작, 에이전트 수:', agents.length);
+
+        if (!agents || agents.length === 0) {
+            console.log('📭 에이전트 없음, 빈 상태 메시지 표시');
+            this.agentsListContainer.innerHTML = `
+                <div class="chat-item disabled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span>등록된 에이전트가 없습니다</span>
+                </div>
+            `;
+            return;
+        }
+
+        console.log('🎨 에이전트 카드 생성 중...');
+        const agentElements = agents.map(agent => `
+            <div class="chat-item agent-item" data-agent-name="${agent.name}" title="${agent.description}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>${agent.name}</span>
+            </div>
+        `).join('');
+
+        this.agentsListContainer.innerHTML = agentElements;
+        console.log('✨ 에이전트 카드 렌더링 완료');
+
+        // 잠시 후 다시 확인하여 덮어쓰기 감지
+        setTimeout(() => {
+            if (this.agentsListContainer.innerHTML !== agentElements) {
+                console.warn('⚠️ 에이전트 목록이 다른 코드에 의해 덮어쓰였습니다!');
+                console.log('현재 HTML:', this.agentsListContainer.innerHTML);
+                // 다시 렌더링 시도
+                this.agentsListContainer.innerHTML = agentElements;
+            }
+        }, 1000);
+
+        // 에이전트 클릭 이벤트 추가
+        this.agentsListContainer.querySelectorAll('.agent-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const agentName = item.dataset.agentName;
+                this.selectAgent(agentName);
+            });
+        });
+    }
+
+    renderError(message) {
+        if (!this.agentsListContainer) return;
+
+        this.agentsListContainer.innerHTML = `
+            <div class="chat-item error">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+    }
+
+    showLoading() {
+        if (!this.agentsListContainer) return;
+
+        this.agentsListContainer.innerHTML = `
+            <div class="loading-agents">
+                <div class="chat-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2v20"/>
+                    </svg>
+                    <span>에이전트 로딩 중...</span>
+                </div>
+            </div>
+        `;
+    }
+
+    selectAgent(agentName) {
+        // 모든 에이전트 항목에서 active 클래스 제거
+        this.agentsListContainer.querySelectorAll('.agent-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 선택된 에이전트에 active 클래스 추가
+        const selectedItem = this.agentsListContainer.querySelector(`[data-agent-name="${agentName}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+        }
+
+        // 채팅 입력창에 에이전트 선택 안내 메시지 표시 (선택사항)
+        console.log(`에이전트 "${agentName}" 선택됨`);
+    }
+
+    bindMenuEvents() {
+        // 에이전트 생성 메뉴
+        const createAgentMenu = document.getElementById('createAgentMenu');
+        if (createAgentMenu) {
+            createAgentMenu.addEventListener('click', () => {
+                window.location.href = '/create-agent/';
+            });
+        }
+
+        // 에이전트 관리 메뉴
+        const manageAgentsMenu = document.getElementById('manageAgentsMenu');
+        if (manageAgentsMenu) {
+            manageAgentsMenu.addEventListener('click', () => {
+                window.location.href = '/manage-agents/';
+            });
+        }
+    }
+
+    // 에이전트 목록 새로고침 (에이전트 생성/삭제 후 호출)
+    refresh() {
+        this.loadAgents();
+    }
+}
+
+// 페이지 로드 시 SidebarAgentManager 초기화
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOM 로드 완료, SidebarAgentManager 생성 중...');
+    window.sidebarAgentManager = new SidebarAgentManager();
+});
+
+// 즉시 실행으로도 테스트
+console.log('🎯 즉시 실행 테스트...');
+if (document.readyState === 'loading') {
+    console.log('📄 문서 로딩 중...');
+} else {
+    console.log('📄 문서 로드 완료, 즉시 실행');
+    window.sidebarAgentManager = new SidebarAgentManager();
+}
+
+// 전역에서 사용할 수 있도록 함수 노출
+window.refreshSidebarAgents = () => {
+    if (window.sidebarAgentManager) {
+        window.sidebarAgentManager.refresh();
+    }
+};
