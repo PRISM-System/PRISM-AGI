@@ -279,6 +279,11 @@ def agents_api(request, agent_name=None):
             logger.error(f"Agent creation error: {e}")
             return create_error_response(f"에이전트 생성 중 오류가 발생했습니다: {str(e)}", 500)
     
+    # PUT 방식은 외부 API에서 지원하지 않으므로 주석 처리
+    # 외부 API는 같은 이름으로 POST 요청을 보내면 기존 에이전트를 수정함
+    # elif request.method == 'PUT':
+    #     ... (PUT 처리 코드)
+    
     elif request.method == 'DELETE':
         try:
             # URL 파라미터에서 agent_name 사용

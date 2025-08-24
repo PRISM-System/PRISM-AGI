@@ -144,13 +144,17 @@ class AgentManager {
             }
 
             const agentsData = await response.json();
+            console.log('Raw API response:', agentsData);
             
             // API 응답 데이터를 내부 형식으로 변환
-            this.agents = agentsData.map((agent, index) => ({
-                name: agent.name || '이름 없음',
-                description: agent.description || '설명 없음',
-                role_prompt: agent.role_prompt || ''
-            }));
+            this.agents = agentsData.map((agent, index) => {
+                console.log(`Processing agent ${index}:`, agent);
+                return {
+                    name: agent.name || '이름 없음',
+                    description: agent.description || '설명 없음',
+                    role_prompt: agent.role_prompt || ''
+                };
+            });
 
             console.log('에이전트 목록 로딩 성공:', this.agents);
             
@@ -230,12 +234,6 @@ class AgentManager {
                         </svg>
                         상세보기
                     </button>
-                    <button class="action-btn edit" data-action="edit" data-agent-name="${agent.name}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                        </svg>
-                        편집
-                    </button>
                     <button class="action-btn delete" data-action="delete" data-agent-name="${agent.name}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -263,9 +261,6 @@ class AgentManager {
                     case 'view':
                         this.viewAgentDetails(agent);
                         break;
-                    case 'edit':
-                        this.editAgent(agent);
-                        break;
                     case 'delete':
                         this.deleteAgent(agent);
                         break;
@@ -289,7 +284,10 @@ class AgentManager {
     }
 
     viewAgentDetails(agent) {
+        console.log('viewAgentDetails called with:', agent);
         this.selectedAgent = agent;
+        console.log('selectedAgent set to:', this.selectedAgent);
+        
         const modal = document.getElementById('agentDetailModal');
         const content = document.getElementById('agentDetailContent');
         
@@ -323,12 +321,6 @@ class AgentManager {
                 </div>
                 
                 <div class="detail-actions">
-                    <button class="btn btn-primary" onclick="agentManager.editAgent(agentManager.selectedAgent)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                        </svg>
-                        편집하기
-                    </button>
                     <button class="btn btn-danger" onclick="agentManager.deleteAgent(agentManager.selectedAgent)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -342,10 +334,21 @@ class AgentManager {
         this.showModal('agentDetailModal');
     }
 
-    editAgent(agent) {
-        // 에이전트 편집 페이지로 이동 (추후 구현)
-        window.location.href = `/create-agent/?edit=${agent.id}`;
-    }
+    // editAgent 함수는 현재 사용하지 않음 (PUT API 지원 전까지 비활성화)
+    // editAgent(agent) {
+    //     // 디버깅 로그 추가
+    //     console.log('editAgent called with:', agent);
+    //     console.log('agent.name:', agent?.name);
+    //     
+    //     if (!agent || !agent.name) {
+    //         console.error('Agent or agent.name is undefined:', agent);
+    //         alert('에이전트 정보를 찾을 수 없습니다.');
+    //         return;
+    //     }
+    //     
+    //     // 에이전트 편집 페이지로 이동 - agent.name을 사용
+    //     window.location.href = `/create-agent/?edit=${encodeURIComponent(agent.name)}`;
+    // }
 
     deleteAgent(agent) {
         this.selectedAgent = agent;

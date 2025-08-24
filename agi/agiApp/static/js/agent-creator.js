@@ -6,12 +6,18 @@
 let uploadedFiles = [];
 let codeFiles = [];
 let nextFileId = 1;
+// edit 모드 관련 변수들은 현재 사용하지 않음
+// let isEditMode = false;
+// let editAgentName = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeAgentCreator();
 });
 
 function initializeAgentCreator() {
+    // URL 파라미터 확인 (현재 비활성화)
+    // checkEditMode();
+    
     // 첫 번째 코드 파일 초기화
     codeFiles.push({
         id: 0,
@@ -25,6 +31,119 @@ function initializeAgentCreator() {
     
     // 첫 번째 파일의 이벤트 설정
     setupCodeFileEvents(0);
+    
+    // edit 모드인 경우 에이전트 정보 로드 (현재 비활성화)
+    // if (isEditMode && editAgentName) {
+    //     loadAgentForEdit(editAgentName);
+    // }
+}
+
+// URL 파라미터에서 edit 모드 확인
+function checkEditMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editParam = urlParams.get('edit');
+    
+    if (editParam && editParam !== 'undefined') {
+        isEditMode = true;
+        editAgentName = decodeURIComponent(editParam);
+        console.log('Edit mode detected for agent:', editAgentName);
+        
+        // 페이지 제목 변경
+        const titleElement = document.querySelector('.creator-title');
+        if (titleElement) {
+            titleElement.textContent = '에이전트 수정';
+        }
+        
+        const subtitleElement = document.querySelector('.creator-subtitle');
+        if (subtitleElement) {
+            subtitleElement.textContent = `${editAgentName} 에이전트를 수정합니다`;
+        }
+        
+        // 생성 버튼을 수정 버튼으로 변경
+        const createButton = document.getElementById('createAgent');
+        if (createButton) {
+            createButton.textContent = '에이전트 수정';
+        }
+    }
+}
+
+// 수정할 에이전트 정보 로드
+async function loadAgentForEdit(agentName) {
+    try {
+        console.log('Loading agent for edit:', agentName);
+        
+        // 에이전트 목록에서 해당 에이전트 찾기
+        const response = await fetch('/api/agents/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const agents = data.agents || [];
+            const agent = agents.find(a => a.name === agentName);
+            
+            if (agent) {
+                console.log('Found agent:', agent);
+                populateFormWithAgentData(agent);
+            } else {
+                console.error('Agent not found:', agentName);
+                alert('해당 에이전트를 찾을 수 없습니다.');
+                window.location.href = '/manage-agents/';
+            }
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error loading agent:', error);
+        alert('에이전트 정보를 불러오는 중 오류가 발생했습니다.');
+        window.location.href = '/manage-agents/';
+    }
+}
+
+// 폼에 에이전트 데이터 채우기
+function populateFormWithAgentData(agent) {
+    try {
+        // 기본 정보 채우기
+        const nameInput = document.getElementById('agentName');
+        const descInput = document.getElementById('agentDescription');
+        const rolesInput = document.getElementById('agentRoles');
+        const instructionsInput = document.getElementById('agentInstructions');
+        const languageSelect = document.getElementById('agentLanguage');
+        
+        if (nameInput) nameInput.value = agent.name || '';
+        if (descInput) descInput.value = agent.description || '';
+        if (rolesInput) rolesInput.value = agent.roles || '';
+        if (instructionsInput) instructionsInput.value = agent.instructions || '';
+        if (languageSelect) languageSelect.value = agent.language || 'python';
+        
+        // 코드 파일 정보가 있으면 채우기
+        if (agent.code_files && agent.code_files.length > 0) {
+            // 기존 코드 파일 초기화
+            codeFiles = [];
+            
+            agent.code_files.forEach((file, index) => {
+                codeFiles.push({
+                    id: index,
+                    name: file.name || `file_${index}.py`,
+                    language: file.language || 'python',
+                    content: file.content || ''
+                });
+            });
+            
+            // 코드 파일 UI 업데이트
+            updateCodeFilesList();
+            if (codeFiles.length > 0) {
+                selectCodeFile(0);
+            }
+        }
+        
+        console.log('Agent data populated successfully');
+    } catch (error) {
+        console.error('Error populating form with agent data:', error);
+    }
 }
 
 function setupEventListeners() {
@@ -499,7 +618,7 @@ function showPreview() {
     modal.classList.add('show');
 }
 
-// 에이전트 생성
+// 에이전트 생성/수정
 async function createAgent() {
     const createButton = document.getElementById('createAgent');
 
@@ -514,38 +633,43 @@ async function createAgent() {
         return;
     }
 
-    // 버튼 상태 변경
-    const originalText = createButton.innerHTML;
-    createButton.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="animate-spin">
-            <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.364-7.364l-2.828 2.828M9.464 19.192l-2.828-2.828m12.728 0l-2.828-2.828M9.464 4.808L6.636 7.636"/>
-        </svg>
-        생성 중...
-    `;
-    createButton.disabled = true;
+        // 버튼 상태 변경
+        const originalText = createButton.innerHTML;
+        const actionText = '생성 중...';
+        createButton.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="animate-spin">
+                <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.364-7.364l-2.828 2.828M9.464 19.192l-2.828-2.828m12.728 0l-2.828-2.828M9.464 4.808L6.636 7.636"/>
+            </svg>
+            ${actionText}
+        `;
+        createButton.disabled = true;
 
-    try {
-        // API 요청 데이터 준비
-        const requestData = {
-            name: name,
-            description: description,
-            role_prompt: rolePrompt
-        };
+        try {
+            // API 요청 데이터 준비
+            const requestData = {
+                name: name,
+                description: description,
+                role_prompt: rolePrompt
+            };
 
-        console.log('요청 데이터 (객체):', requestData);
-        console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
-        console.log('CSRF 토큰:', getCsrfToken());
+            console.log('요청 데이터 (객체):', requestData);
+            console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
+            console.log('CSRF 토큰:', getCsrfToken());
 
-        const response = await fetch('/api/agents/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify(requestData)
-        });
+            // 에이전트 생성 (POST 방식만 사용)
+            const url = '/api/agents/';
+            const method = 'POST';
+            
+            console.log('Creating agent with URL:', url, 'Method:', method);
 
-        console.log('응답 상태:', response.status);
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(requestData)
+            });        console.log('응답 상태:', response.status);
         console.log('응답 헤더:', response.headers);
 
         if (response.ok) {
@@ -553,7 +677,8 @@ async function createAgent() {
             console.log('응답 결과:', result);
             
             // 성공 메시지 표시
-            alert('에이전트가 성공적으로 생성되었습니다!');
+            const successMessage = '에이전트가 성공적으로 생성되었습니다!';
+            alert(successMessage);
             
             // 폼 초기화
             document.getElementById('agentForm').reset();
@@ -569,7 +694,7 @@ async function createAgent() {
             alert(`에이전트 생성에 실패했습니다: ${response.status} - ${errorText}`);
         }
     } catch (error) {
-        console.error('에이전트 생성 오류:', error);
+        console.error('에이전트 처리 오류:', error);
         alert(`에이전트 생성 중 오류가 발생했습니다: ${error.message}`);
     } finally {
         // 버튼 상태 복원
