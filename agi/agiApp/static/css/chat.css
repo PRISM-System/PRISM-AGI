@@ -250,15 +250,32 @@ body {
 }
 
 .chat-item#createAgentMenu:hover {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #2a2b32;
     color: #ffffff;
-    transform: translateX(2px);
 }
 
 .chat-item#manageAgentsMenu:hover {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #2a2b32;
     color: #ffffff;
-    transform: translateX(2px);
+}
+
+/* GitHub 링크 스타일 */
+.chat-item#prismAgiIntro {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-item#prismAgiIntro:hover {
+    background: #2a2b32;
+    color: #ffffff;
+}
+
+.chat-item#prismAgiIntro svg {
+    transition: transform 0.3s ease;
+}
+
+.chat-item#prismAgiIntro:hover svg {
+    transform: scale(1.1);
 }
 
 /* 에이전트 목록 스타일 */
@@ -273,7 +290,7 @@ body {
 }
 
 .agent-item.active {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #2a2b32;
     color: #ffffff;
 }
 
@@ -1290,4 +1307,257 @@ body {
     .agent-status {
         font-size: 12px;
     }
+}
+
+/* 채팅 세션 관련 스타일 */
+.chat-session-item {
+    position: relative;
+    transition: all 0.2s ease;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-session-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(2px);
+}
+
+.chat-session-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+}
+
+.session-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0; /* flexbox truncation을 위해 필요 */
+}
+
+.session-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-time {
+    font-size: 11px;
+    color: #9ca3af;
+    opacity: 0.7;
+}
+
+.chat-session-item.active .session-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* 새 채팅 버튼 특별 스타일 */
+#newChatBtn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+/* 채팅 세션 로딩 상태 */
+.loading-sessions {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading-sessions svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 축소된 사이드바에서 채팅 세션 정보 숨기기 */
+.chat-sidebar.collapsed .session-info {
+    display: none;
+}
+
+.chat-sidebar.collapsed .chat-session-item {
+    justify-content: center;
+    padding: 8px;
+    margin: 2px 4px;
+}
+
+.chat-sidebar.collapsed .session-delete-btn {
+    display: none;
+}
+
+/* 채팅 세션 삭제 버튼 */
+.session-delete-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+}
+
+.chat-session-item:hover .session-delete-btn {
+    opacity: 1;
+}
+
+.session-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    transform: scale(1.1);
+}
+
+.chat-session-item.active .session-delete-btn {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.chat-session-item.active .session-delete-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* ===============================
+   에이전트 선택 관련 스타일
+   =============================== */
+
+/* 에이전트 체크박스 컨테이너 */
+.agent-checkbox {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* 체크박스 숨기기 */
+.agent-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* 에이전트 라벨 스타일 */
+.agent-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+/* 에이전트 라벨 호버 효과 */
+.agent-label:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 선택된 에이전트 스타일 */
+.agent-checkbox input[type="checkbox"]:checked + .agent-label {
+    background: rgba(16, 163, 127, 0.15);
+    border: 1px solid rgba(16, 163, 127, 0.3);
+}
+
+.agent-checkbox input[type="checkbox"]:checked + .agent-label::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: #10a37f;
+    border-radius: 2px;
+}
+
+/* 에이전트 이름 스타일 */
+.agent-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #ffffff;
+    flex: 1;
+}
+
+/* 선택된 에이전트 알림 */
+.agent-selection-notification {
+    background: rgba(16, 163, 127, 0.1);
+    border: 1px solid rgba(16, 163, 127, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    animation: slideInDown 0.3s ease;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #10a37f;
+}
+
+.clear-selection {
+    background: none;
+    border: none;
+    color: #10a37f;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    transition: all 0.2s ease;
+}
+
+.clear-selection:hover {
+    background: rgba(16, 163, 127, 0.2);
+    transform: scale(1.1);
+}
+
+/* 애니메이션 */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 체크된 에이전트 아이콘 효과 */
+.agent-checkbox input[type="checkbox"]:checked + .agent-label svg {
+    color: #10a37f;
+    transform: scale(1.1);
+}
+
+/* 에이전트 아이템 활성 상태 */
+.agent-item.active {
+    background: rgba(16, 163, 127, 0.1);
+    border-radius: 8px;
 }

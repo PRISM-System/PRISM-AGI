@@ -18,22 +18,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from proxy import views as proxy_views
 
 urlpatterns = [
     path('', include('agiApp.urls')),
     path('admin/', admin.site.urls),
     
-    # API 엔드포인트들
-    path('api/', include('agiApp.urls')),
+    # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치
+    path('api/generate/', include('proxy.urls')),  # 프록시를 통한 외부 API 연결
     
-    # 프록시를 직접 /api/generate로 매핑
-    path('api/generate', include('proxy.urls')),
-    path('api/agents/', include('proxy.urls')),
+    # 도구 관리 API - 직접 뷰 함수 매핑
+    path('api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),
+    path('api/tools/<str:tool_name>/', proxy_views.proxy_tool_detail, name='proxy-tool-detail'),
+    
+    # 에이전트 관리 API - 외부 서버로 프록시
+    path('api/agents/', proxy_views.proxy_api, {'path': 'api/agents'}, name='proxy-agents-list'),
+    path('api/agents/<str:agent_name>/invoke', proxy_views.proxy_agent_invoke, name='proxy-agent-invoke'),
+    path('api/agents/<str:agent_name>/', proxy_views.proxy_agent_detail, name='proxy-agent-detail'),
     
     path('api/monitoring/', include('agents.monitoring_agent.urls')),
     path('api/prediction/', include('agents.prediction_agent.urls')),
     path('api/control/', include('agents.control_agent.urls')),
     path('api/orchestration/', include('agents.orchestration_agent.urls')),
+    
+    path('api/', include('agiApp.urls')),  # 일반적인 API는 마지막에
 ]
 
 # 개발 환경에서 미디어 파일 서빙

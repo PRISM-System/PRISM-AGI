@@ -4268,7 +4268,6 @@ select::-ms-expand { display: none; }
 }
 
 .process-steps {
-    display: flex;
     justify-content: space-between;
     margin-top: 20px;
 }
@@ -4445,4 +4444,725 @@ select.form-input {
         margin: 8px 0;
         text-align: center;
     }
+}
+
+/* ========================================
+   타이핑 효과 스타일
+======================================== */
+
+/* 타이핑 중인 메시지에 커서 효과 */
+.message-content.typing {
+    position: relative;
+}
+
+.message-content.typing::after {
+    content: '|';
+    color: #007bff;
+    font-weight: bold;
+    animation: blink 1s infinite;
+    margin-left: 2px;
+}
+
+/* 커서 깜빡임 애니메이션 */
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* AI 응답 메시지 스타일 개선 */
+.message.assistant .message-content {
+    /* background-color: #f8f9fa;
+    border-left: 3px solid #007bff; */
+    padding: 12px 16px;
+    border-radius: 8px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* 사용자 메시지 스타일 */
+.message.user .message-content {
+    /* background-color: #007bff; */
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    line-height: 1.5;
+    font-size: 14px;
+    margin-left: auto;
+    max-width: 70%;
+}
+
+/* 메시지 컨테이너 */
+.message {
+    display: flex;
+    align-items: flex-start; /* 아바타와 텍스트 첫 줄 정렬 */
+    margin-bottom: 16px;
+    max-width: 100%;
+}
+
+.message.user {
+    justify-content: flex-end;
+}
+
+.message.assistant {
+    justify-content: flex-start;
+}
+
+/* 아바타 스타일 */
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin: 2px 8px 0 8px; /* 상단에 2px 마진 추가로 텍스트 첫 줄과 정렬 */
+    flex-shrink: 0;
+}
+
+.assistant-avatar {
+    background-color: #007bff;
+    color: white;
+}
+
+.user-avatar {
+    background-color: #28a745;
+    color: white;
+}
+
+/* ========================================
+   공정 진행 상태 아티팩트 스타일
+======================================== */
+
+.process-artifact {
+    margin-top: 12px;
+    background: linear-gradient(135deg, #1e2a3a 0%, #2d3748 100%);
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.artifact-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.artifact-icon {
+    font-size: 18px;
+}
+
+.artifact-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.artifact-subtitle {
+    font-size: 12px;
+    color: #a0aec0;
+    margin-left: auto;
+}
+
+.artifact-preview {
+    margin-bottom: 12px;
+}
+
+.preview-step {
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 6px;
+    font-size: 12px;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.preview-step.completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.preview-step.active {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.preview-step.pending {
+    background: rgba(107, 114, 128, 0.2);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.preview-more {
+    color: #a0aec0;
+    font-size: 12px;
+    display: inline-block;
+    margin-left: 4px;
+}
+
+.artifact-button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.artifact-button:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.artifact-button:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   단계별 상세 정보 스타일
+======================================== */
+
+.step-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #4a5568;
+}
+
+.step-detail-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.step-detail-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-text {
+    font-size: 12px;
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.step-detail-description {
+    font-size: 14px;
+    color: #a0aec0;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-left: 3px solid #3b82f6;
+}
+
+.step-detail-info {
+    background: rgba(45, 55, 72, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.step-detail-info .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.step-detail-info .detail-label {
+    color: #8e8ea0;
+}
+
+.step-detail-info .detail-value {
+    color: #e2e8f0;
+    font-family: 'Courier New', monospace;
+}
+
+/* ========================================
+   생각하는 중 애니메이션 (점 3개)
+======================================== */
+
+.thinking-animation {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.thinking-animation span {
+    width: 4px;
+    height: 4px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    animation: thinking 1.4s infinite ease-in-out;
+}
+
+.thinking-animation span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.thinking-animation span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.thinking-animation span:nth-child(3) {
+    animation-delay: 0s;
+}
+
+@keyframes thinking {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   메시지 영역 생각하는 중 효과
+======================================== */
+
+.thinking-message {
+    background: rgba(45, 55, 72, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 4px 0;
+}
+
+.thinking-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.thinking-text {
+    color: #a0aec0;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* 메시지 영역의 thinking-animation은 약간 더 크게 */
+.thinking-message .thinking-animation span {
+    width: 6px;
+    height: 6px;
+    background-color: #3b82f6;
+}
+
+/* ========================================
+   완료 대시보드 스타일
+======================================== */
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #10b981;
+}
+
+.dashboard-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.completion-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.dashboard-summary {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.summary-label {
+    color: #a0aec0;
+}
+
+.summary-value {
+    color: #10b981;
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+}
+
+.steps-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #4a5568;
+}
+
+.dashboard-step {
+    background: rgba(45, 55, 72, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-left: 3px solid #10b981;
+}
+
+.step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.step-number {
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+}
+
+.step-time {
+    font-size: 11px;
+    color: #a0aec0;
+    font-family: 'Courier New', monospace;
+}
+
+.step-description {
+    font-size: 12px;
+    color: #8e8ea0;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    padding-left: 30px;
+}
+
+.step-result {
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #10b981;
+    margin-left: 30px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* ========================================
+   실시간 라이브 대시보드 스타일
+======================================== */
+
+.live-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    animation: pulse 2s infinite;
+}
+
+.live-steps {
+    margin-top: 16px;
+}
+
+.live-step {
+    background: rgba(45, 55, 72, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-left: 3px solid #3b82f6;
+    transition: all 0.3s ease;
+}
+
+.live-step.completed {
+    border-left-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.live-step .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.live-step .step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.live-step .step-number.processing {
+    background: #3b82f6;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.live-step .step-number.completed {
+    background: #10b981;
+    color: white;
+}
+
+.live-step .step-info {
+    flex: 1;
+}
+
+.live-step .step-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+}
+
+.live-step .step-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-step .step-time {
+    font-size: 11px;
+    color: #10b981;
+    font-family: 'Courier New', monospace;
+}
+
+.live-step .step-description {
+    font-size: 12px;
+    color: #8e8ea0;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.live-step .step-progress {
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    width: 0%;
+    transition: width 2s ease-out;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #3b82f6;
+    font-style: italic;
+}
+
+.live-step .step-result {
+    background: rgba(16, 185, 129, 0.15);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.live-step .step-result.completed {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   에러 처리 스타일
+======================================== */
+
+.error-badge {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.live-step.failed {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.live-step .step-number.failed {
+    background: #ef4444;
+    color: white;
+}
+
+.live-step .step-result.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.error-section {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.error-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ef4444;
+    margin: 0;
+}
+
+.error-time {
+    font-size: 11px;
+    color: #ef4444;
+    font-family: 'Courier New', monospace;
+}
+
+.error-details {
+    margin-bottom: 16px;
+}
+
+.error-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    font-size: 13px;
+    gap: 12px;
+}
+
+.error-label {
+    color: #ef4444;
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 80px;
+}
+
+.error-value {
+    color: #fca5a5;
+    flex: 1;
+    text-align: right;
+    line-height: 1.4;
+}
+
+.retry-section {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.retry-button {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.retry-button:active {
+    transform: translateY(0);
+}
+
+/* 에러 상태 진행 바 */
+.live-step.failed .progress-bar {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.live-step.failed .progress-fill {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.live-step.failed .progress-text {
+    color: #ef4444;
 }

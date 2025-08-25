@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도구 관리 - PRISM-AGI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manage-tools.css' %}">
+</head>
+<body class="manage-tools-page">
+    {% csrf_token %}
+    <div class="chat-layout">
+        <!-- 좌측 사이드바 -->
+        {% include 'partials/sidebar.html' %}
+        
+        <!-- 메인 도구 관리 영역 -->
+        <div class="chat-main">
+            <div class="tools-manager-container">
+                <div class="manager-header">
+                    <button class="back-button" id="backToChat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 12H5l6-6V9l-7 7 7 7v-3l-6-6z"/>
+                        </svg>
+                        채팅으로 돌아가기
+                    </button>
+                    
+                    <h1 class="manager-title">도구 관리</h1>
+                    <p class="manager-subtitle">등록된 도구 관리 및 설정</p>
+                </div>
+
+                <div class="manager-content">
+                    <!-- 필터 및 검색 -->
+                    <div class="tools-toolbar">
+                        <div class="search-container">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                            <input type="text" id="searchTool" placeholder="도구 검색..." class="search-input">
+                        </div>
+                        
+                        <div class="filter-container">
+                            <select id="methodFilter" class="filter-select">
+                                <option value="">모든 메서드</option>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                                <option value="PATCH">PATCH</option>
+                            </select>
+                            
+                            <select id="statusFilter" class="filter-select">
+                                <option value="">모든 상태</option>
+                                <option value="active">활성</option>
+                                <option value="inactive">비활성</option>
+                                <option value="error">오류</option>
+                            </select>
+                        </div>
+                        
+                        <button class="add-tool-btn" id="addToolBtn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            새 도구 등록
+                        </button>
+                    </div>
+
+                    <!-- 도구 카드 그리드 -->
+                    <div class="tools-grid" id="toolsGrid">
+                        <!-- 로딩 상태 -->
+                        <div class="loading-container" id="loadingContainer">
+                            <div class="loading-spinner"></div>
+                            <p>도구 목록을 불러오는 중...</p>
+                        </div>
+                        
+                        <!-- 도구들이 동적으로 여기에 추가됩니다 -->
+                    </div>
+                    
+                    <!-- 빈 상태 메시지 -->
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
+                            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4zM6.7 8.8c-.7.7-1.9.7-2.6 0-.7-.7-.7-1.9 0-2.6.7-.7 1.9-.7 2.6 0 .7.7.7 1.9 0 2.6z"/>
+                        </svg>
+                        <h3>등록된 도구가 없습니다</h3>
+                        <p>새로운 도구를 등록하여 시작해보세요.</p>
+                        <button class="btn-primary" onclick="window.location.href='/register-tool/'">
+                            도구 등록하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 도구 상세 모달 -->
+    <div class="modal-overlay" id="toolDetailModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalToolName">도구 상세 정보</h3>
+                <button class="modal-close" id="closeModal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="tool-info-section">
+                    <h4>기본 정보</h4>
+                    <div class="info-row">
+                        <span class="info-label">이름:</span>
+                        <span class="info-value" id="modalToolNameValue">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">설명:</span>
+                        <span class="info-value" id="modalToolDescription">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">도구 타입:</span>
+                        <span class="info-value tool-type-badge" id="modalToolType">-</span>
+                    </div>
+                </div>
+                
+                <div class="tool-info-section">
+                    <h4>additionalProp1 속성</h4>
+                    <div class="info-row">
+                        <span class="info-label">URL:</span>
+                        <span class="info-value" id="modalAdditionalPropUrl">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">메서드:</span>
+                        <span class="info-value method-badge" id="modalAdditionalPropMethod">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">헤더:</span>
+                        <pre class="code-block small" id="modalAdditionalPropHeader">-</pre>
+                    </div>
+                    <div class="additional-props" id="modalAdditionalProps">
+                        <!-- 추가 속성들이 동적으로 표시됩니다 -->
+                    </div>
+                </div>
+                
+                <div class="tool-info-section">
+                    <h4>매개변수 스키마 (전체)</h4>
+                    <pre class="code-block" id="modalParametersSchema">-</pre>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">닫기</button>
+                <button class="btn btn-danger" id="deleteToolBtn">삭제</button>
+                <button class="btn btn-primary" id="testToolBtn">테스트</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/activity-logger.js' %}"></script>
+    <script src="{% static 'js/manage-tools.js' %}"></script>
+    <script src="{% static 'js/chat.js' %}"></script>
+    <script src="{% static 'js/manage-agents.js' %}"></script>
+</body>
+</html>

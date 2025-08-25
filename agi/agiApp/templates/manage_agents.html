@@ -64,9 +64,6 @@
                         </div>
                         
                         <button class="btn btn-primary" id="createNewAgent">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2v20m10-10H2"/>
-                            </svg>
                             새 에이전트 생성
                         </button>
                     </div>
@@ -89,9 +86,6 @@
                         </svg>
                         <h3>생성된 에이전트가 없습니다</h3>
                         <p>첫 번째 에이전트를 생성해보세요!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='/create-agent/'">
-                            에이전트 생성하기
-                        </button>
                     </div>
                 </div>
             </div>
@@ -137,6 +131,7 @@
         </div>
     </div>
 
+    <script src="{% static 'js/activity-logger.js' %}"></script>
     <script src="{% static 'js/chat.js' %}"></script>
     <script src="{% static 'js/manage-agents.js' %}"></script>
 </body>

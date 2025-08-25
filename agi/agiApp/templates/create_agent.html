@@ -64,10 +64,29 @@
                             </div>
                         </div>
 
-                        <!-- 우측 컬럼: 요청사항 오면 반영 -->
+                        <!-- 우측 컬럼: 개발 도구 선택 -->
                         <div class="form-column-right">
                             <div class="form-section">
                                 <h2 class="section-title">개발 도구 추가</h2>
+                                
+                                <div class="tools-selection">
+                                    <div class="tools-search-bar">
+                                        <input type="text" id="toolsSearch" class="form-input" 
+                                               placeholder="도구 검색...">
+                                    </div>
+                                    
+                                    <div class="tools-list" id="toolsList">
+                                        <div class="loading-tools">
+                                            <div class="spinner"></div>
+                                            <span>도구 목록을 불러오는 중...</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="selected-tools-summary">
+                                        <h3>선택된 도구 (<span id="selectedCount">0</span>개)</h3>
+                                        <div class="selected-tools-list" id="selectedToolsList"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -110,6 +129,7 @@
         </div>
     </div>
 
+    <script src="{% static 'js/activity-logger.js' %}"></script>
     <script src="{% static 'js/chat.js' %}"></script>
     <script src="{% static 'js/agent-creator.js' %}"></script>
 </body>

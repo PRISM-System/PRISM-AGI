@@ -151,21 +151,73 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}', 'style': '{'},
-        'simple': {'format': '{levelname} {message}', 'style': '{'},
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'detailed': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
     },
     'handlers': {
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',  # DEBUG 레벨로 변경하여 더 상세한 로그 수집
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs' / 'agi.log',
-            'formatter': 'verbose',
+            'formatter': 'detailed',
+            'encoding': 'utf-8',
         },
-        'console': {'level': 'DEBUG', 'class': 'logging.StreamHandler', 'formatter': 'simple'},
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
     },
-    'root': {'handlers': ['console', 'file'], 'level': 'INFO'},
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'DEBUG',
+    },
     'loggers': {
-        'django': {'handlers': ['console', 'file'], 'level': 'INFO', 'propagate': False},
-        'agents': {'handlers': ['console', 'file'], 'level': 'DEBUG', 'propagate': False},
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',  # HTTP 요청 로그 활성화
+            'propagate': False,
+        },
+        'agents': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'agiApp': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'urllib3': {  # HTTP 연결 로그
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'requests': {  # requests 라이브러리 로그
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }

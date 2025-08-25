@@ -14,6 +14,60 @@ logger = logging.getLogger(__name__)
 REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://147.47.39.144:8000')
 
 @csrf_exempt
+def proxy_tools(request):
+    """
+    /api/tools 요청을 원격 서버로 프록시합니다.
+    """
+    
+    # OPTIONS 요청 (CORS 프리플라이트)
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # GET, POST 요청 허용 (tools 조회 및 생성)
+    if request.method not in ['GET', 'POST']:
+        return create_error_response("Method not allowed. Use GET for listing or POST for creating tools.", 405)
+    
+    try:
+        # 원격 서버로 요청 전달
+        url = f"{REMOTE_SERVER}/api/tools"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # 요청 메서드에 따라 처리
+        headers = {'Content-Type': 'application/json'}
+        
+        if request.method == 'GET':
+            remote_response = requests.get(url, timeout=10)
+        elif request.method == 'POST':
+            body = request.body.decode('utf-8') if request.body else '{}'
+            remote_response = requests.post(url, data=body, headers=headers, timeout=10)
+        
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Remote server connection failed: {e}")
+        return create_error_response(
+            "원격 서버 연결 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER}
+        )
+
+@csrf_exempt
 def proxy_generate(request):
     """
     /api/generate 요청을 원격 서버로 프록시합니다.
@@ -119,6 +173,60 @@ def proxy_api(request, path):
             "원격 서버 연결 실패",
             503,
             details={"message": str(e), "remote_server": REMOTE_SERVER, "requested_path": path}
+        )
+
+@csrf_exempt
+def proxy_tool_detail(request, tool_name):
+    """
+    개별 도구에 대한 API 요청을 원격 서버로 프록시합니다.
+    /api/tools/<tool_name> -> {REMOTE_SERVER}/api/tools/<tool_name>
+    """
+    
+    # OPTIONS 요청 처리
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    try:
+        url = f"{REMOTE_SERVER}/api/tools/{tool_name}"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # 요청 메서드에 따라 처리
+        headers = {'Content-Type': 'application/json'}
+        
+        if request.method == 'GET':
+            remote_response = requests.get(url, timeout=10)
+        elif request.method == 'PUT':
+            body = request.body.decode('utf-8') if request.body else '{}'
+            remote_response = requests.put(url, data=body, headers=headers, timeout=10)
+        elif request.method == 'DELETE':
+            remote_response = requests.delete(url, timeout=10)
+        else:
+            return create_error_response(f"Method {request.method} not allowed for tool detail", 405)
+        
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Remote server connection failed: {e}")
+        return create_error_response(
+            "원격 서버 연결 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER, "tool_name": tool_name}
         )
 
 def create_cors_response():
@@ -466,3 +574,112 @@ def tools_api(request):
     
     else:
         return create_error_response("Method not allowed. Use GET or POST.", 405)
+
+@csrf_exempt
+def proxy_agent_detail(request, agent_name):
+    """
+    개별 에이전트에 대한 API 요청을 원격 서버로 프록시합니다.
+    /api/agents/<agent_name> -> {REMOTE_SERVER}/api/agents/<agent_name>
+    """
+    
+    # OPTIONS 요청 처리
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    try:
+        url = f"{REMOTE_SERVER}/api/agents/{agent_name}"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # 요청 메서드에 따라 처리
+        headers = {'Content-Type': 'application/json'}
+        
+        if request.method == 'GET':
+            remote_response = requests.get(url, timeout=10)
+        elif request.method == 'PUT':
+            body = request.body.decode('utf-8') if request.body else '{}'
+            remote_response = requests.put(url, data=body, headers=headers, timeout=10)
+        elif request.method == 'DELETE':
+            remote_response = requests.delete(url, timeout=10)
+        else:
+            return create_error_response("Method not allowed", 405)
+        
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Remote server connection failed: {e}")
+        return create_error_response(
+            "원격 서버 연결 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER, "agent_name": agent_name}
+        )
+
+@csrf_exempt
+def proxy_agent_invoke(request, agent_name):
+    """
+    에이전트 호출(invoke) API 요청을 원격 서버로 프록시합니다.
+    /api/agents/<agent_name>/invoke -> {REMOTE_SERVER}/api/agents/<agent_name>/invoke
+    """
+    
+    # OPTIONS 요청 처리
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # POST 요청만 허용 (에이전트 호출은 POST만 사용)
+    if request.method != 'POST':
+        return create_error_response("Method not allowed. Use POST for agent invocation.", 405)
+    
+    try:
+        url = f"{REMOTE_SERVER}/api/agents/{agent_name}/invoke"
+        logger.info(f"Proxying agent invoke request to {url}")
+        
+        # POST 데이터 전달
+        headers = {'Content-Type': 'application/json'}
+        body = request.body.decode('utf-8') if request.body else '{}'
+        logger.info(f"Agent invoke POST body: {body}")
+        
+        remote_response = requests.post(url, data=body, headers=headers, timeout=30)  # 에이전트 호출은 시간이 걸릴 수 있음
+        
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        if remote_response.status_code >= 400:
+            logger.error(f"Remote server error response: {remote_response.text}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            logger.warning(f"Non-JSON response from remote server: {remote_response.text[:500]}")
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Agent invoke connection failed: {e}")
+        return create_error_response(
+            "에이전트 호출 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER, "agent_name": agent_name}
+        )

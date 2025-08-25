@@ -6,23 +6,12 @@
 let uploadedFiles = [];
 let codeFiles = [];
 let nextFileId = 1;
-let availableTools = [];
-let selectedTools = [];
-// edit 모드 관련 변수들은 현재 사용하지 않음
-// let isEditMode = false;
-// let editAgentName = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 에이전트 생성 페이지인지 확인
-    if (document.body.classList.contains('create-agent-page')) {
-        initializeAgentCreator();
-    }
+    initializeAgentCreator();
 });
 
 function initializeAgentCreator() {
-    // URL 파라미터 확인 (현재 비활성화)
-    // checkEditMode();
-    
     // 첫 번째 코드 파일 초기화
     codeFiles.push({
         id: 0,
@@ -36,122 +25,6 @@ function initializeAgentCreator() {
     
     // 첫 번째 파일의 이벤트 설정
     setupCodeFileEvents(0);
-    
-    // 도구 목록 로드
-    loadAvailableTools();
-    
-    // edit 모드인 경우 에이전트 정보 로드 (현재 비활성화)
-    // if (isEditMode && editAgentName) {
-    //     loadAgentForEdit(editAgentName);
-    // }
-}
-
-// URL 파라미터에서 edit 모드 확인
-function checkEditMode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const editParam = urlParams.get('edit');
-    
-    if (editParam && editParam !== 'undefined') {
-        isEditMode = true;
-        editAgentName = decodeURIComponent(editParam);
-        console.log('Edit mode detected for agent:', editAgentName);
-        
-        // 페이지 제목 변경
-        const titleElement = document.querySelector('.creator-title');
-        if (titleElement) {
-            titleElement.textContent = '에이전트 수정';
-        }
-        
-        const subtitleElement = document.querySelector('.creator-subtitle');
-        if (subtitleElement) {
-            subtitleElement.textContent = `${editAgentName} 에이전트를 수정합니다`;
-        }
-        
-        // 생성 버튼을 수정 버튼으로 변경
-        const createButton = document.getElementById('createAgent');
-        if (createButton) {
-            createButton.textContent = '에이전트 수정';
-        }
-    }
-}
-
-// 수정할 에이전트 정보 로드
-async function loadAgentForEdit(agentName) {
-    try {
-        console.log('Loading agent for edit:', agentName);
-        
-        // 에이전트 목록에서 해당 에이전트 찾기
-        const response = await fetch('/api/agents/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            const agents = data.agents || [];
-            const agent = agents.find(a => a.name === agentName);
-            
-            if (agent) {
-                console.log('Found agent:', agent);
-                populateFormWithAgentData(agent);
-            } else {
-                console.error('Agent not found:', agentName);
-                alert('해당 에이전트를 찾을 수 없습니다.');
-                window.location.href = '/manage-agents/';
-            }
-        } else {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-    } catch (error) {
-        console.error('Error loading agent:', error);
-        alert('에이전트 정보를 불러오는 중 오류가 발생했습니다.');
-        window.location.href = '/manage-agents/';
-    }
-}
-
-// 폼에 에이전트 데이터 채우기
-function populateFormWithAgentData(agent) {
-    try {
-        // 기본 정보 채우기
-        const nameInput = document.getElementById('agentName');
-        const descInput = document.getElementById('agentDescription');
-        const rolesInput = document.getElementById('agentRoles');
-        const instructionsInput = document.getElementById('agentInstructions');
-        const languageSelect = document.getElementById('agentLanguage');
-        
-        if (nameInput) nameInput.value = agent.name || '';
-        if (descInput) descInput.value = agent.description || '';
-        if (rolesInput) rolesInput.value = agent.roles || '';
-        if (instructionsInput) instructionsInput.value = agent.instructions || '';
-        if (languageSelect) languageSelect.value = agent.language || 'python';
-        
-        // 코드 파일 정보가 있으면 채우기
-        if (agent.code_files && agent.code_files.length > 0) {
-            // 기존 코드 파일 초기화
-            codeFiles = [];
-            
-            agent.code_files.forEach((file, index) => {
-                codeFiles.push({
-                    id: index,
-                    name: file.name || `file_${index}.py`,
-                    language: file.language || 'python',
-                    content: file.content || ''
-                });
-            });
-            
-            // 코드 파일 UI 업데이트
-            updateCodeFilesList();
-            if (codeFiles.length > 0) {
-                selectCodeFile(0);
-            }
-        }
-        
-        console.log('Agent data populated successfully');
-    } catch (error) {
-        console.error('Error populating form with agent data:', error);
-    }
 }
 
 function setupEventListeners() {
@@ -244,14 +117,6 @@ function setupEventListeners() {
             createAgent();
         });
     }
-
-    // 도구 검색 이벤트
-    const toolsSearch = document.getElementById('toolsSearch');
-    if (toolsSearch) {
-        toolsSearch.addEventListener('input', (e) => {
-            filterTools(e.target.value);
-        });
-    }
 }
 
 // 탭 전환 함수
@@ -299,28 +164,22 @@ function addNewCodeFile() {
 
 // 코드 파일 HTML 생성
 function createCodeFileItemHtml(file) {
-    const fileId = file.id;
-    const fileName = file.name;
-    const fileLanguage = file.language;
-    const fileContent = file.content;
-    const hideRemoveBtn = fileId === 0 ? 'style="display: none;"' : '';
-    
     return `
-        <div class="code-file-item" data-file-id="${fileId}">
+        <div class="code-file-item" data-file-id="${file.id}">
             <div class="code-file-header">
                 <div class="file-info">
-                    <input type="text" class="file-name-input" placeholder="filename.py" value="${fileName}">
+                    <input type="text" class="file-name-input" placeholder="filename.py" value="${file.name}">
                     <select class="file-language-select">
-                        <option value="python" ${fileLanguage === 'python' ? 'selected' : ''}>Python</option>
-                        <option value="javascript" ${fileLanguage === 'javascript' ? 'selected' : ''}>JavaScript</option>
-                        <option value="java" ${fileLanguage === 'java' ? 'selected' : ''}>Java</option>
-                        <option value="cpp" ${fileLanguage === 'cpp' ? 'selected' : ''}>C++</option>
-                        <option value="csharp" ${fileLanguage === 'csharp' ? 'selected' : ''}>C#</option>
-                        <option value="go" ${fileLanguage === 'go' ? 'selected' : ''}>Go</option>
-                        <option value="rust" ${fileLanguage === 'rust' ? 'selected' : ''}>Rust</option>
+                        <option value="python" ${file.language === 'python' ? 'selected' : ''}>Python</option>
+                        <option value="javascript" ${file.language === 'javascript' ? 'selected' : ''}>JavaScript</option>
+                        <option value="java" ${file.language === 'java' ? 'selected' : ''}>Java</option>
+                        <option value="cpp" ${file.language === 'cpp' ? 'selected' : ''}>C++</option>
+                        <option value="csharp" ${file.language === 'csharp' ? 'selected' : ''}>C#</option>
+                        <option value="go" ${file.language === 'go' ? 'selected' : ''}>Go</option>
+                        <option value="rust" ${file.language === 'rust' ? 'selected' : ''}>Rust</option>
                     </select>
                 </div>
-                <button type="button" class="file-remove-btn" onclick="removeCodeFile(${fileId})" ${hideRemoveBtn}>
+                <button type="button" class="file-remove-btn" onclick="removeCodeFile(${file.id})" ${file.id === 0 ? 'style="display: none;"' : ''}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
                     </svg>
@@ -328,8 +187,8 @@ function createCodeFileItemHtml(file) {
             </div>
             <div class="code-editor-container">
                 <textarea class="form-textarea code-textarea" 
-                          placeholder="# 여기에 ${fileLanguage} 코드를 입력하세요" 
-                          rows="10">${fileContent}</textarea>
+                          placeholder="# 여기에 ${file.language} 코드를 입력하세요" 
+                          rows="10">${file.content}</textarea>
             </div>
         </div>
     `;
@@ -363,7 +222,7 @@ function setupCodeFileEvents(fileId) {
             
             // placeholder 업데이트
             if (textarea) {
-                textarea.placeholder = '# 여기에 ' + e.target.value + ' 코드를 입력하세요';
+                textarea.placeholder = `# 여기에 ${e.target.value} 코드를 입력하세요`;
             }
         });
     }
@@ -634,112 +493,98 @@ function showPreview() {
     modal.classList.add('show');
 }
 
-// 에이전트 생성/수정
+// 에이전트 생성
 async function createAgent() {
+    const formData = gatherFormData();
     const createButton = document.getElementById('createAgent');
 
-    // 기본 정보 수집
-    const name = document.getElementById('agentName').value.trim();
-    const description = document.getElementById('agentDescription').value.trim();
-    const rolePrompt = document.getElementById('rolePrompt').value.trim();
-
-    // 필수 필드 검증
-    if (!name || !description || !rolePrompt) {
-        alert('모든 필드를 입력해주세요.');
+    if (!formData.name || !formData.description) {
+        alert('필수 필드를 모두 입력해주세요.');
         return;
     }
 
-        // 버튼 상태 변경
-        const originalText = createButton.innerHTML;
-        const actionText = '생성 중...';
-        createButton.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="animate-spin">
-                <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.364-7.364l-2.828 2.828M9.464 19.192l-2.828-2.828m12.728 0l-2.828-2.828M9.464 4.808L6.636 7.636"/>
-            </svg>
-            ${actionText}
-        `;
-        createButton.disabled = true;
+    // 코드 입력 방식에 따른 검증
+    if (formData.input_method === 'direct-code') {
+        if (codeFiles.length === 0 || codeFiles.every(file => !file.content.trim())) {
+            alert('최소 하나의 코드 파일에 내용을 입력해주세요.');
+            return;
+        }
+    } else if (formData.input_method === 'file-upload' && uploadedFiles.length === 0) {
+        alert('알고리즘 파일을 업로드해주세요.');
+        return;
+    }
 
-        try {
-            // API 요청 데이터 준비
-            const requestData = {
-                name: name,
-                description: description,
-                role_prompt: rolePrompt,
-                tools: selectedTools  // 선택된 도구들 추가
-            };
+    // 버튼 상태 변경
+    const originalText = createButton.innerHTML;
+    createButton.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="animate-spin">
+            <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.364-7.364l-2.828 2.828M9.464 19.192l-2.828-2.828m12.728 0l-2.828-2.828M9.464 4.808L6.636 7.636"/>
+        </svg>
+        생성 중...
+    `;
+    createButton.disabled = true;
 
-            console.log('요청 데이터 (객체):', requestData);
-            console.log('선택된 도구들:', selectedTools);
-            console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
-            console.log('CSRF 토큰:', getCsrfToken());
+    try {
+        // FormData 객체 생성 (파일 업로드를 위해)
+        const submitData = new FormData();
+        submitData.append('name', formData.name);
+        submitData.append('description', formData.description);
+        submitData.append('input_method', formData.input_method);
 
-            // 에이전트 생성 (POST 방식만 사용)
-            const url = '/api/agents/';
-            const method = 'POST';
-            
-            console.log('Creating agent with URL:', url, 'Method:', method);
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                },
-                body: JSON.stringify(requestData)
+        if (formData.input_method === 'direct-code') {
+            submitData.append('code_files', JSON.stringify(formData.code_files));
+            submitData.append('dependencies', formData.dependencies);
+            submitData.append('entry_point', formData.entry_point);
+        } else {
+            submitData.append('entry_point', formData.entry_point);
+            uploadedFiles.forEach((file, index) => {
+                submitData.append(`files_${index}`, file);
             });
+        }
 
-            console.log('응답 상태:', response.status);
-            console.log('응답 상태 텍스트:', response.statusText);
-            console.log('응답 헤더:', [...response.headers.entries()]);
+        const response = await fetch('/api/agents', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: submitData
+        });
 
-            if (response.ok) {
-                const result = await response.json();
-                console.log('응답 결과:', result);
-                
-                // 사용자 활동 로그 기록
-                if (window.logAgentCreate) {
-                    window.logAgentCreate(name, {
-                        description: description,
-                        role_prompt_length: rolePrompt.length,
-                        tools_count: selectedTools.length,
-                        selected_tools: selectedTools
-                    });
-                }
-                
-                // 성공 메시지 표시
-                const successMessage = '에이전트가 성공적으로 생성되었습니다!';
-                alert(successMessage);
-                
-                // 폼 초기화
-                document.getElementById('agentForm').reset();
-                selectedTools = []; // 선택된 도구도 초기화
-                updateSelectedToolsDisplay();
-                
-                // 채팅 페이지로 이동
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
-                
-            } else {
-                // 에러 응답 처리
-                let errorMessage;
-                try {
-                    const errorData = await response.json();
-                    console.error('API Error JSON:', errorData);
-                    errorMessage = errorData.error || errorData.message || JSON.stringify(errorData);
-                } catch (e) {
-                    const errorText = await response.text();
-                    console.error('API Error Text:', errorText);
-                    errorMessage = errorText;
-                }
-                
-                console.error('API Error:', response.status, response.statusText, errorMessage);
-                alert(`에이전트 생성에 실패했습니다: ${response.status} - ${errorMessage}`);
-            }
+        if (response.ok) {
+            const result = await response.json();
+            
+            // 성공 메시지 표시
+            alert('에이전트가 성공적으로 생성되었습니다!');
+            
+            // 폼 초기화
+            document.getElementById('agentForm').reset();
+            codeFiles = [{
+                id: 0,
+                name: 'main.py',
+                language: 'python',
+                content: ''
+            }];
+            uploadedFiles = [];
+            document.getElementById('uploadedFiles').innerHTML = '';
+            
+            // 코드 파일 목록 초기화
+            const codeFilesList = document.getElementById('codeFilesList');
+            codeFilesList.innerHTML = createCodeFileItemHtml(codeFiles[0]);
+            setupCodeFileEvents(0);
+            updateRemoveButtons();
+            
+            // 채팅 페이지로 이동
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+            
+        } else {
+            const error = await response.json();
+            alert('에이전트 생성에 실패했습니다: ' + (error.detail || '알 수 없는 오류'));
+        }
     } catch (error) {
-        console.error('에이전트 처리 오류:', error);
-        alert(`에이전트 생성 중 오류가 발생했습니다: ${error.message}`);
+        console.error('에이전트 생성 오류:', error);
+        alert('에이전트 생성 중 오류가 발생했습니다.');
     } finally {
         // 버튼 상태 복원
         createButton.innerHTML = originalText;
@@ -771,171 +616,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-// ===============================
-// 도구 관리 관련 함수들
-// ===============================
-
-// 사용 가능한 도구 목록 로드
-async function loadAvailableTools() {
-    const toolsList = document.getElementById('toolsList');
-    
-    // DOM 요소가 없으면 종료 (다른 페이지에서 로드된 경우)
-    if (!toolsList) {
-        console.log('toolsList 요소를 찾을 수 없습니다. 에이전트 생성 페이지가 아닙니다.');
-        return;
-    }
-    
-    console.log('도구 목록 로드 시작...');
-    
-    try {
-        console.log('API 요청 시작: /api/tools/');
-        const response = await fetch('/api/tools/');
-        console.log('API 응답 상태:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('받은 데이터:', data);
-        
-        availableTools = Array.isArray(data) ? data : (data.tools || []);
-        console.log('처리된 도구 목록:', availableTools);
-        
-        renderToolsList(availableTools);
-        
-    } catch (error) {
-        console.error('도구 목록 로드 실패:', error);
-        console.error('에러 스택:', error.stack);
-        toolsList.innerHTML = `
-            <div class="no-tools-message">
-                도구 목록을 불러올 수 없습니다.<br>
-                <small>오류: ${error.message}</small><br>
-                <small>네트워크 연결을 확인해주세요.</small>
-            </div>
-        `;
-    }
-}
-
-// 도구 목록 렌더링
-function renderToolsList(tools) {
-    const toolsList = document.getElementById('toolsList');
-    
-    // DOM 요소가 없으면 종료
-    if (!toolsList) {
-        console.log('toolsList 요소를 찾을 수 없습니다.');
-        return;
-    }
-    
-    console.log('도구 목록 렌더링 시작, 도구 수:', tools.length);
-    
-    if (!tools || tools.length === 0) {
-        toolsList.innerHTML = `
-            <div class="no-tools-message">
-                등록된 도구가 없습니다.<br>
-                <small>먼저 도구를 등록해주세요.</small>
-            </div>
-        `;
-        return;
-    }
-    
-    const toolsHTML = tools.map(tool => {
-        console.log('도구 렌더링:', tool);
-        return `
-            <div class="tool-item">
-                <label class="tool-checkbox">
-                    <input type="checkbox" 
-                           value="${escapeHtml(tool.name)}" 
-                           ${selectedTools.includes(tool.name) ? 'checked' : ''}
-                           onchange="toggleTool('${escapeHtml(tool.name)}')">
-                    <div class="tool-info">
-                        <div class="tool-name">${escapeHtml(tool.name)}</div>
-                        <div class="tool-description">${escapeHtml(tool.description || '설명이 없습니다.')}</div>
-                        <div class="tool-type">${escapeHtml(tool.tool_type || 'API Tool')}</div>
-                    </div>
-                </label>
-            </div>
-        `;
-    }).join('');
-    
-    console.log('렌더링된 HTML:', toolsHTML);
-    toolsList.innerHTML = toolsHTML;
-}
-
-// 도구 필터링
-function filterTools(searchTerm) {
-    if (!searchTerm.trim()) {
-        renderToolsList(availableTools);
-        return;
-    }
-    
-    const filtered = availableTools.filter(tool => 
-        tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (tool.description && tool.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    
-    renderToolsList(filtered);
-}
-
-// 도구 선택/해제 토글
-function toggleTool(toolName) {
-    const index = selectedTools.indexOf(toolName);
-    
-    if (index > -1) {
-        selectedTools.splice(index, 1);
-    } else {
-        selectedTools.push(toolName);
-    }
-    
-    updateSelectedToolsDisplay();
-}
-
-// 선택된 도구 표시 업데이트
-function updateSelectedToolsDisplay() {
-    const selectedCount = document.getElementById('selectedCount');
-    const selectedToolsList = document.getElementById('selectedToolsList');
-    
-    selectedCount.textContent = selectedTools.length;
-    
-    if (selectedTools.length === 0) {
-        selectedToolsList.innerHTML = '<div style="color: #9ca3af; font-style: italic;">선택된 도구가 없습니다.</div>';
-        return;
-    }
-    
-    const selectedHTML = selectedTools.map(toolName => `
-        <div class="selected-tool-tag">
-            <span>${escapeHtml(toolName)}</span>
-            <div class="remove-tool" onclick="removeTool('${escapeHtml(toolName)}')">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
-            </div>
-        </div>
-    `).join('');
-    
-    selectedToolsList.innerHTML = selectedHTML;
-}
-
-// 선택된 도구 제거
-function removeTool(toolName) {
-    const index = selectedTools.indexOf(toolName);
-    if (index > -1) {
-        selectedTools.splice(index, 1);
-        updateSelectedToolsDisplay();
-        
-        // 체크박스 상태도 업데이트
-        const checkbox = document.querySelector(`input[value="${toolName}"]`);
-        if (checkbox) {
-            checkbox.checked = false;
-        }
-    }
-}
-
-// HTML 이스케이프 함수
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
