@@ -216,4 +216,4 @@ window.logSessionCreate = (id, details) => window.activityLogger.logSessionCreat
 window.logSessionDelete = (id, title, details) => window.activityLogger.logSessionDelete(id, title, details);
 window.logError = (message, error, details) => window.activityLogger.logError(message, error, details);
 
-console.log('🎯 Activity Logger initialized');
+console.log('Activity Logger initialized');

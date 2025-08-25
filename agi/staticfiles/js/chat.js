@@ -421,7 +421,7 @@ class ChatSessionManager {
                 await this.loadSessions();
             }
             
-            console.log('💾 메시지 저장 완료:', {
+            console.log('메시지 저장 완료:', {
                 role: role,
                 content_length: content.length,
                 metadata: metadata
@@ -1220,7 +1220,7 @@ async function sendMessage() {
     }
     window.sendMessageCallCount++;
     
-    console.log(`📤 sendMessage 함수 시작 (실행 횟수: ${window.sendMessageCallCount})`);
+    console.log(`sendMessage 함수 시작 (실행 횟수: ${window.sendMessageCallCount})`);
     
     // DOM 요소들을 함수 내에서 직접 가져오기
     const chatInput = document.getElementById('chatInput');
@@ -1267,7 +1267,7 @@ async function sendMessage() {
         return;
     }
 
-    console.log('📝 메시지 전송 시작:', message);
+    console.log('메시지 전송 시작:', message);
 
     // 사용자 활동 로그 기록
     if (window.logChatQuery) {
@@ -1280,9 +1280,9 @@ async function sendMessage() {
 
     // 채팅 세션에 사용자 메시지 저장
     if (chatSessionManager) {
-        console.log('💾 메시지 저장 중...');
+        console.log('메시지 저장 중...');
         await chatSessionManager.saveMessage(message, 'user');
-        console.log('✅ 메시지 저장 완료');
+        console.log('메시지 저장 완료');
     } else {
         console.error('chatSessionManager가 없습니다');
     }
@@ -1301,7 +1301,7 @@ async function sendMessage() {
     }
 
     // 사용자 메시지 출력
-    console.log('🎨 사용자 메시지 UI 생성 중...');
+    console.log('사용자 메시지 UI 생성 중...');
     const userMessage = createUserMessage(message);
     chatMessages.appendChild(userMessage);
 
@@ -1327,11 +1327,11 @@ async function sendMessage() {
     // 사용자 메시지를 기반으로 텍스트 생성 요청
     if (selectedAgent) {
         // 선택된 에이전트가 있는 경우 해당 에이전트로 직접 요청
-        console.log(`🎯 선택된 에이전트 "${selectedAgent}"로 메시지 전송`);
+        console.log(`선택된 에이전트 "${selectedAgent}"로 메시지 전송`);
         await sendMessageToSelectedAgent(message, selectedAgent, thinkingMessageId);
     } else {
         // 기본 AI 응답 처리 (/api/generate/ 호출)
-        console.log('🤖 기본 AI로 메시지 전송');
+        console.log('기본 AI로 메시지 전송');
         await sendMessageToDefaultAI(message, thinkingMessageId);
     }
 }
@@ -1363,7 +1363,7 @@ function createUserMessage(content) {
 // 기본 AI로 메시지 전송 (/api/generate/)
 async function sendMessageToDefaultAI(message, thinkingMessageId) {
     try {
-        console.log('🚀 기본 AI로 메시지 전송 시작');
+        console.log('기본 AI로 메시지 전송 시작');
         
         // 요청 본문 구성 (/api/generate/ 전용)
         const requestBody = {
@@ -1386,11 +1386,11 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             body: JSON.stringify(requestBody)
         });
 
-        console.log(`📡 기본 AI 응답 상태: ${response.status}`);
+        console.log(`기본 AI 응답 상태: ${response.status}`);
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('✅ 기본 AI 응답 수신:', responseData);
+            console.log('기본 AI 응답 수신:', responseData);
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1464,7 +1464,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
 // 선택된 에이전트로 메시지 전송
 async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId) {
     try {
-        console.log(`🚀 에이전트 "${agentName}"로 메시지 전송 시작`);
+        console.log(`에이전트 "${agentName}"로 메시지 전송 시작`);
         
         // 요청 본문 구성 (/api/agents/{agent_name}/invoke/ 전용)
         const requestBody = {
@@ -1490,12 +1490,12 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
             body: JSON.stringify(requestBody)
         });
 
-        console.log(`📡 에이전트 응답 상태: ${response.status}`);
+        console.log(`에이전트 응답 상태: ${response.status}`);
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('✅ 에이전트 응답 수신:', responseData);
-            console.log('✅ 응답 데이터 구조:', JSON.stringify(responseData, null, 2));
+            console.log('에이전트 응답 수신:', responseData);
+            console.log('응답 데이터 구조:', JSON.stringify(responseData, null, 2));
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1519,14 +1519,14 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
                 responseText = responseData;
             } else {
                 responseText = '에이전트 응답을 받았습니다.';
-                console.warn('⚠️ 알 수 없는 응답 형식:', responseData);
+                console.warn('알 수 없는 응답 형식:', responseData);
             }
             
-            console.log('📝 추출된 응답 텍스트:', responseText);
+            console.log('추출된 응답 텍스트:', responseText);
             
             // </think> 뒷부분만 추출
             const finalText = extractTextAfterThink(responseText);
-            console.log('✂️ </think> 뒷부분 추출:', finalText);
+            console.log('</think> 뒷부분 추출:', finalText);
             
             // AI 응답 메시지 표시 (타이핑 효과 포함)
             const chatMessages = document.getElementById('chatMessages');
@@ -1535,7 +1535,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
             
             // 채팅 세션에 AI 응답 저장 (에이전트 응답 - </think> 뒷부분만 저장)
             if (chatSessionManager && responseText) {
-                console.log('💾 에이전트 응답을 채팅 세션에 저장:', finalText);
+                console.log('에이전트 응답을 채팅 세션에 저장:', finalText);
                 
                 // 아티팩트 정보 추출
                 const artifactData = extractArtifactData(responseData);
@@ -1607,11 +1607,11 @@ function extractArtifactData(responseData) {
             artifacts.push(...responseData.metadata.artifacts);
         }
         
-        console.log('🎨 추출된 아티팩트:', artifacts);
+        console.log('추출된 아티팩트:', artifacts);
         return artifacts;
         
     } catch (error) {
-        console.warn('⚠️ 아티팩트 추출 중 오류:', error);
+        console.warn('아티팩트 추출 중 오류:', error);
         return [];
     }
 }
@@ -1627,7 +1627,7 @@ function extractTextAfterThink(text) {
     if (thinkEndIndex !== -1) {
         // </think> 뒷부분 추출
         let afterThink = text.substring(thinkEndIndex + '</think>'.length).trim();
-        console.log('🤔 </think> 태그 발견, 뒷부분만 추출');
+        console.log('</think> 태그 발견, 뒷부분만 추출');
         return afterThink || '응답을 처리했습니다.';
     }
     
@@ -2115,7 +2115,7 @@ function initChatFeatures() {
             });
         }
 
-        console.log('🔄 입력 이벤트 리스너 재초기화 완료');
+        console.log('입력 이벤트 리스너 재초기화 완료');
     }
 
     // 전역 함수 등록
@@ -2132,7 +2132,7 @@ function setupInputEventListeners() {
         const clonedSendButton = sendButton.cloneNode(true);
         sendButton.parentNode.replaceChild(clonedSendButton, sendButton);
         clonedSendButton.addEventListener('click', sendMessage);
-        console.log('🔄 Send 버튼 이벤트 리스너 재설정');
+        console.log('Send 버튼 이벤트 리스너 재설정');
     }
 
     if (chatInput) {
@@ -2149,7 +2149,7 @@ function setupInputEventListeners() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
-        console.log('🔄 Chat Input 이벤트 리스너 재설정');
+        console.log('Chat Input 이벤트 리스너 재설정');
     }
 }
 
@@ -2312,19 +2312,19 @@ class SidebarAgentManager {
         }
 
         try {
-            console.log('🔄 에이전트 목록 로딩 시작...');
-            console.log('🌐 요청 URL: /api/agents/');
+            console.log('에이전트 목록 로딩 시작...');
+            console.log('요청 URL: /api/agents/');
             this.showLoading();
 
             // API에서 에이전트 목록 가져오기
             const response = await fetch('/api/agents/');
-            console.log('📡 응답 상태:', response.status, response.statusText);
-            console.log('📡 응답 헤더:', Object.fromEntries(response.headers.entries()));
+            console.log('응답 상태:', response.status, response.statusText);
+            console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
             
             if (response.ok) {
                 const agents = await response.json();
-                console.log('✅ 에이전트 목록 로딩 완료:', agents);
-                console.log('📊 에이전트 수:', Array.isArray(agents) ? agents.length : 'Not an array');
+                console.log('에이전트 목록 로딩 완료:', agents);
+                console.log('에이전트 수:', Array.isArray(agents) ? agents.length : 'Not an array');
                 this.renderAgents(agents);
             } else {
                 const errorText = await response.text();
@@ -2342,10 +2342,10 @@ class SidebarAgentManager {
     renderAgents(agents) {
         if (!this.agentsListContainer) return;
 
-        console.log('🖼️ 에이전트 렌더링 시작, 에이전트 수:', agents.length);
+        console.log('에이전트 렌더링 시작, 에이전트 수:', agents.length);
 
         if (!agents || agents.length === 0) {
-            console.log('📭 에이전트 없음, 빈 상태 메시지 표시');
+            console.log('에이전트 없음, 빈 상태 메시지 표시');
             this.agentsListContainer.innerHTML = `
                 <div class="chat-item agent-refresh-btn" style="cursor: pointer;" title="클릭하여 새로고침">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -2359,7 +2359,7 @@ class SidebarAgentManager {
             const refreshBtn = this.agentsListContainer.querySelector('.agent-refresh-btn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
-                    console.log('🔄 에이전트 목록 새로고침 요청');
+                    console.log('에이전트 목록 새로고침 요청');
                     this.loadAgents();
                 });
             }
@@ -2367,7 +2367,7 @@ class SidebarAgentManager {
             return;
         }
 
-        console.log('🎨 에이전트 카드 생성 중...');
+        console.log('에이전트 카드 생성 중...');
         const agentElements = agents.map(agent => `
             <div class="chat-item agent-item" data-agent-name="${agent.name}" title="${agent.description || agent.name}">
                 <div class="agent-checkbox">
@@ -2383,7 +2383,7 @@ class SidebarAgentManager {
         `).join('');
 
         this.agentsListContainer.innerHTML = agentElements;
-        console.log('✨ 에이전트 카드 렌더링 완료');
+        console.log('에이전트 카드 렌더링 완료');
 
         // 에이전트 선택 이벤트 추가 (체크박스)
         this.agentsListContainer.querySelectorAll('.agent-select-checkbox').forEach(checkbox => {
@@ -2477,7 +2477,7 @@ class SidebarAgentManager {
         }
 
         // 선택 상태를 사용자에게 알림
-        console.log(`🤖 에이전트 "${agentName}" 선택됨`);
+        console.log(`에이전트 "${agentName}" 선택됨`);
         
         // 선택된 에이전트 표시 (옵션)
         this.showSelectedAgentNotification(agentName);
@@ -2554,12 +2554,12 @@ function clearAgentSelection() {
         notification.remove();
     }
     
-    console.log('🔄 에이전트 선택 해제됨');
+    console.log('에이전트 선택 해제됨');
 }
 
 // 페이지 로드 시 SidebarAgentManager와 ChatSessionManager 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎯 DOM 로드 완료, 매니저들 생성 중...');
+    console.log('DOM 로드 완료, 매니저들 생성 중...');
     window.sidebarAgentManager = new SidebarAgentManager();
     chatSessionManager = new ChatSessionManager();
     
@@ -2581,11 +2581,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 즉시 실행으로도 테스트
-console.log('🎯 즉시 실행 테스트...');
+console.log('즉시 실행 테스트...');
 if (document.readyState === 'loading') {
-    console.log('📄 문서 로딩 중...');
+    console.log('문서 로딩 중...');
 } else {
-    console.log('📄 문서 로드 완료, 즉시 실행');
+    console.log('문서 로드 완료, 즉시 실행');
     window.sidebarAgentManager = new SidebarAgentManager();
     chatSessionManager = new ChatSessionManager();
 }
