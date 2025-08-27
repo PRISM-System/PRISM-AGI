@@ -179,7 +179,7 @@ def proxy_api(request, path):
 def proxy_tool_detail(request, tool_name):
     """
     개별 도구에 대한 API 요청을 원격 서버로 프록시합니다.
-    /api/tools/<tool_name> -> {REMOTE_SERVER}/api/tools/<tool_name>
+    /django/api/tools/<tool_name> -> {REMOTE_SERVER}/django/api/tools/<tool_name>
     """
     
     # OPTIONS 요청 처리
@@ -187,7 +187,7 @@ def proxy_tool_detail(request, tool_name):
         return create_cors_response()
     
     try:
-        url = f"{REMOTE_SERVER}/api/tools/{tool_name}"
+        url = f"{REMOTE_SERVER}/django/api/tools/{tool_name}"
         logger.info(f"Proxying {request.method} request to {url}")
         
         # 요청 메서드에 따라 처리

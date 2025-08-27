@@ -575,7 +575,7 @@ async function createAgent() {
             
             // 채팅 페이지로 이동
             setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = '/django/';
             }, 1000);
             
         } else {

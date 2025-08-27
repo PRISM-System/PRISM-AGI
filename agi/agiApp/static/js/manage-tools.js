@@ -70,7 +70,7 @@ async function loadTools() {
         showLoading(true);
         
         // 로컬 프록시를 통해 외부 API 호출
-        const response = await fetch('/api/tools/', {
+        const response = await fetch('/django/api/tools/', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -284,7 +284,7 @@ async function handleDeleteTool() {
     
     try {
         // 삭제 API 호출 (URL 끝에 슬래시 추가)
-        const response = await fetch(`/api/tools/${encodeURIComponent(tool.name)}/`, { 
+        const response = await fetch(`/django/api/tools/${encodeURIComponent(tool.name)}/`, { 
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

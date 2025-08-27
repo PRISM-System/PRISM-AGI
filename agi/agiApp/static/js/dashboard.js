@@ -951,7 +951,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!window.anomalyDashboard) {
         if (typeof dashboardData !== 'undefined') {
             window.anomalyDashboard = new AnomalyDashboard(dashboardData);
-            console.log('Dashboard initialized with external data');
+            // console.log('Dashboard initialized with external data');
         } else {
             window.anomalyDashboard = new AnomalyDashboard();
             console.log('Dashboard initialized with default data');
@@ -1509,7 +1509,7 @@ function clearAllAlerts() {
 }
 
 function refreshEquipmentStatus() {
-    console.log('Refreshing equipment status...');
+    // console.log('Refreshing equipment status...');
     
     // Visual feedback
     const refreshBtn = event.target;
@@ -1544,7 +1544,7 @@ function refreshEquipmentStatus() {
 }
 
 function toggleEquipmentView() {
-    console.log('Toggling equipment view...');
+    // console.log('Toggling equipment view...');
     
     const equipmentGrid = document.querySelector('.equipment-grid');
     const toggleBtn = event.target;
@@ -1581,7 +1581,7 @@ function toggleEquipmentView() {
 }
 
 function toggleHeatmapMode() {
-    console.log('Toggling heatmap mode...');
+    //console.log('Toggling heatmap mode...');
     
     const heatmapGrid = document.getElementById('anomalyHeatmap');
     const toggleBtn = event.target;
@@ -1631,7 +1631,7 @@ function toggleHeatmapMode() {
 }
 
 function exportData() {
-    console.log('Exporting data...');
+    // console.log('Exporting data...');
     
     const exportBtn = event.target;
     const originalText = exportBtn.textContent;
@@ -1836,7 +1836,7 @@ AnomalyDashboard.prototype.updateWithNewData = function() {
         this.updateYieldChart();
     }
     
-    console.log('Dashboard updated with new anomaly detection data');
+    // console.log('Dashboard updated with new anomaly detection data');
 };
 
 AnomalyDashboard.prototype.generateSimulatedData = function() {
@@ -1887,14 +1887,14 @@ AnomalyDashboard.prototype.updateYieldChart = function() {
 
 // Global functions for dashboard interactions
 function refreshAnomalyData() {
-    console.log('Refreshing anomaly data...');
+    // console.log('Refreshing anomaly data...');
     if (window.anomalyDashboard) {
         window.anomalyDashboard.updateWithNewData();
     }
 }
 
 function refreshEquipmentStatus() {
-    console.log('Refreshing equipment status...');
+    // console.log('Refreshing equipment status...');
     // Simulate equipment status update
     const equipmentItems = document.querySelectorAll('.equipment-item');
     equipmentItems.forEach(item => {
@@ -1914,7 +1914,7 @@ function refreshEquipmentStatus() {
 }
 
 function toggleEquipmentView() {
-    console.log('Toggling equipment view...');
+    // console.log('Toggling equipment view...');
     const equipmentGrid = document.querySelector('.equipment-grid');
     if (equipmentGrid) {
         equipmentGrid.classList.toggle('detailed-view');
@@ -1922,7 +1922,7 @@ function toggleEquipmentView() {
 }
 
 function toggleHeatmapMode() {
-    console.log('Toggling heatmap mode...');
+    // console.log('Toggling heatmap mode...');
     const heatmap = document.getElementById('anomalyHeatmap');
     if (heatmap) {
         heatmap.classList.toggle('intensity-mode');
@@ -1930,7 +1930,7 @@ function toggleHeatmapMode() {
 }
 
 function refreshAnomalyData() {
-    console.log('Refreshing anomaly detection data...');
+    // console.log('Refreshing anomaly detection data...');
     // Trigger dashboard update
     if (window.anomalyDashboard) {
         window.anomalyDashboard.updateWithNewData();
@@ -1938,7 +1938,7 @@ function refreshAnomalyData() {
 }
 
 function toggleHeatmapMode() {
-    console.log('Toggling heatmap mode');
+    // console.log('Toggling heatmap mode');
     // Implement heatmap mode switching logic
 }
 

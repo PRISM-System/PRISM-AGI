@@ -13,9 +13,15 @@ let selectedTools = [];
 // let editAgentName = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // console.log('DOMContentLoaded 이벤트 발생 (agiApp/static)');
+    // console.log('현재 페이지 body 클래스:', document.body.className);
+    
     // 에이전트 생성 페이지인지 확인
-    if (document.body.classList.contains('/django/create-agent-page')) {
+    if (document.body.classList.contains('create-agent-page')) {
+        // console.log('에이전트 생성 페이지 감지, 초기화 시작');
         initializeAgentCreator();
+    } else {
+        console.log('에이전트 생성 페이지가 아님');
     }
 });
 
@@ -54,7 +60,7 @@ function checkEditMode() {
     if (editParam && editParam !== 'undefined') {
         isEditMode = true;
         editAgentName = decodeURIComponent(editParam);
-        console.log('Edit mode detected for agent:', editAgentName);
+        // console.log('Edit mode detected for agent:', editAgentName);
         
         // 페이지 제목 변경
         const titleElement = document.querySelector('.creator-title');
@@ -78,10 +84,10 @@ function checkEditMode() {
 // 수정할 에이전트 정보 로드
 async function loadAgentForEdit(agentName) {
     try {
-        console.log('Loading agent for edit:', agentName);
+        // console.log('Loading agent for edit:', agentName);
         
         // 에이전트 목록에서 해당 에이전트 찾기
-        const response = await fetch('/django/api/agents/', {
+        const response = await fetch('https://grnd.bimatrix.co.kr/django/api/agents/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -94,7 +100,7 @@ async function loadAgentForEdit(agentName) {
             const agent = agents.find(a => a.name === agentName);
             
             if (agent) {
-                console.log('Found agent:', agent);
+                // console.log('Found agent:', agent);
                 populateFormWithAgentData(agent);
             } else {
                 console.error('Agent not found:', agentName);
@@ -148,7 +154,7 @@ function populateFormWithAgentData(agent) {
             }
         }
         
-        console.log('Agent data populated successfully');
+        // console.log('Agent data populated successfully');
     } catch (error) {
         console.error('Error populating form with agent data:', error);
     }
@@ -669,16 +675,16 @@ async function createAgent() {
                 tools: selectedTools  // 선택된 도구들 추가
             };
 
-            console.log('요청 데이터 (객체):', requestData);
-            console.log('선택된 도구들:', selectedTools);
-            console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
-            console.log('CSRF 토큰:', getCsrfToken());
+            // console.log('요청 데이터 (객체):', requestData);
+            // console.log('선택된 도구들:', selectedTools);
+            // console.log('요청 데이터 (JSON 문자열):', JSON.stringify(requestData));
+            // console.log('CSRF 토큰:', getCsrfToken());
 
             // 에이전트 생성 (POST 방식만 사용)
-            const url = '/django/api/agents/';
+            const url = 'https://grnd.bimatrix.co.kr/django/api/agents/';
             const method = 'POST';
             
-            console.log('Creating agent with URL:', url, 'Method:', method);
+            // console.log('Creating agent with URL:', url, 'Method:', method);
 
             const response = await fetch(url, {
                 method: method,
@@ -689,13 +695,13 @@ async function createAgent() {
                 body: JSON.stringify(requestData)
             });
 
-            console.log('응답 상태:', response.status);
-            console.log('응답 상태 텍스트:', response.statusText);
-            console.log('응답 헤더:', [...response.headers.entries()]);
+            // console.log('응답 상태:', response.status);
+            // console.log('응답 상태 텍스트:', response.statusText);
+            // console.log('응답 헤더:', [...response.headers.entries()]);
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('응답 결과:', result);
+                // console.log('응답 결과:', result);
                 
                 // 사용자 활동 로그 기록
                 if (window.logAgentCreate) {
@@ -718,7 +724,7 @@ async function createAgent() {
                 
                 // 채팅 페이지로 이동
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/django/';
                 }, 1000);
                 
             } else {
@@ -789,19 +795,19 @@ async function loadAvailableTools() {
     console.log('도구 목록 로드 시작...');
     
     try {
-        console.log('API 요청 시작: /django/api/tools/');
-        const response = await fetch('/django/api/tools/');
-        console.log('API 응답 상태:', response.status, response.statusText);
+        // console.log('API 요청 시작: https://grnd.bimatrix.co.kr/django/api/tools/');
+        const response = await fetch('https://grnd.bimatrix.co.kr/django/api/tools/');
+        // console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('받은 데이터:', data);
+        // console.log('받은 데이터:', data);
         
         availableTools = Array.isArray(data) ? data : (data.tools || []);
-        console.log('처리된 도구 목록:', availableTools);
+        // console.log('처리된 도구 목록:', availableTools);
         
         renderToolsList(availableTools);
         
@@ -828,7 +834,7 @@ function renderToolsList(tools) {
         return;
     }
     
-    console.log('도구 목록 렌더링 시작, 도구 수:', tools.length);
+    // console.log('도구 목록 렌더링 시작, 도구 수:', tools.length);
     
     if (!tools || tools.length === 0) {
         toolsList.innerHTML = `
@@ -841,7 +847,7 @@ function renderToolsList(tools) {
     }
     
     const toolsHTML = tools.map(tool => {
-        console.log('도구 렌더링:', tool);
+        // console.log('도구 렌더링:', tool);
         return `
             <div class="tool-item">
                 <label class="tool-checkbox">
@@ -859,7 +865,7 @@ function renderToolsList(tools) {
         `;
     }).join('');
     
-    console.log('렌더링된 HTML:', toolsHTML);
+    // console.log('렌더링된 HTML:', toolsHTML);
     toolsList.innerHTML = toolsHTML;
 }
 

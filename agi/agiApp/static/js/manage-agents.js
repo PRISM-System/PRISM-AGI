@@ -137,7 +137,7 @@ class AgentManager {
     async fetchAgentsFromAPI() {
         try {
             // 외부 API에서 에이전트 목록 가져오기
-            const response = await fetch('/api/agents/');
+            const response = await fetch('/django/api/agents/');
 
             if (!response.ok) {
                 throw new Error(`API 요청 실패: ${response.status}`);
@@ -407,7 +407,7 @@ class AgentManager {
             }
 
             // API 호출로 에이전트 삭제
-            const response = await fetch(`/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
+            const response = await fetch(`/django/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,9 +1,9 @@
 // ===============================
 // 환경 설정(필요에 맞게 바꿔 사용)
 // ===============================
-console.log('chat.js 파일 로드됨');
+// console.log('chat.js 파일 로드됨');
 
-const API_BASE = 'http://127.0.0.1:8000'; // 로컬 프록시 서버
+const API_BASE = 'https://grnd.bimatrix.co.kr'; // 외부 웹 도메인
 const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
 const USE_GET_FOR_LIST = false;           // true면 GET으로 목록 우래(프리플라이트 줄이기)
 const USE_CREDENTIALS = false;            // 세션/쿠키 사용 시 true + 서버 CORS allow_credentials 필요
@@ -68,22 +68,22 @@ function getAccessToken() {
 // ===============================
 class ChatSessionManager {
     constructor() {
-        console.log('ChatSessionManager 생성자 시작');
+        // console.log('ChatSessionManager 생성자 시작');
         this.currentSessionId = null;
         this.userId = 'user_1234'; // 테스트용 고정 사용자
         this.sessions = [];
         
-        console.log('ChatSessionManager 설정:', {
-            userId: this.userId,
-            apiBase: API_BASE
-        });
+        // console.log('ChatSessionManager 설정:', {
+        //     userId: this.userId,
+        //     apiBase: API_BASE
+        // });
         
         // 초기 환영 메시지 표시
         this.showWelcomeMessage();
         
         this.loadSessions();
         this.initEventListeners();
-        console.log('ChatSessionManager 생성자 완료');
+        // console.log('ChatSessionManager 생성자 완료');
     }
 
     initEventListeners() {
@@ -94,7 +94,7 @@ class ChatSessionManager {
             newChatBtn.removeEventListener('click', this.handleNewChat);
             this.handleNewChat = () => this.createNewSession();
             newChatBtn.addEventListener('click', this.handleNewChat);
-            console.log('새 채팅 버튼 이벤트 리스너 등록됨');
+            // console.log('새 채팅 버튼 이벤트 리스너 등록됨');
         }
     }
 
@@ -103,14 +103,14 @@ class ChatSessionManager {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'flex';
 
-            console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
+            // console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
             const response = await fetch(`${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
             const sessions = await response.json();
             
-            console.log('로드된 채팅 세션:', sessions);
+            // console.log('로드된 채팅 세션:', sessions);
             this.sessions = sessions;
             this.renderSessions();
-            console.log('채팅 세션 렌더링 완료');
+            // console.log('채팅 세션 렌더링 완료');
         } catch (error) {
             console.error('채팅 세션 로드 실패:', error);
             
@@ -129,20 +129,20 @@ class ChatSessionManager {
             return;
         }
 
-        console.log('세션 렌더링 시작...', this.sessions);
+        // console.log('세션 렌더링 시작...', this.sessions);
 
         // 기존 세션 아이템들 제거 (로딩 요소 제외)
         const existingSessions = sessionsList.querySelectorAll('.chat-session-item');
-        console.log('기존 세션 제거:', existingSessions.length, '개');
+        // console.log('기존 세션 제거:', existingSessions.length, '개');
         existingSessions.forEach(item => item.remove());
 
         this.sessions.forEach((session, index) => {
-            console.log(`세션 ${index + 1} 생성:`, session);
+            // console.log(`세션 ${index + 1} 생성:`, session);
             const sessionElement = this.createSessionElement(session);
             sessionsList.appendChild(sessionElement);
         });
         
-        console.log('세션 렌더링 완료. 총', this.sessions.length, '개 세션');
+        // console.log('세션 렌더링 완료. 총', this.sessions.length, '개 세션');
     }
 
     createSessionElement(session) {
@@ -189,7 +189,7 @@ class ChatSessionManager {
 
     async createNewSession() {
         const startTime = Date.now();
-        console.log(`🆕 [${startTime}] 새 세션 생성 시작...`, 'CSRF 토큰:', getCSRFToken());
+        // console.log(`🆕 [${startTime}] 새 세션 생성 시작...`, 'CSRF 토큰:', getCSRFToken());
         
         try {
             const response = await fetch(`${API_BASE}/django/api/chat/sessions/`, {
@@ -201,7 +201,7 @@ class ChatSessionManager {
                 })
             });
 
-            console.log(`📡 [${startTime}] 세션 생성 응답 상태:`, response.status);
+            // console.log(`📡 [${startTime}] 세션 생성 응답 상태:`, response.status);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -214,7 +214,7 @@ class ChatSessionManager {
             }
 
             const newSession = await response.json();
-            console.log('생성된 세션:', newSession);
+            // console.log('생성된 세션:', newSession);
             
             // 현재 세션 설정
             this.currentSessionId = newSession.id;
@@ -236,7 +236,7 @@ class ChatSessionManager {
             // 세션 목록 새로고침
             await this.loadSessions();
             
-            console.log(`✅ [${startTime}] 새 채팅 세션 생성 완료:`, newSession.id);
+            // console.log(`✅ [${startTime}] 새 채팅 세션 생성 완료:`, newSession.id);
         } catch (error) {
             console.error(`❌ [${startTime}] 새 채팅 세션 생성 실패:`, error);
         }
@@ -263,7 +263,7 @@ class ChatSessionManager {
             // 채팅 화면에 메시지들 표시
             this.displayMessages(data.messages);
             
-            console.log('채팅 세션 로드됨:', sessionId);
+            // console.log('채팅 세션 로드됨:', sessionId);
         } catch (error) {
             console.error('채팅 세션 로드 실패:', error);
         }
@@ -420,17 +420,17 @@ class ChatSessionManager {
             return;
         }
         
-        console.log('ensureBottomInputActive called:', {
-            bottomChatInput: !!bottomChatInput,
-            bottomSendButton: !!bottomSendButton,
-            sendMessage: typeof window.sendMessage
-        });
+        // console.log('ensureBottomInputActive called:', {
+        //     bottomChatInput: !!bottomChatInput,
+        //     bottomSendButton: !!bottomSendButton,
+        //     sendMessage: typeof window.sendMessage
+        // });
         
         // 기존 이벤트 리스너가 있는지 확인하고 제거
         if (!bottomSendButton.hasAttribute('data-listener-added')) {
             // 전송 버튼 클릭 이벤트
             const sendClickHandler = () => {
-                console.log('Bottom send button clicked');
+                // console.log('Bottom send button clicked');
                 if (window.sendMessage) {
                     window.sendMessage();
                 } else {
@@ -446,7 +446,7 @@ class ChatSessionManager {
             const keyPressHandler = function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    console.log('Bottom input Enter pressed');
+                    // console.log('Bottom input Enter pressed');
                     if (window.sendMessage) {
                         window.sendMessage();
                     } else {
@@ -499,11 +499,11 @@ class ChatSessionManager {
                 await this.loadSessions();
             }
             
-            console.log('메시지 저장 완료:', {
-                role: role,
-                content_length: content.length,
-                metadata: metadata
-            });
+            // console.log('메시지 저장 완료:', {
+            //     role: role,
+            //     content_length: content.length,
+            //     metadata: metadata
+            // });
             
             return savedMessage;
         } catch (error) {
@@ -554,7 +554,7 @@ class ChatSessionManager {
                 // 세션 목록 새로고침
                 await this.loadSessions();
                 
-                console.log('채팅 세션 삭제됨:', sessionId);
+                // console.log('채팅 세션 삭제됨:', sessionId);
             } else {
                 throw new Error('삭제 요청 실패');
             }
@@ -603,13 +603,13 @@ class ProcessManager {
     }
     
     initEventListeners() {
-        console.log('Initializing event listeners');
-        console.log('Process close button:', this.processCloseBtn);
-        console.log('Resize handle:', this.resizeHandle);
+        // console.log('Initializing event listeners');
+        // console.log('Process close button:', this.processCloseBtn);
+        // console.log('Resize handle:', this.resizeHandle);
         
         if (this.processCloseBtn) {
             this.processCloseBtn.addEventListener('click', () => {
-                console.log('Close button clicked');
+                // console.log('Close button clicked');
                 this.hideSidebar();
             });
         }
@@ -655,7 +655,7 @@ class ProcessManager {
     }
     
     showSidebar() {
-        console.log('Showing sidebar');
+        // console.log('Showing sidebar');
         this.processSidebar.classList.add('active');
         this.chatLayout.classList.add('process-active');
         // 스타일 초기화 (CSS 클래스가 적용되도록)
@@ -663,7 +663,7 @@ class ProcessManager {
     }
     
     hideSidebar() {
-        console.log('Hiding sidebar');
+        // console.log('Hiding sidebar');
         this.processSidebar.classList.remove('active');
         this.chatLayout.classList.remove('process-active');
         // 강제로 width를 0으로 설정
@@ -1300,19 +1300,19 @@ async function sendMessage() {
     }
     window.sendMessageCallCount++;
     
-    console.log(`sendMessage 함수 시작 (실행 횟수: ${window.sendMessageCallCount})`);
+    // console.log(`sendMessage 함수 시작 (실행 횟수: ${window.sendMessageCallCount})`);
     
     // DOM 요소들을 함수 내에서 직접 가져오기
     const chatInput = document.getElementById('chatInput');
     const bottomChatInput = document.getElementById('bottomChatInput');
     const chatMessages = document.getElementById('chatMessages');
     
-    console.log('DOM 요소 확인:', {
-        chatInput: !!chatInput,
-        bottomChatInput: !!bottomChatInput,
-        chatMessages: !!chatMessages,
-        isEmpty: chatMessages?.classList.contains('empty')
-    });
+    // console.log('DOM 요소 확인:', {
+    //     chatInput: !!chatInput,
+    //     bottomChatInput: !!bottomChatInput,
+    //     chatMessages: !!chatMessages,
+    //     isEmpty: chatMessages?.classList.contains('empty')
+    // });
     
     if (!chatMessages) {
         console.log('chatMessages 요소를 찾을 수 없습니다 (현재 페이지가 채팅 페이지가 아닐 수 있음)');
@@ -1328,18 +1328,18 @@ async function sendMessage() {
         if (bottomChatInput) {
             message = bottomChatInput.value.trim();
             activeInput = bottomChatInput;
-            console.log('하단 입력창 사용:', message);
+            // console.log('하단 입력창 사용:', message);
         }
     } else if (chatInput) {
         // 환영 상태면 상단 입력창 사용
         message = chatInput.value.trim();
         activeInput = chatInput;
-        console.log('상단 입력창 사용:', message);
+        // console.log('상단 입력창 사용:', message);
     } else if (bottomChatInput) {
         // 상단 입력창이 없으면 하단 입력창 사용
         message = bottomChatInput.value.trim();
         activeInput = bottomChatInput;
-        console.log('대체 하단 입력창 사용:', message);
+        // console.log('대체 하단 입력창 사용:', message);
     }
 
     if (!message) {
@@ -1347,7 +1347,7 @@ async function sendMessage() {
         return;
     }
 
-    console.log('메시지 전송 시작:', message);
+    // console.log('메시지 전송 시작:', message);
 
     // 사용자 활동 로그 기록
     if (window.logChatQuery) {
@@ -1360,9 +1360,9 @@ async function sendMessage() {
 
     // 채팅 세션에 사용자 메시지 저장
     if (chatSessionManager) {
-        console.log('메시지 저장 중...');
+        // console.log('메시지 저장 중...');
         await chatSessionManager.saveMessage(message, 'user');
-        console.log('메시지 저장 완료');
+        // console.log('메시지 저장 완료');
     } else {
         console.error('chatSessionManager가 없습니다');
     }
@@ -1371,7 +1371,7 @@ async function sendMessage() {
     chatMessages.classList.remove('empty');
     const welcomeMessage = chatMessages.querySelector('.welcome-message');
     if (welcomeMessage) {
-        console.log('환영 메시지 제거');
+        // console.log('환영 메시지 제거');
         welcomeMessage.remove();
         
         // 환영 메시지가 제거되었으므로 하단 입력창 활성화
@@ -1381,7 +1381,7 @@ async function sendMessage() {
     }
 
     // 사용자 메시지 출력
-    console.log('사용자 메시지 UI 생성 중...');
+    // console.log('사용자 메시지 UI 생성 중...');
     const userMessage = createUserMessage(message);
     chatMessages.appendChild(userMessage);
 
@@ -1407,11 +1407,11 @@ async function sendMessage() {
     // 사용자 메시지를 기반으로 텍스트 생성 요청
     if (selectedAgent) {
         // 선택된 에이전트가 있는 경우 해당 에이전트로 직접 요청
-        console.log(`선택된 에이전트 "${selectedAgent}"로 메시지 전송`);
+        // console.log(`선택된 에이전트 "${selectedAgent}"로 메시지 전송`);
         await sendMessageToSelectedAgent(message, selectedAgent, thinkingMessageId);
     } else {
         // 기본 AI 응답 처리 (/api/generate/ 호출)
-        console.log('기본 AI로 메시지 전송');
+        // console.log('기본 AI로 메시지 전송');
         await sendMessageToDefaultAI(message, thinkingMessageId);
     }
 }
@@ -1443,7 +1443,7 @@ function createUserMessage(content) {
 // 기본 AI로 메시지 전송 (새로운 orchestrate API 사용)
 async function sendMessageToDefaultAI(message, thinkingMessageId) {
     try {
-        console.log('기본 AI로 메시지 전송 시작');
+        // console.log('기본 AI로 메시지 전송 시작');
         
         // 현재 세션의 session_user_id 가져오기 (최신 메시지에서 추출)
         let sessionUserId = 'user_1234_task_1'; // 기본값
@@ -1485,7 +1485,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             }
         };
 
-        console.log('새로운 orchestrate API 요청:', requestBody);
+        // console.log('새로운 orchestrate API 요청:', requestBody);
 
         // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
         const response = await fetch('/django/api/vi/orchestrate/', {
@@ -1497,11 +1497,11 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             body: JSON.stringify(requestBody)
         });
 
-        console.log(`orchestrate API 응답 상태: ${response.status}`);
+        // console.log(`orchestrate API 응답 상태: ${response.status}`);
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('orchestrate API 응답 수신:', responseData);
+            // console.log('orchestrate API 응답 수신:', responseData);
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1597,7 +1597,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
 // 선택된 에이전트로 메시지 전송
 async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId) {
     try {
-        console.log(`에이전트 "${agentName}"로 메시지 전송 시작`);
+        // console.log(`에이전트 "${agentName}"로 메시지 전송 시작`);
         
         // 요청 본문 구성 (/api/agents/{agent_name}/invoke/ 전용)
         const requestBody = {
@@ -1623,12 +1623,12 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
             body: JSON.stringify(requestBody)
         });
 
-        console.log(`에이전트 응답 상태: ${response.status}`);
+        // console.log(`에이전트 응답 상태: ${response.status}`);
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('에이전트 응답 수신:', responseData);
-            console.log('응답 데이터 구조:', JSON.stringify(responseData, null, 2));
+            // console.log('에이전트 응답 수신:', responseData);
+            // console.log('응답 데이터 구조:', JSON.stringify(responseData, null, 2));
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1655,11 +1655,11 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
                 console.warn('⚠️ 알 수 없는 응답 형식:', responseData);
             }
             
-            console.log('추출된 응답 텍스트:', responseText);
+            // console.log('추출된 응답 텍스트:', responseText);
             
             // </think> 뒷부분만 추출
             const finalText = extractTextAfterThink(responseText);
-            console.log('</think> 뒷부분 추출:', finalText);
+            // console.log('</think> 뒷부분 추출:', finalText);
             
             // AI 응답 메시지 표시 (타이핑 효과 포함)
             const chatMessages = document.getElementById('chatMessages');
@@ -1668,7 +1668,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
             
             // 채팅 세션에 AI 응답 저장 (에이전트 응답 - </think> 뒷부분만 저장)
             if (chatSessionManager && responseText) {
-                console.log('에이전트 응답을 채팅 세션에 저장:', finalText);
+                // console.log('에이전트 응답을 채팅 세션에 저장:', finalText);
                 
                 // 아티팩트 정보 추출
                 const artifactData = extractArtifactData(responseData);
@@ -1762,7 +1762,7 @@ function extractArtifactData(responseData) {
             artifacts.push(...responseData.metadata.artifacts);
         }
         
-        console.log('추출된 아티팩트:', artifacts);
+        // console.log('추출된 아티팩트:', artifacts);
         return artifacts;
         
     } catch (error) {
@@ -1782,7 +1782,7 @@ function extractTextAfterThink(text) {
     if (thinkEndIndex !== -1) {
         // </think> 뒷부분 추출
         let afterThink = text.substring(thinkEndIndex + '</think>'.length).trim();
-        console.log('</think> 태그 발견, 뒷부분만 추출');
+        // console.log('</think> 태그 발견, 뒷부분만 추출');
         return afterThink || '응답을 처리했습니다.';
     }
     
@@ -1939,7 +1939,7 @@ function initChatFeatures() {
     // ChatSessionManager 초기화
     chatSessionManager = new ChatSessionManager();
     window.chatSessionManager = chatSessionManager; // 전역에서도 참조 가능
-    console.log('ChatSessionManager 초기화됨:', chatSessionManager);
+    // console.log('ChatSessionManager 초기화됨:', chatSessionManager);
     
     // 하단 입력창 미리 활성화 (페이지 로드 시)
     setTimeout(() => {
@@ -2050,7 +2050,7 @@ function initChatFeatures() {
             const endpoint = '/api/generate/';
             const url = `${API_BASE}${endpoint}`;
             
-            console.log(`Sending POST request to ${url} with prompt: "${userMessage}"`);
+            // console.log(`Sending POST request to ${url} with prompt: "${userMessage}"`);
             const response = await fetch(url, fetchOpts);
 
             // 상태 체크
@@ -2318,7 +2318,7 @@ function initChatFeatures() {
             });
         }
 
-        console.log('입력 이벤트 리스너 재초기화 완료');
+        // console.log('입력 이벤트 리스너 재초기화 완료');
     }
 
     // 전역 함수 등록
@@ -2335,7 +2335,7 @@ function setupInputEventListeners() {
         const clonedSendButton = sendButton.cloneNode(true);
         sendButton.parentNode.replaceChild(clonedSendButton, sendButton);
         clonedSendButton.addEventListener('click', sendMessage);
-        console.log('Send 버튼 이벤트 리스너 재설정');
+        // console.log('Send 버튼 이벤트 리스너 재설정');
     }
 
     if (chatInput) {
@@ -2352,7 +2352,7 @@ function setupInputEventListeners() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
-        console.log('Chat Input 이벤트 리스너 재설정');
+        // console.log('Chat Input 이벤트 리스너 재설정');
     }
 }
 
@@ -2362,7 +2362,7 @@ function setupInputEventListeners() {
 function addProcessArtifact(messageElement, processManager) {
     // processManager나 currentSteps가 없으면 아티팩트를 추가하지 않음
     if (!processManager || !processManager.currentSteps || processManager.currentSteps.length === 0) {
-        console.log('ProcessManager or steps not available, skipping artifact');
+        // console.log('ProcessManager or steps not available, skipping artifact');
         return;
     }
     
@@ -2412,7 +2412,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // ProcessManager 초기화
     window.processManager = new ProcessManager();
-    console.log('ProcessManager initialized:', window.processManager);
+    // console.log('ProcessManager initialized:', window.processManager);
     
     // 사이드바 메뉴 이벤트 리스너 추가
     initSidebarMenuEvents();
@@ -2515,19 +2515,19 @@ class SidebarAgentManager {
         }
 
         try {
-            console.log('에이전트 목록 로딩 시작...');
-            console.log('요청 URL: /django/api/agents/');
+            //console.log('에이전트 목록 로딩 시작...');
+            // console.log('요청 URL: /django/api/agents/');
             this.showLoading();
 
             // API에서 에이전트 목록 가져오기
             const response = await fetch('/django/api/agents/');
-            console.log('응답 상태:', response.status, response.statusText);
-            console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
+            //console.log('응답 상태:', response.status, response.statusText);
+            //console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
             
             if (response.ok) {
                 const agents = await response.json();
-                console.log('에이전트 목록 로딩 완료:', agents);
-                console.log('에이전트 수:', Array.isArray(agents) ? agents.length : 'Not an array');
+                // console.log('에이전트 목록 로딩 완료:', agents);
+                // console.log('에이전트 수:', Array.isArray(agents) ? agents.length : 'Not an array');
                 this.renderAgents(agents);
             } else {
                 const errorText = await response.text();
@@ -2545,7 +2545,7 @@ class SidebarAgentManager {
     renderAgents(agents) {
         if (!this.agentsListContainer) return;
 
-        console.log('에이전트 렌더링 시작, 에이전트 수:', agents.length);
+        // console.log('에이전트 렌더링 시작, 에이전트 수:', agents.length);
 
         if (!agents || agents.length === 0) {
             console.log('에이전트 없음, 빈 상태 메시지 표시');
@@ -2562,7 +2562,7 @@ class SidebarAgentManager {
             const refreshBtn = this.agentsListContainer.querySelector('.agent-refresh-btn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
-                    console.log('에이전트 목록 새로고침 요청');
+                    // console.log('에이전트 목록 새로고침 요청');
                     this.loadAgents();
                 });
             }
@@ -2570,7 +2570,7 @@ class SidebarAgentManager {
             return;
         }
 
-        console.log('에이전트 카드 생성 중...');
+        // console.log('에이전트 카드 생성 중...');
         const agentElements = agents.map(agent => `
             <div class="chat-item agent-item" data-agent-name="${agent.name}" title="${agent.description || agent.name}">
                 <div class="agent-checkbox">
@@ -2586,7 +2586,7 @@ class SidebarAgentManager {
         `).join('');
 
         this.agentsListContainer.innerHTML = agentElements;
-        console.log('에이전트 카드 렌더링 완료');
+        // console.log('에이전트 카드 렌더링 완료');
 
         // 에이전트 선택 이벤트 추가 (체크박스)
         this.agentsListContainer.querySelectorAll('.agent-select-checkbox').forEach(checkbox => {
@@ -2757,7 +2757,7 @@ function clearAgentSelection() {
         notification.remove();
     }
     
-    console.log('에이전트 선택 해제됨');
+    // console.log('에이전트 선택 해제됨');
 }
 
 // 페이지 로드 시 SidebarAgentManager와 ChatSessionManager 초기화 - 중복 제거됨

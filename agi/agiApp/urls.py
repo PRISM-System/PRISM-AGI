@@ -26,7 +26,7 @@ urlpatterns = [
     path('api/user-logs/', api_views.UserActivityLogsView.as_view(), name='user_logs_api'),
 
     # 에이전트 관리 API는 프록시를 통해 외부 서버로 처리됨 (main urls.py에서 처리)
-    # path('api/agents/', api_views.AgentsListView.as_view(), name='agents_api'),
+    # path('django/api/agents/', api_views.AgentsListView.as_view(), name='agents_api'),
 
     # 도구 관리 API (프록시를 통한 외부 API)
     path('api/tools/', proxy_tools, name='tools_api'),

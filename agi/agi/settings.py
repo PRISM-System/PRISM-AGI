@@ -15,7 +15,8 @@ ALLOWED_HOSTS = ['*']
 # ----------------------
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://172.31.36.95",
+    "https://grnd.bimatrix.co.kr",
+    "http://192.168.0.57:8080",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://147.47.39.144:8000",  # 클라이언트 IP 추가
@@ -25,7 +26,8 @@ CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = ["content-type", "authorization", "x-csrftoken", "x-requested-with"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://172.31.36.95",
+    "https://grnd.bimatrix.co.kr",
+    "http://192.168.0.57:8080",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://147.47.39.144:8000",  # 클라이언트 IP 추가

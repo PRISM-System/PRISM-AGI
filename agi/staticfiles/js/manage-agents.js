@@ -137,7 +137,7 @@ class AgentManager {
     async fetchAgentsFromAPI() {
         try {
             // 외부 API에서 에이전트 목록 가져오기
-            const response = await fetch('/api/agents/');
+            const response = await fetch('https://grnd.bimatrix.co.kr/api/agents/');
 
             if (!response.ok) {
                 throw new Error(`API 요청 실패: ${response.status}`);
