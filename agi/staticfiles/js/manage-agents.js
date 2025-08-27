@@ -26,7 +26,7 @@ class AgentManager {
         const createButton = document.getElementById('createNewAgent');
         if (createButton) {
             createButton.addEventListener('click', () => {
-                window.location.href = '/create-agent/';
+                window.location.href = '/django/create-agent/';
             });
         }
 

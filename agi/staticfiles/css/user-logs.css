@@ -28,7 +28,7 @@ body:has(.logs-container) .chat-sidebar.collapsed ~ .chat-main,
     height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto; /* hidden에서 auto로 변경 */
 }
 
 .logs-header {
@@ -284,7 +284,7 @@ body:has(.logs-container) .chat-sidebar.collapsed ~ .chat-main,
     background: #40414f;
     border: 1px solid #565869;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible; /* hidden에서 visible로 변경 */
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -802,4 +802,101 @@ body:has(.logs-container) .chat-sidebar.collapsed ~ .chat-main,
 .modal-body::-webkit-scrollbar-thumb:hover,
 .code-block::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================================
+   페이지네이션 스타일
+================================ */
+.pagination {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 16px;
+    min-height: 60px;
+    position: relative;
+    z-index: 1000;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    min-width: 60px;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    margin: 0 12px;
+    min-height: 40px;
+    position: relative;
+    z-index: 1001;
+}
+
+.page-number {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.page-number:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.page-number.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+.page-ellipsis {
+    padding: 8px 4px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* 반응형 페이지네이션 */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .page-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+        min-width: 50px;
+    }
+    
+    .page-number {
+        padding: 6px 10px;
+        font-size: 13px;
+        min-width: 36px;
+    }
 }

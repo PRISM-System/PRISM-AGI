@@ -81,7 +81,7 @@ async function loadAgentForEdit(agentName) {
         console.log('Loading agent for edit:', agentName);
         
         // 에이전트 목록에서 해당 에이전트 찾기
-        const response = await fetch('/api/agents/', {
+        const response = await fetch('/django/api/agents/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -675,7 +675,7 @@ async function createAgent() {
             console.log('CSRF 토큰:', getCsrfToken());
 
             // 에이전트 생성 (POST 방식만 사용)
-            const url = '/api/agents/';
+            const url = '/django/api/agents/';
             const method = 'POST';
             
             console.log('Creating agent with URL:', url, 'Method:', method);
@@ -789,8 +789,8 @@ async function loadAvailableTools() {
     console.log('도구 목록 로드 시작...');
     
     try {
-        console.log('API 요청 시작: /api/tools/');
-        const response = await fetch('/api/tools/');
+        console.log('API 요청 시작: /django/api/tools/');
+        const response = await fetch('/django/api/tools/');
         console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {

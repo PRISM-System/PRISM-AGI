@@ -9,6 +9,48 @@ const USE_GET_FOR_LIST = false;           // true면 GET으로 목록 우래(프
 const USE_CREDENTIALS = false;            // 세션/쿠키 사용 시 true + 서버 CORS allow_credentials 필요
 const ACCESS_TOKEN_KEY = 'access_token';  // 로컬스토리지 토큰 키 이름
 
+// CSRF 토큰 가져오기 함수
+function getCSRFToken() {
+    // 1. input[name="csrfmiddlewaretoken"] 에서 찾기
+    let token = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (token && token.value) {
+        return token.value;
+    }
+    
+    // 2. meta 태그에서 찾기
+    token = document.querySelector('meta[name="csrf-token"]');
+    if (token && token.content) {
+        return token.content;
+    }
+    
+    // 3. 쿠키에서 찾기
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    
+    if (cookieValue) {
+        return cookieValue;
+    }
+    
+    console.warn('CSRF 토큰을 찾을 수 없습니다.');
+    return '';
+}
+
+// 모든 fetch 요청에 사용할 기본 헤더
+function getDefaultHeaders() {
+    const token = getCSRFToken();
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token;
+    }
+    
+    return headers;
+}
+
 // 선택된 에이전트 관리
 let selectedAgent = null;                 // 현재 선택된 에이전트
 
@@ -26,22 +68,33 @@ function getAccessToken() {
 // ===============================
 class ChatSessionManager {
     constructor() {
+        console.log('ChatSessionManager 생성자 시작');
         this.currentSessionId = null;
         this.userId = 'user_1234'; // 테스트용 고정 사용자
         this.sessions = [];
+        
+        console.log('ChatSessionManager 설정:', {
+            userId: this.userId,
+            apiBase: API_BASE
+        });
         
         // 초기 환영 메시지 표시
         this.showWelcomeMessage();
         
         this.loadSessions();
         this.initEventListeners();
+        console.log('ChatSessionManager 생성자 완료');
     }
 
     initEventListeners() {
         // 새 채팅 버튼
         const newChatBtn = document.getElementById('newChatBtn');
         if (newChatBtn) {
-            newChatBtn.addEventListener('click', () => this.createNewSession());
+            // 기존 이벤트 리스너 제거 후 새로 추가 (중복 방지)
+            newChatBtn.removeEventListener('click', this.handleNewChat);
+            this.handleNewChat = () => this.createNewSession();
+            newChatBtn.addEventListener('click', this.handleNewChat);
+            console.log('새 채팅 버튼 이벤트 리스너 등록됨');
         }
     }
 
@@ -50,13 +103,19 @@ class ChatSessionManager {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'flex';
 
-            const response = await fetch(`${API_BASE}/api/chat/sessions/?user_id=${this.userId}`);
+            console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
             const sessions = await response.json();
             
+            console.log('로드된 채팅 세션:', sessions);
             this.sessions = sessions;
             this.renderSessions();
+            console.log('채팅 세션 렌더링 완료');
         } catch (error) {
             console.error('채팅 세션 로드 실패:', error);
+            
+            // 활동 로그에 세션 로드 에러 기록
+            window.logChatResponse('', `채팅 세션 로드 실패: ${error.message}`, 'session_error');
         } finally {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'none';
@@ -65,16 +124,25 @@ class ChatSessionManager {
 
     renderSessions() {
         const sessionsList = document.getElementById('chatSessionsList');
-        if (!sessionsList) return;
+        if (!sessionsList) {
+            console.error('chatSessionsList 요소를 찾을 수 없습니다');
+            return;
+        }
+
+        console.log('세션 렌더링 시작...', this.sessions);
 
         // 기존 세션 아이템들 제거 (로딩 요소 제외)
         const existingSessions = sessionsList.querySelectorAll('.chat-session-item');
+        console.log('기존 세션 제거:', existingSessions.length, '개');
         existingSessions.forEach(item => item.remove());
 
-        this.sessions.forEach(session => {
+        this.sessions.forEach((session, index) => {
+            console.log(`세션 ${index + 1} 생성:`, session);
             const sessionElement = this.createSessionElement(session);
             sessionsList.appendChild(sessionElement);
         });
+        
+        console.log('세션 렌더링 완료. 총', this.sessions.length, '개 세션');
     }
 
     createSessionElement(session) {
@@ -120,19 +188,33 @@ class ChatSessionManager {
     }
 
     async createNewSession() {
+        const startTime = Date.now();
+        console.log(`🆕 [${startTime}] 새 세션 생성 시작...`, 'CSRF 토큰:', getCSRFToken());
+        
         try {
-            const response = await fetch(`${API_BASE}/api/chat/sessions/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getDefaultHeaders(),
                 body: JSON.stringify({
                     user_id: this.userId,
                     title: ''
                 })
             });
 
+            console.log(`📡 [${startTime}] 세션 생성 응답 상태:`, response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('세션 생성 실패:', response.status, errorText);
+                
+                // 활동 로그에 세션 생성 에러 기록
+                window.logChatResponse('', `세션 생성 실패: HTTP ${response.status} - ${errorText}`, 'session_error');
+                
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
             const newSession = await response.json();
+            console.log('생성된 세션:', newSession);
             
             // 현재 세션 설정
             this.currentSessionId = newSession.id;
@@ -154,9 +236,9 @@ class ChatSessionManager {
             // 세션 목록 새로고침
             await this.loadSessions();
             
-            console.log('새 채팅 세션 생성됨:', newSession.id);
+            console.log(`✅ [${startTime}] 새 채팅 세션 생성 완료:`, newSession.id);
         } catch (error) {
-            console.error('새 채팅 세션 생성 실패:', error);
+            console.error(`❌ [${startTime}] 새 채팅 세션 생성 실패:`, error);
         }
     }
 
@@ -175,7 +257,7 @@ class ChatSessionManager {
             this.updateActiveSession();
             
             // 메시지 로드
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/messages/`);
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/messages/`);
             const data = await response.json();
             
             // 채팅 화면에 메시지들 표시
@@ -333,61 +415,59 @@ class ChatSessionManager {
         const bottomChatInput = document.getElementById('bottomChatInput');
         const bottomSendButton = document.getElementById('bottomSendButton');
         
+        // 채팅 페이지가 아닌 경우 조용히 종료
+        if (!bottomChatInput || !bottomSendButton) {
+            return;
+        }
+        
         console.log('ensureBottomInputActive called:', {
             bottomChatInput: !!bottomChatInput,
             bottomSendButton: !!bottomSendButton,
             sendMessage: typeof window.sendMessage
         });
         
-        if (bottomChatInput && bottomSendButton) {
-            // 기존 이벤트 리스너가 있는지 확인하고 제거
-            if (!bottomSendButton.hasAttribute('data-listener-added')) {
-                // 전송 버튼 클릭 이벤트
-                const sendClickHandler = () => {
-                    console.log('Bottom send button clicked');
+        // 기존 이벤트 리스너가 있는지 확인하고 제거
+        if (!bottomSendButton.hasAttribute('data-listener-added')) {
+            // 전송 버튼 클릭 이벤트
+            const sendClickHandler = () => {
+                console.log('Bottom send button clicked');
+                if (window.sendMessage) {
+                    window.sendMessage();
+                } else {
+                    console.error('sendMessage not found in window');
+                }
+            };
+            bottomSendButton.addEventListener('click', sendClickHandler);
+            bottomSendButton.setAttribute('data-listener-added', 'true');
+        }
+        
+        if (!bottomChatInput.hasAttribute('data-listener-added')) {
+            // Enter 키 이벤트
+            const keyPressHandler = function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('Bottom input Enter pressed');
                     if (window.sendMessage) {
                         window.sendMessage();
                     } else {
                         console.error('sendMessage not found in window');
                     }
-                };
-                bottomSendButton.addEventListener('click', sendClickHandler);
-                bottomSendButton.setAttribute('data-listener-added', 'true');
-            }
+                }
+            };
+            bottomChatInput.addEventListener('keypress', keyPressHandler);
             
-            if (!bottomChatInput.hasAttribute('data-listener-added')) {
-                // Enter 키 이벤트
-                const keyPressHandler = function (e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        console.log('Bottom input Enter pressed');
-                        if (window.sendMessage) {
-                            window.sendMessage();
-                        } else {
-                            console.error('sendMessage not found in window');
-                        }
-                    }
-                };
-                bottomChatInput.addEventListener('keypress', keyPressHandler);
-                
-                // 입력창 자동 높이 조절
-                const inputHandler = function () {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                };
-                bottomChatInput.addEventListener('input', inputHandler);
-                
-                bottomChatInput.setAttribute('data-listener-added', 'true');
-            }
+            // 입력창 자동 높이 조절
+            const inputHandler = function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            };
+            bottomChatInput.addEventListener('input', inputHandler);
             
-            // 입력창 포커스
-            bottomChatInput.focus();
-        } else {
-            console.error('Bottom input elements not found:', {
-                bottomChatInput: !!bottomChatInput,
-                bottomSendButton: !!bottomSendButton
-            });
+            bottomChatInput.setAttribute('data-listener-added', 'true');
         }
+        
+        // 입력창 포커스
+        bottomChatInput.focus();
     }
 
     async saveMessage(content, role, additionalMetadata = {}) {
@@ -402,11 +482,9 @@ class ChatSessionManager {
                 ...additionalMetadata
             };
 
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${this.currentSessionId}/messages/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${this.currentSessionId}/messages/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getDefaultHeaders(),
                 body: JSON.stringify({
                     role: role,
                     content: content,
@@ -453,11 +531,9 @@ class ChatSessionManager {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: getDefaultHeaders()
             });
 
             if (response.ok) {
@@ -484,6 +560,10 @@ class ChatSessionManager {
             }
         } catch (error) {
             console.error('채팅 세션 삭제 실패:', error);
+            
+            // 활동 로그에 세션 삭제 에러 기록
+            window.logChatResponse('', `채팅 세션 삭제 실패: ${error.message}`, 'session_error');
+            
             alert('채팅 삭제에 실패했습니다. 다시 시도해주세요.');
         }
     }
@@ -1235,7 +1315,7 @@ async function sendMessage() {
     });
     
     if (!chatMessages) {
-        console.error('chatMessages 요소를 찾을 수 없습니다');
+        console.log('chatMessages 요소를 찾을 수 없습니다 (현재 페이지가 채팅 페이지가 아닐 수 있음)');
         return;
     }
 
@@ -1360,37 +1440,68 @@ function createUserMessage(content) {
     return messageDiv;
 }
 
-// 기본 AI로 메시지 전송 (/api/generate/)
+// 기본 AI로 메시지 전송 (새로운 orchestrate API 사용)
 async function sendMessageToDefaultAI(message, thinkingMessageId) {
     try {
         console.log('기본 AI로 메시지 전송 시작');
         
-        // 요청 본문 구성 (/api/generate/ 전용)
+        // 현재 세션의 session_user_id 가져오기 (최신 메시지에서 추출)
+        let sessionUserId = 'user_1234_task_1'; // 기본값
+        
+        if (chatSessionManager && chatSessionManager.currentSessionId) {
+            try {
+                // 현재 세션의 메시지를 가져와서 session_user_id 확인
+                const messagesResponse = await fetch(`${API_BASE}/django/api/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
+                if (messagesResponse.ok) {
+                    const messagesData = await messagesResponse.json();
+                    const lastMessage = messagesData[messagesData.length - 1];
+                    if (lastMessage && lastMessage.metadata && lastMessage.metadata.session_user_id) {
+                        sessionUserId = lastMessage.metadata.session_user_id;
+                    }
+                }
+            } catch (e) {
+                console.warn('session_user_id 조회 실패, 기본값 사용:', e);
+            }
+        }
+        
+        // 새로운 API 요청 본문 구성
         const requestBody = {
-            prompt: message,
+            query: message,
+            session_id: sessionUserId,
+            user_id: "user_1234",
+            user_preferences: {
+                additionalProp1: {}
+            },
             max_tokens: 1024,
             temperature: 0.7,
-            stop: [""],
-            client_id: "user_1234",
-            use_tools: false,
-            max_tool_calls: 3
+            stop: [
+                "\n\n",
+                "END"
+            ],
+            use_tools: true,
+            max_tool_calls: 3,
+            extra_body: {
+                tool_choice: "auto"
+            }
         };
 
-        // 기본 AI 엔드포인트로 POST 요청
-        const response = await fetch('/api/generate/', {
+        console.log('새로운 orchestrate API 요청:', requestBody);
+
+        // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
+        const response = await fetch('/django/api/vi/orchestrate/', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                ...getDefaultHeaders(),
                 'Accept': 'application/json'
             },
             body: JSON.stringify(requestBody)
         });
 
-        console.log(`기본 AI 응답 상태: ${response.status}`);
+        console.log(`orchestrate API 응답 상태: ${response.status}`);
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('기본 AI 응답 수신:', responseData);
+            console.log('orchestrate API 응답 수신:', responseData);
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1404,8 +1515,8 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
                 window.processManager.updateStatus('처리 완료', 'completed');
             }
             
-            // </think> 뒷부분만 추출
-            const basicResponseText = responseData.response || responseData.content || '응답을 받았습니다.';
+            // 새로운 API 응답에서 텍스트 추출 (응답 구조에 따라 조정 필요)
+            const basicResponseText = responseData.response || responseData.content || responseData.result || '응답을 받았습니다.';
             const finalBasicText = extractTextAfterThink(basicResponseText);
             
             // AI 응답 메시지 표시 (타이핑 효과 포함)
@@ -1413,21 +1524,23 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             const aiMessage = createAIMessageWithTyping(finalBasicText, 10);
             chatMessages.appendChild(aiMessage);
             
-            // 채팅 세션에 AI 응답 저장 (기본 AI - </think> 뒷부분만 저장)
+            // 채팅 세션에 AI 응답 저장 (orchestrate API - </think> 뒷부분만 저장)
             if (chatSessionManager && basicResponseText) {
                 const artifactData = extractArtifactData(responseData);
                 
                 await chatSessionManager.saveMessage(finalBasicText, 'assistant', {
                     original_response: basicResponseText,
                     artifacts: artifactData,
-                    response_type: 'default_ai'
+                    response_type: 'orchestrate_ai',
+                    session_user_id: sessionUserId
                 });
                 
                 // AI 응답 로그 기록
                 if (window.logChatResponse) {
                     window.logChatResponse(finalBasicText, {
                         session_id: chatSessionManager.currentSessionId,
-                        response_type: 'default_ai',
+                        response_type: 'orchestrate_ai',
+                        session_user_id: sessionUserId,
                         original_length: basicResponseText.length,
                         processed_length: finalBasicText.length
                     });
@@ -1438,11 +1551,11 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
         } else {
-            throw new Error(`기본 AI 응답 오류: ${response.status} ${response.statusText}`);
+            throw new Error(`orchestrate API 응답 오류: ${response.status} ${response.statusText}`);
         }
         
     } catch (error) {
-        console.error('❌ 기본 AI 호출 실패:', error);
+        console.error('❌ orchestrate API 호출 실패:', error);
         
         // "생각하는 중..." 메시지 제거
         const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1451,13 +1564,33 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         }
         
         // 오류 로깅
-        console.error(`기본 AI 호출 중 오류가 발생했습니다: ${error.message}`);
+        console.error(`orchestrate API 호출 중 오류가 발생했습니다: ${error.message}`);
         
         // 오류 메시지 표시
         const chatMessages = document.getElementById('chatMessages');
         const errorMessage = createAIMessage('죄송합니다. AI와의 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
         chatMessages.appendChild(errorMessage);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // 오류 응답 로그 기록
+        const errorText = '죄송합니다. AI와의 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        if (window.logChatResponse) {
+            window.logChatResponse(errorText, {
+                session_id: chatSessionManager?.currentSessionId,
+                response_type: 'orchestrate_error',
+                error_message: error.message,
+                error_type: 'api_communication_error'
+            });
+        }
+        
+        // 채팅 세션에 오류 응답 저장
+        if (chatSessionManager) {
+            await chatSessionManager.saveMessage(errorText, 'assistant', {
+                response_type: 'orchestrate_error',
+                error_message: error.message,
+                error_type: 'api_communication_error'
+            });
+        }
     }
 }
 
@@ -1481,7 +1614,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
         };
 
         // 에이전트별 invoke 엔드포인트로 POST 요청
-        const response = await fetch(`/api/agents/${agentName}/invoke`, {
+        const response = await fetch(`/django/api/agents/${agentName}/invoke`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1581,9 +1714,31 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
         
         // 오류 메시지 표시
         const chatMessages = document.getElementById('chatMessages');
-        const errorMessage = createAIMessage(`죄송합니다. "${agentName}" 에이전트와의 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.`);
+        const errorText = `죄송합니다. "${agentName}" 에이전트와의 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.`;
+        const errorMessage = createAIMessage(errorText);
         chatMessages.appendChild(errorMessage);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // 오류 응답 로그 기록
+        if (window.logChatResponse) {
+            window.logChatResponse(errorText, {
+                session_id: chatSessionManager?.currentSessionId,
+                response_type: 'agent_error',
+                agent_name: agentName,
+                error_message: error.message,
+                error_type: 'agent_communication_error'
+            });
+        }
+        
+        // 채팅 세션에 오류 응답 저장
+        if (chatSessionManager) {
+            await chatSessionManager.saveMessage(errorText, 'assistant', {
+                response_type: 'agent_error',
+                agent_name: agentName,
+                error_message: error.message,
+                error_type: 'agent_communication_error'
+            });
+        }
     }
 }
 
@@ -1770,6 +1925,38 @@ function showThinkingMessage() {
 // 채팅 기능
 // ===============================
 function initChatFeatures() {
+    // ChatSessionManager 초기화 (중복 방지)
+    if (window.chatSessionManager) {
+        console.warn('⚠️ ChatSessionManager가 이미 존재합니다. 중복 초기화를 방지합니다.');
+        return;
+    }
+    
+    // SidebarAgentManager 초기화
+    if (!window.sidebarAgentManager) {
+        window.sidebarAgentManager = new SidebarAgentManager();
+    }
+    
+    // ChatSessionManager 초기화
+    chatSessionManager = new ChatSessionManager();
+    window.chatSessionManager = chatSessionManager; // 전역에서도 참조 가능
+    console.log('ChatSessionManager 초기화됨:', chatSessionManager);
+    
+    // 하단 입력창 미리 활성화 (페이지 로드 시)
+    setTimeout(() => {
+        if (chatSessionManager) {
+            chatSessionManager.ensureBottomInputActive();
+        }
+    }, 100);
+    
+    // URL 파라미터에서 세션 ID 확인하고 로드
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session');
+    if (sessionId && chatSessionManager) {
+        setTimeout(() => {
+            chatSessionManager.loadSession(sessionId);
+        }, 500); // 세션 목록 로드 후 실행
+    }
+    
     // 공정 관리자 초기화
     const processManager = new ProcessManager();
     
@@ -1869,6 +2056,10 @@ function initChatFeatures() {
             // 상태 체크
             if (!response.ok) {
                 const text = await response.text();
+                
+                // 활동 로그에 요청 실패 에러 기록
+                window.logChatResponse(userMessage, `요청 실패: HTTP ${response.status} - ${text}`, 'request_error');
+                
                 throw new Error(`HTTP ${response.status}: ${text}`);
             }
 
@@ -1903,6 +2094,18 @@ function initChatFeatures() {
                 errorMessage = '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
             } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
                 errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
+            }
+            
+            // 활동 로그에 에러 기록
+            window.logChatResponse(message, `❌ ${errorMessage}`, 'general_error');
+            
+            // 세션에 에러 메시지 저장
+            if (window.chatSessionManager) {
+                try {
+                    window.chatSessionManager.saveMessage(message, `❌ ${errorMessage}`, 'assistant');
+                } catch (saveError) {
+                    console.warn('에러 메시지 저장 실패:', saveError);
+                }
             }
             
             // ProcessManager를 통한 에러 처리
@@ -2313,11 +2516,11 @@ class SidebarAgentManager {
 
         try {
             console.log('에이전트 목록 로딩 시작...');
-            console.log('요청 URL: /api/agents/');
+            console.log('요청 URL: /django/api/agents/');
             this.showLoading();
 
             // API에서 에이전트 목록 가져오기
-            const response = await fetch('/api/agents/');
+            const response = await fetch('/django/api/agents/');
             console.log('응답 상태:', response.status, response.statusText);
             console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
             
@@ -2557,38 +2760,11 @@ function clearAgentSelection() {
     console.log('에이전트 선택 해제됨');
 }
 
-// 페이지 로드 시 SidebarAgentManager와 ChatSessionManager 초기화
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM 로드 완료, 매니저들 생성 중...');
-    window.sidebarAgentManager = new SidebarAgentManager();
-    chatSessionManager = new ChatSessionManager();
-    
-    // 하단 입력창 미리 활성화 (페이지 로드 시)
-    setTimeout(() => {
-        if (chatSessionManager) {
-            chatSessionManager.ensureBottomInputActive();
-        }
-    }, 100);
-    
-    // URL 파라미터에서 세션 ID 확인하고 로드
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session');
-    if (sessionId && chatSessionManager) {
-        setTimeout(() => {
-            chatSessionManager.loadSession(sessionId);
-        }, 500); // 세션 목록 로드 후 실행
-    }
-});
+// 페이지 로드 시 SidebarAgentManager와 ChatSessionManager 초기화 - 중복 제거됨
+// 주 초기화는 첫 번째 DOMContentLoaded에서 처리됩니다.
 
-// 즉시 실행으로도 테스트
-console.log('즉시 실행 테스트...');
-if (document.readyState === 'loading') {
-    console.log('문서 로딩 중...');
-} else {
-    console.log('문서 로드 완료, 즉시 실행');
-    window.sidebarAgentManager = new SidebarAgentManager();
-    chatSessionManager = new ChatSessionManager();
-}
+// 즉시 실행 테스트 - 중복 제거됨
+// 주 초기화는 첫 번째 DOMContentLoaded에서 처리됩니다.
 
 // 전역에서 사용할 수 있도록 함수 노출
 window.sendMessage = sendMessage;

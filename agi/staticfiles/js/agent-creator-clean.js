@@ -542,7 +542,7 @@ async function createAgent() {
             });
         }
 
-        const response = await fetch('/api/agents', {
+        const response = await fetch('/django/api/agents', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrfToken()

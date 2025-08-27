@@ -5,7 +5,7 @@
 
 class ActivityLogger {
     constructor() {
-        this.apiUrl = '/api/user-logs/';
+        this.apiUrl = '/django/api/user-logs/';
         this.userId = 'user_1234'; // 테스트용 고정 사용자
         this.isEnabled = true; // 로깅 활성화 여부
     }
@@ -117,18 +117,100 @@ class ActivityLogger {
 
     /**
      * AI 응답 로그
+     * @param {string} response - 응답 메시지
+     * @param {object|string} details - 추가 세부 정보 또는 에러 타입
      */
     async logChatResponse(response, details = {}) {
-        return this.logActivity(
-            'chat_response',
-            `AI 응답 생성됨 (길이: ${response.length}자)`,
-            'INFO',
-            { 
+        // details가 문자열인 경우 에러 타입으로 처리
+        let actionType = 'chat_response';
+        let level = 'INFO';
+        let message = `AI 응답 생성됨 (길이: ${response.length}자)`;
+        let logDetails = {};
+        
+        if (typeof details === 'string') {
+            // 에러 타입별 처리 (문자열로 전달된 경우)
+            const errorType = details;
+            level = 'ERROR';
+            
+            switch (errorType) {
+                case 'orchestrate_error':
+                    actionType = 'orchestrate_error';
+                    message = `Orchestrate API 연결 실패: ${response}`;
+                    break;
+                case 'agent_error':
+                    actionType = 'agent_error';
+                    message = `Agent 통신 실패: ${response}`;
+                    break;
+                case 'general_error':
+                    actionType = 'general_error';
+                    message = `AI 응답 생성 실패: ${response}`;
+                    break;
+                case 'session_error':
+                    actionType = 'session_error';
+                    message = `세션 처리 실패: ${response}`;
+                    break;
+                case 'request_error':
+                    actionType = 'request_error';
+                    message = `HTTP 요청 실패: ${response}`;
+                    break;
+                default:
+                    actionType = 'system_error';
+                    message = `시스템 오류: ${response}`;
+                    break;
+            }
+            
+            logDetails = { error_type: errorType };
+        } else if (details && details.response_type) {
+            // 객체로 전달되고 response_type이 있는 경우 (에러 처리)
+            const errorType = details.response_type;
+            level = 'ERROR';
+            
+            switch (errorType) {
+                case 'orchestrate_error':
+                    actionType = 'orchestrate_error';
+                    message = `Orchestrate API 연결 실패: ${response}`;
+                    break;
+                case 'agent_error':
+                    actionType = 'agent_error';
+                    message = `Agent 통신 실패: ${response}`;
+                    break;
+                case 'general_error':
+                    actionType = 'general_error';
+                    message = `AI 응답 생성 실패: ${response}`;
+                    break;
+                case 'session_error':
+                    actionType = 'session_error';
+                    message = `세션 처리 실패: ${response}`;
+                    break;
+                case 'request_error':
+                    actionType = 'request_error';
+                    message = `HTTP 요청 실패: ${response}`;
+                    break;
+                default:
+                    actionType = 'system_error';
+                    message = `시스템 오류: ${response}`;
+                    break;
+            }
+            
+            logDetails = { 
+                error_type: errorType,
+                ...details 
+            };
+        } else {
+            // 정상 응답인 경우
+            logDetails = { 
                 response: response.length > 1000 ? response.substring(0, 1000) + '...' : response,
                 response_length: response.length,
                 full_response: response,
                 ...details 
-            }
+            };
+        }
+
+        return this.logActivity(
+            actionType,
+            message,
+            level,
+            logDetails
         );
     }
 
