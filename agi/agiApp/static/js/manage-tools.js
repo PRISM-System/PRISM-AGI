@@ -36,7 +36,7 @@ function initializeEventListeners() {
     
     // 버튼 이벤트
     addToolBtn.addEventListener('click', () => {
-        window.location.href = '/register-tool/';
+        window.location.href = '/django/register-tool/';
     });
     
     backToChat.addEventListener('click', () => {

@@ -5,7 +5,7 @@
 
 class ActivityLogger {
     constructor() {
-        this.apiUrl = '/api/user-logs/';
+        this.apiUrl = '/django/api/user-logs/';
         this.userId = 'user_1234'; // 테스트용 고정 사용자
         this.isEnabled = true; // 로깅 활성화 여부
     }

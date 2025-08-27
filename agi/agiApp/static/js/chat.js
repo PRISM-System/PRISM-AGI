@@ -103,8 +103,8 @@ class ChatSessionManager {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'flex';
 
-            console.log('채팅 세션 로드 시작...', `${API_BASE}/api/chat/sessions/?user_id=${this.userId}`);
-            const response = await fetch(`${API_BASE}/api/chat/sessions/?user_id=${this.userId}`);
+            console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
             const sessions = await response.json();
             
             console.log('로드된 채팅 세션:', sessions);
@@ -173,7 +173,7 @@ class ChatSessionManager {
         // 세션 클릭 이벤트 (삭제 버튼 제외)
         div.addEventListener('click', (e) => {
             if (!e.target.closest('.session-delete-btn')) {
-                window.location.href = `/?session=${session.id}`;
+                window.location.href = `/django/?session=${session.id}`;
             }
         });
         
@@ -192,7 +192,7 @@ class ChatSessionManager {
         console.log(`🆕 [${startTime}] 새 세션 생성 시작...`, 'CSRF 토큰:', getCSRFToken());
         
         try {
-            const response = await fetch(`${API_BASE}/api/chat/sessions/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify({
@@ -220,7 +220,7 @@ class ChatSessionManager {
             this.currentSessionId = newSession.id;
             
             // URL 업데이트
-            window.history.pushState({}, '', `/?session=${newSession.id}`);
+            window.history.pushState({}, '', `/django/?session=${newSession.id}`);
             
             // 사용자 활동 로그 기록
             if (window.logSessionCreate) {
@@ -250,14 +250,14 @@ class ChatSessionManager {
             // URL 업데이트 (클릭으로 오지 않은 경우만)
             const currentUrl = new URL(window.location);
             if (currentUrl.searchParams.get('session') !== sessionId) {
-                window.history.pushState({}, '', `/?session=${sessionId}`);
+                window.history.pushState({}, '', `/django/?session=${sessionId}`);
             }
             
             // UI 업데이트
             this.updateActiveSession();
             
             // 메시지 로드
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/messages/`);
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/messages/`);
             const data = await response.json();
             
             // 채팅 화면에 메시지들 표시
@@ -415,61 +415,59 @@ class ChatSessionManager {
         const bottomChatInput = document.getElementById('bottomChatInput');
         const bottomSendButton = document.getElementById('bottomSendButton');
         
+        // 채팅 페이지가 아닌 경우 조용히 종료
+        if (!bottomChatInput || !bottomSendButton) {
+            return;
+        }
+        
         console.log('ensureBottomInputActive called:', {
             bottomChatInput: !!bottomChatInput,
             bottomSendButton: !!bottomSendButton,
             sendMessage: typeof window.sendMessage
         });
         
-        if (bottomChatInput && bottomSendButton) {
-            // 기존 이벤트 리스너가 있는지 확인하고 제거
-            if (!bottomSendButton.hasAttribute('data-listener-added')) {
-                // 전송 버튼 클릭 이벤트
-                const sendClickHandler = () => {
-                    console.log('Bottom send button clicked');
+        // 기존 이벤트 리스너가 있는지 확인하고 제거
+        if (!bottomSendButton.hasAttribute('data-listener-added')) {
+            // 전송 버튼 클릭 이벤트
+            const sendClickHandler = () => {
+                console.log('Bottom send button clicked');
+                if (window.sendMessage) {
+                    window.sendMessage();
+                } else {
+                    console.error('sendMessage not found in window');
+                }
+            };
+            bottomSendButton.addEventListener('click', sendClickHandler);
+            bottomSendButton.setAttribute('data-listener-added', 'true');
+        }
+        
+        if (!bottomChatInput.hasAttribute('data-listener-added')) {
+            // Enter 키 이벤트
+            const keyPressHandler = function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('Bottom input Enter pressed');
                     if (window.sendMessage) {
                         window.sendMessage();
                     } else {
                         console.error('sendMessage not found in window');
                     }
-                };
-                bottomSendButton.addEventListener('click', sendClickHandler);
-                bottomSendButton.setAttribute('data-listener-added', 'true');
-            }
+                }
+            };
+            bottomChatInput.addEventListener('keypress', keyPressHandler);
             
-            if (!bottomChatInput.hasAttribute('data-listener-added')) {
-                // Enter 키 이벤트
-                const keyPressHandler = function (e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        console.log('Bottom input Enter pressed');
-                        if (window.sendMessage) {
-                            window.sendMessage();
-                        } else {
-                            console.error('sendMessage not found in window');
-                        }
-                    }
-                };
-                bottomChatInput.addEventListener('keypress', keyPressHandler);
-                
-                // 입력창 자동 높이 조절
-                const inputHandler = function () {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                };
-                bottomChatInput.addEventListener('input', inputHandler);
-                
-                bottomChatInput.setAttribute('data-listener-added', 'true');
-            }
+            // 입력창 자동 높이 조절
+            const inputHandler = function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            };
+            bottomChatInput.addEventListener('input', inputHandler);
             
-            // 입력창 포커스
-            bottomChatInput.focus();
-        } else {
-            console.error('Bottom input elements not found:', {
-                bottomChatInput: !!bottomChatInput,
-                bottomSendButton: !!bottomSendButton
-            });
+            bottomChatInput.setAttribute('data-listener-added', 'true');
         }
+        
+        // 입력창 포커스
+        bottomChatInput.focus();
     }
 
     async saveMessage(content, role, additionalMetadata = {}) {
@@ -484,7 +482,7 @@ class ChatSessionManager {
                 ...additionalMetadata
             };
 
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${this.currentSessionId}/messages/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${this.currentSessionId}/messages/`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify({
@@ -533,7 +531,7 @@ class ChatSessionManager {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/`, {
+            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/`, {
                 method: 'DELETE',
                 headers: getDefaultHeaders()
             });
@@ -1317,7 +1315,7 @@ async function sendMessage() {
     });
     
     if (!chatMessages) {
-        console.error('chatMessages 요소를 찾을 수 없습니다');
+        console.log('chatMessages 요소를 찾을 수 없습니다 (현재 페이지가 채팅 페이지가 아닐 수 있음)');
         return;
     }
 
@@ -1453,7 +1451,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         if (chatSessionManager && chatSessionManager.currentSessionId) {
             try {
                 // 현재 세션의 메시지를 가져와서 session_user_id 확인
-                const messagesResponse = await fetch(`${API_BASE}/api/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
+                const messagesResponse = await fetch(`${API_BASE}/django/api/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
                 if (messagesResponse.ok) {
                     const messagesData = await messagesResponse.json();
                     const lastMessage = messagesData[messagesData.length - 1];
@@ -1490,7 +1488,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         console.log('새로운 orchestrate API 요청:', requestBody);
 
         // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
-        const response = await fetch('/api/vi/orchestrate/', {
+        const response = await fetch('/django/api/vi/orchestrate/', {
             method: 'POST',
             headers: {
                 ...getDefaultHeaders(),
@@ -1616,7 +1614,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
         };
 
         // 에이전트별 invoke 엔드포인트로 POST 요청
-        const response = await fetch(`/api/agents/${agentName}/invoke`, {
+        const response = await fetch(`/django/api/agents/${agentName}/invoke`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2430,19 +2428,19 @@ function initSidebarMenuEvents() {
     
     if (createAgentMenu) {
         createAgentMenu.addEventListener('click', () => {
-            window.location.href = '/create-agent/';
+            window.location.href = '/django/create-agent/';
         });
     }
     
     if (manageAgentsMenu) {
         manageAgentsMenu.addEventListener('click', () => {
-            window.location.href = '/manage-agents/';
+            window.location.href = '/django/manage-agents/';
         });
     }
     
     if (registerToolMenu) {
         registerToolMenu.addEventListener('click', () => {
-            window.location.href = '/register-tool/';
+            window.location.href = '/django/register-tool/';
         });
     }
 }
@@ -2518,11 +2516,11 @@ class SidebarAgentManager {
 
         try {
             console.log('에이전트 목록 로딩 시작...');
-            console.log('요청 URL: /api/agents/');
+            console.log('요청 URL: /django/api/agents/');
             this.showLoading();
 
             // API에서 에이전트 목록 가져오기
-            const response = await fetch('/api/agents/');
+            const response = await fetch('/django/api/agents/');
             console.log('응답 상태:', response.status, response.statusText);
             console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
             
@@ -2778,21 +2776,17 @@ window.refreshSidebarAgents = () => {
 
 // 페이지 네비게이션 함수들
 function goToManageTools() {
-    window.location.href = '/manage-tools/';
+    window.location.href = '/django/manage-tools/';
 }
 
 function goToUserLogs() {
-    window.location.href = '/user-logs/';
+    window.location.href = '/django/user-logs/';
 }
 
 function goToServerLogs() {
-    window.location.href = '/server-logs/';
-}
-
-function goToManageTools() {
-    window.location.href = '/manage-tools/';
+    window.location.href = '/django/server-logs/';
 }
 
 function goToManageRegulations() {
-    window.location.href = '/manage-regulations/';
+    window.location.href = '/django/manage-regulations/';
 }

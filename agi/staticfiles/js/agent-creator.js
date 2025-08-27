@@ -14,7 +14,7 @@ let selectedTools = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     // 에이전트 생성 페이지인지 확인
-    if (document.body.classList.contains('create-agent-page')) {
+    if (document.body.classList.contains('/django/create-agent-page')) {
         initializeAgentCreator();
     }
 });

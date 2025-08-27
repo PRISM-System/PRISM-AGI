@@ -105,7 +105,7 @@ class ChatSessionManager {
         // 세션 클릭 이벤트 (삭제 버튼 제외)
         div.addEventListener('click', (e) => {
             if (!e.target.closest('.session-delete-btn')) {
-                window.location.href = `/?session=${session.id}`;
+                window.location.href = `/django/?session=${session.id}`;
             }
         });
         
@@ -138,7 +138,7 @@ class ChatSessionManager {
             this.currentSessionId = newSession.id;
             
             // URL 업데이트
-            window.history.pushState({}, '', `/?session=${newSession.id}`);
+            window.history.pushState({}, '', `/django/?session=${newSession.id}`);
             
             // 사용자 활동 로그 기록
             if (window.logSessionCreate) {
@@ -168,7 +168,7 @@ class ChatSessionManager {
             // URL 업데이트 (클릭으로 오지 않은 경우만)
             const currentUrl = new URL(window.location);
             if (currentUrl.searchParams.get('session') !== sessionId) {
-                window.history.pushState({}, '', `/?session=${sessionId}`);
+                window.history.pushState({}, '', `/django/?session=${sessionId}`);
             }
             
             // UI 업데이트
@@ -2225,19 +2225,19 @@ function initSidebarMenuEvents() {
     
     if (createAgentMenu) {
         createAgentMenu.addEventListener('click', () => {
-            window.location.href = '/create-agent/';
+            window.location.href = '/django/create-agent/';
         });
     }
     
     if (manageAgentsMenu) {
         manageAgentsMenu.addEventListener('click', () => {
-            window.location.href = '/manage-agents/';
+            window.location.href = '/django/manage-agents/';
         });
     }
     
     if (registerToolMenu) {
         registerToolMenu.addEventListener('click', () => {
-            window.location.href = '/register-tool/';
+            window.location.href = '/django/register-tool/';
         });
     }
 }
@@ -2600,21 +2600,17 @@ window.refreshSidebarAgents = () => {
 
 // 페이지 네비게이션 함수들
 function goToManageTools() {
-    window.location.href = '/manage-tools/';
+    window.location.href = '/django/manage-tools/';
 }
 
 function goToUserLogs() {
-    window.location.href = '/user-logs/';
+    window.location.href = '/django/user-logs/';
 }
 
 function goToServerLogs() {
-    window.location.href = '/server-logs/';
-}
-
-function goToManageTools() {
-    window.location.href = '/manage-tools/';
+    window.location.href = '/django/server-logs/';
 }
 
 function goToManageRegulations() {
-    window.location.href = '/manage-regulations/';
+    window.location.href = '/django/manage-regulations/';
 }

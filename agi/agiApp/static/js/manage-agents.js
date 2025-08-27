@@ -26,7 +26,7 @@ class AgentManager {
         const createButton = document.getElementById('createNewAgent');
         if (createButton) {
             createButton.addEventListener('click', () => {
-                window.location.href = '/create-agent/';
+                window.location.href = '/django/create-agent/';
             });
         }
 
@@ -387,7 +387,7 @@ class AgentManager {
     //     }
     //     
     //     // 에이전트 편집 페이지로 이동 - agent.name을 사용
-    //     window.location.href = `/create-agent/?edit=${encodeURIComponent(agent.name)}`;
+    //     window.location.href = `/django/create-agent/?edit=${encodeURIComponent(agent.name)}`;
     // }
 
     deleteAgent(agent) {
