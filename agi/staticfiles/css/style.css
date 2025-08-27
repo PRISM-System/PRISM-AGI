@@ -4080,7 +4080,7 @@ select::-ms-expand { display: none; }
 }
 
 .btn-primary {
-    background: #536492;
+    /* background: #536492; */
     color: white;
     border: none;
     padding: 16px 24px;

@@ -1,7 +1,7 @@
 // ===============================
 // 환경 설정(필요에 맞게 바꿔 사용)
 // ===============================
-console.log('🔧 chat.js 파일 로드됨');
+console.log('chat.js 파일 로드됨');
 
 const API_BASE = 'http://127.0.0.1:8000'; // 로컬 프록시 서버
 const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
@@ -1519,7 +1519,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
                 responseText = responseData;
             } else {
                 responseText = '에이전트 응답을 받았습니다.';
-                console.warn('알 수 없는 응답 형식:', responseData);
+                console.warn('⚠️ 알 수 없는 응답 형식:', responseData);
             }
             
             console.log('추출된 응답 텍스트:', responseText);
@@ -2613,4 +2613,8 @@ function goToServerLogs() {
 
 function goToManageTools() {
     window.location.href = '/manage-tools/';
+}
+
+function goToManageRegulations() {
+    window.location.href = '/manage-regulations/';
 }

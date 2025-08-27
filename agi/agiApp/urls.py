@@ -6,10 +6,12 @@ from proxy.views import proxy_tools
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
     path('create-agent/', views.create_agent_page, name='create_agent'),
     path('manage-agents/', views.manage_agents_page, name='manage_agents'),
     path('register-tool/', views.register_tool_page, name='register_tool'),
     path('manage-tools/', views.manage_tools_page, name='manage_tools'),
+    path('manage-regulations/', views.manage_regulations_page, name='manage_regulations'),
     path('user-logs/', views.user_logs_page, name='user_logs'),
     path('server-logs/', views.server_logs_page, name='server_logs'),
     path('password-reset/', views.password_reset_view, name='password_reset'),

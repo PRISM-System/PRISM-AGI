@@ -16,6 +16,10 @@ from datetime import datetime
 def index(request):
     return render(request, 'index.html')
 
+def dashboard_view(request):
+    """대시보드 페이지 렌더링"""
+    return render(request, 'dashboard.html')
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -161,6 +165,10 @@ def register_tool_page(request):
 def manage_tools_page(request):
     """도구 관리 페이지"""
     return render(request, 'manage_tools.html')
+
+def manage_regulations_page(request):
+    """규정 관리 페이지"""
+    return render(request, 'manage_regulations.html')
 
 def user_logs_page(request):
     """사용자 로그 페이지"""

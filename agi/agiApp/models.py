@@ -104,6 +104,7 @@ class ChatMessage(models.Model):
     ]
     
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    session_user_id = models.CharField(max_length=100, blank=True, help_text="user_1234_task_숫자 형식")
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
@@ -114,3 +115,35 @@ class ChatMessage(models.Model):
     
     def __str__(self):
         return f"{self.role}: {self.content[:50]}..."
+    
+    def save(self, *args, **kwargs):
+        # session_user_id가 없으면 자동 생성
+        if not self.session_user_id:
+            self.session_user_id = self.generate_session_user_id()
+        super().save(*args, **kwargs)
+    
+    def generate_session_user_id(self):
+        """session_user_id 자동 생성: user_1234_task_숫자 형식"""
+        user_id = "user_1234"
+        
+        # 현재 session에서 가장 큰 task 번호 찾기
+        last_message = ChatMessage.objects.filter(
+            session=self.session,
+            session_user_id__startswith=f"{user_id}_task_"
+        ).order_by('-id').first()
+        
+        if last_message and last_message.session_user_id:
+            try:
+                # session_user_id에서 task 번호 추출
+                parts = last_message.session_user_id.split('_')
+                if len(parts) >= 3 and parts[2] == 'task':
+                    last_task_num = int(parts[3])
+                    next_task_num = last_task_num + 1
+                else:
+                    next_task_num = 1
+            except (ValueError, IndexError):
+                next_task_num = 1
+        else:
+            next_task_num = 1
+        
+        return f"{user_id}_task_{next_task_num}"

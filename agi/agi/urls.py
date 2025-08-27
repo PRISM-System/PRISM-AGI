@@ -26,6 +26,7 @@ urlpatterns = [
     
     # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치
     path('api/generate/', include('proxy.urls')),  # 프록시를 통한 외부 API 연결
+    path('api/vi/orchestrate/', proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
     
     # 도구 관리 API - 직접 뷰 함수 매핑
     path('api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>PRISM-AGI Dashboard</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    {% csrf_token %}
+    <div class="chat-layout">
+        <!-- 좌측 사이드바 -->
+        {% include 'partials/sidebar.html' %}
+        
+        <!-- 메인 대시보드 영역 -->
+        <div class="dashboard-main">
+            <!-- 상단 헤더 - 실시간 상태 표시 -->
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <h1 class="dashboard-title">PRISM Manufacturing Control Center</h1>
+                    <div class="system-status">
+                        <div class="status-indicator online" id="systemStatus">
+                            <div class="status-dot"></div>
+                            <span>SYSTEM ONLINE</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="real-time-clock" id="realTimeClock">--:--:--</div>
+                    <div class="dashboard-timestamp" id="timestamp">
+                        Last Updated: <span id="lastUpdated">Loading...</span>
+                    </div>
+                    <button class="emergency-stop" id="emergencyStop">
+                        🛑 EMERGENCY STOP
+                    </button>
+                </div>
+            </div>
+
+            <!-- 스크롤 가능한 대시보드 콘텐츠 -->
+            <div class="dashboard-content">
+                <!-- 알람 및 알림 패널 -->
+            <div class="alert-panel" id="alertPanel">
+                <div class="alert-header">
+                    <span class="alert-title">🚨 Active Alerts</span>
+                    <button class="alert-clear" onclick="clearAllAlerts()">Clear All</button>
+                </div>
+                <div class="alert-list" id="alertList">
+                    <!-- 알람이 동적으로 추가됩니다 -->
+                </div>
+            </div>
+
+            <!-- 실시간 공정 플로우 -->
+            <div class="process-flow-container">
+                <div class="card process-flow-card">
+                    <div class="card-header">
+                        <h3>Manufacturing Process Flow</h3>
+                        <div class="flow-controls">
+                            <button class="btn-small" onclick="toggleProcessAnimation()">
+                                <span id="animationToggle">⏸️ Pause</span>
+                            </button>
+                            <div class="production-rate">
+                                Rate: <span id="productionRate">156</span> units/hr
+                            </div>
+                        </div>
+                    </div>
+                    <div class="process-flow">
+                        <div class="process-stage active" data-stage="1">
+                            <div class="stage-icon">🏭</div>
+                            <div class="stage-name">Raw Material</div>
+                            <div class="stage-status normal">NORMAL</div>
+                            <div class="stage-metric">98.5%</div>
+                            <div class="stage-details">
+                                <div class="stage-detail">Input: 1,250 kg/hr</div>
+                                <div class="stage-detail">Quality: Grade A</div>
+                                <div class="stage-detail">Temp: 22°C</div>
+                            </div>
+                            <div class="stage-progress">
+                                <div class="progress-bar" style="width: 98.5%"></div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">
+                            <div class="flow-particle"></div>
+                            <div class="flow-label">Transport</div>
+                        </div>
+                        <div class="process-stage active" data-stage="2">
+                            <div class="stage-icon">⚙️</div>
+                            <div class="stage-name">Processing</div>
+                            <div class="stage-status warning">CAUTION</div>
+                            <div class="stage-metric">94.2%</div>
+                            <div class="stage-details">
+                                <div class="stage-detail">Speed: 145 rpm</div>
+                                <div class="stage-detail">Pressure: 4.8 bar</div>
+                                <div class="stage-detail">Output: 1,180 kg/hr</div>
+                            </div>
+                            <div class="stage-progress">
+                                <div class="progress-bar warning" style="width: 94.2%"></div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">
+                            <div class="flow-particle"></div>
+                            <div class="flow-label">Transfer</div>
+                        </div>
+                        <div class="process-stage active" data-stage="3">
+                            <div class="stage-icon">🔍</div>
+                            <div class="stage-name">Quality Check</div>
+                            <div class="stage-status normal">NORMAL</div>
+                            <div class="stage-metric">96.8%</div>
+                            <div class="stage-details">
+                                <div class="stage-detail">Inspected: 1,142 units</div>
+                                <div class="stage-detail">Passed: 1,105 units</div>
+                                <div class="stage-detail">Reject: 37 units</div>
+                            </div>
+                            <div class="stage-progress">
+                                <div class="progress-bar" style="width: 96.8%"></div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">
+                            <div class="flow-particle"></div>
+                            <div class="flow-label">Convey</div>
+                        </div>
+                        <div class="process-stage active" data-stage="4">
+                            <div class="stage-icon">📦</div>
+                            <div class="stage-name">Packaging</div>
+                            <div class="stage-status normal">NORMAL</div>
+                            <div class="stage-metric">99.1%</div>
+                            <div class="stage-details">
+                                <div class="stage-detail">Packed: 1,095 units</div>
+                                <div class="stage-detail">Rate: 156 units/hr</div>
+                                <div class="stage-detail">Boxes: 73 completed</div>
+                            </div>
+                            <div class="stage-progress">
+                                <div class="progress-bar" style="width: 99.1%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 실시간 메트릭 대시보드 -->
+            <div class="metrics-dashboard">
+                <!-- 요약 카드 섹션 -->
+                <div class="summary-cards">
+                    <div class="card summary-card">
+                        <div class="card-header">
+                            <h3>Production Output</h3>
+                            <div class="card-icon">📊</div>
+                        </div>
+                        <div class="card-value production" id="productionOutput">
+                            <span class="main-value">1,247</span>
+                            <span class="unit">units</span>
+                        </div>
+                        <div class="card-trend up">+12.5% from yesterday</div>
+                    </div>
+                    
+                    <div class="card summary-card">
+                        <div class="card-header">
+                            <h3>Quality Rate</h3>
+                            <div class="card-icon">✅</div>
+                        </div>
+                        <div class="card-value normal" id="qualityRate">
+                            <span class="main-value">96.8</span>
+                            <span class="unit">%</span>
+                        </div>
+                        <div class="card-trend down">-0.2% from target</div>
+                    </div>
+                    
+                    <div class="card summary-card">
+                        <div class="card-header">
+                            <h3>Anomaly Detection</h3>
+                            <div class="card-icon">⚠️</div>
+                        </div>
+                        <div class="card-value anomaly" id="anomalyCount">
+                            <span class="main-value">2</span>
+                            <span class="unit">alerts</span>
+                        </div>
+                        <div class="card-trend neutral">
+                            <span id="anomalyTrend">Last: 14 min ago</span>
+                            <div class="real-time-anomaly" id="realTimeAnomalyStatus" style="display: none;">
+                                ACTIVE
+                            </div>
+                        </div>
+                        <div class="threshold-info" id="thresholdInfo">
+                            <span>Threshold: </span>
+                            <span class="threshold-value" id="thresholdValue">0.916</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card summary-card">
+                        <div class="card-header">
+                            <h3>Equipment Status</h3>
+                            <div class="card-icon">🔧</div>
+                        </div>
+                        <div class="card-value equipment" id="equipmentStatus">
+                            <span class="main-value">12/14</span>
+                            <span class="unit">online</span>
+                        </div>
+                        <div class="card-trend warning">2 units in maintenance</div>
+                    </div>
+                </div>
+
+                <!-- 실시간 센서 데이터 -->
+                <div class="sensor-grid">
+                    <div class="card sensor-card">
+                        <div class="sensor-header">
+                            <h4>Temperature</h4>
+                            <div class="sensor-status normal"></div>
+                        </div>
+                        <div class="sensor-display">
+                            <div class="sensor-value" id="temperature">23.5°C</div>
+                            <div class="sensor-range">Range: 20-25°C</div>
+                        </div>
+                        <div class="sensor-chart" id="tempChart">
+                            <!-- Mini chart will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div class="card sensor-card">
+                        <div class="sensor-header">
+                            <h4>Pressure</h4>
+                            <div class="sensor-status warning"></div>
+                        </div>
+                        <div class="sensor-display">
+                            <div class="sensor-value" id="pressure">4.8 bar</div>
+                            <div class="sensor-range">Range: 4.0-5.0 bar</div>
+                        </div>
+                        <div class="sensor-chart" id="pressureChart">
+                            <!-- Mini chart will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div class="card sensor-card">
+                        <div class="sensor-header">
+                            <h4>Vibration</h4>
+                            <div class="sensor-status normal"></div>
+                        </div>
+                        <div class="sensor-display">
+                            <div class="sensor-value" id="vibration">2.1 mm/s</div>
+                            <div class="sensor-range">Range: 0-3.0 mm/s</div>
+                        </div>
+                        <div class="sensor-chart" id="vibrationChart">
+                            <!-- Mini chart will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div class="card sensor-card">
+                        <div class="sensor-header">
+                            <h4>Energy Usage</h4>
+                            <div class="sensor-status normal"></div>
+                        </div>
+                        <div class="sensor-display">
+                            <div class="sensor-value" id="energy">142.8 kW</div>
+                            <div class="sensor-range">Avg: 145 kW</div>
+                        </div>
+                        <div class="sensor-chart" id="energyChart">
+                            <!-- Mini chart will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 장비 상태 모니터링 -->
+            <div class="equipment-monitoring">
+                <div class="card equipment-card">
+                    <div class="card-header">
+                        <h3>Equipment Status Monitor</h3>
+                        <div class="equipment-controls">
+                            <button class="btn-small" onclick="refreshEquipmentStatus()">🔄 Refresh</button>
+                            <button class="btn-small" onclick="toggleEquipmentView()">📋 Details</button>
+                        </div>
+                    </div>
+                    <div class="equipment-grid">
+                        <div class="equipment-item" data-equipment="line-1">
+                            <div class="equipment-icon">🏭</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">Production Line 1</div>
+                                <div class="equipment-status running">RUNNING</div>
+                                <div class="equipment-metrics">
+                                    <span>Efficiency: 94.2%</span>
+                                    <span>Uptime: 127.5h</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator running"></div>
+                        </div>
+
+                        <div class="equipment-item" data-equipment="line-2">
+                            <div class="equipment-icon">🏭</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">Production Line 2</div>
+                                <div class="equipment-status warning">MAINTENANCE</div>
+                                <div class="equipment-metrics">
+                                    <span>Scheduled: 2.5h</span>
+                                    <span>Remaining: 45min</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator warning"></div>
+                        </div>
+
+                        <div class="equipment-item" data-equipment="qc-1">
+                            <div class="equipment-icon">🔍</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">QC Station 1</div>
+                                <div class="equipment-status running">RUNNING</div>
+                                <div class="equipment-metrics">
+                                    <span>Throughput: 245/h</span>
+                                    <span>Reject Rate: 2.1%</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator running"></div>
+                        </div>
+
+                        <div class="equipment-item" data-equipment="robot-1">
+                            <div class="equipment-icon">🤖</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">Assembly Robot 1</div>
+                                <div class="equipment-status error">ERROR</div>
+                                <div class="equipment-metrics">
+                                    <span>Error: Sensor fault</span>
+                                    <span>Downtime: 12min</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator error"></div>
+                        </div>
+
+                        <div class="equipment-item" data-equipment="conveyor">
+                            <div class="equipment-icon">🛤️</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">Conveyor System</div>
+                                <div class="equipment-status running">RUNNING</div>
+                                <div class="equipment-metrics">
+                                    <span>Speed: 1.2 m/s</span>
+                                    <span>Load: 67%</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator running"></div>
+                        </div>
+
+                        <div class="equipment-item" data-equipment="packaging">
+                            <div class="equipment-icon">📦</div>
+                            <div class="equipment-info">
+                                <div class="equipment-name">Packaging Unit</div>
+                                <div class="equipment-status running">RUNNING</div>
+                                <div class="equipment-metrics">
+                                    <span>Efficiency: 98.1%</span>
+                                    <span>Queue: 23 units</span>
+                                </div>
+                            </div>
+                            <div class="equipment-indicator running"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실시간 생산 현황 -->
+            <div class="production-overview">
+                <div class="card production-card">
+                    <div class="card-header">
+                        <h3>Real-time Production Overview</h3>
+                        <div class="time-range-selector">
+                            <button class="time-btn active" data-range="1h">1H</button>
+                            <button class="time-btn" data-range="8h">8H</button>
+                            <button class="time-btn" data-range="24h">24H</button>
+                        </div>
+                    </div>
+                    <div class="production-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Current Output</div>
+                            <div class="stat-value" id="currentOutput">156 units/hr</div>
+                            <div class="stat-chart" id="outputTrendChart"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Target vs Actual</div>
+                            <div class="stat-value" id="targetVsActual">94.2% of target</div>
+                            <div class="stat-chart" id="targetChart"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Efficiency Score</div>
+                            <div class="stat-value" id="efficiencyScore">87.5%</div>
+                            <div class="stat-chart" id="efficiencyChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 고급 분석 차트 섹션 -->
+            <div class="charts-container">
+                <!-- 실시간 이상 탐지 히트맵 -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Real-time Anomaly Heatmap</h3>
+                        <div class="chart-controls">
+                            <button class="btn-small" onclick="toggleHeatmapMode()">Toggle Mode</button>
+                            <div class="severity-legend">
+                                <span class="legend-item normal">Normal</span>
+                                <span class="legend-item warning">Warning</span>
+                                <span class="legend-item critical">Critical</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="heatmap-container">
+                        <div class="heatmap-grid" id="anomalyHeatmap">
+                            <!-- Heatmap cells will be generated here -->
+                        </div>
+                        <div class="heatmap-timeline" id="heatmapTimeline">
+                            <!-- Timeline will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 예측 분석 차트 -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Predictive Analysis</h3>
+                        <div class="chart-controls">
+                            <select id="predictionMetric">
+                                <option value="yield">Yield Prediction</option>
+                                <option value="failure">Failure Probability</option>
+                                <option value="maintenance">Maintenance Schedule</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+                <!-- Anomaly Scores Distribution -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Anomaly Scores Distribution</h3>
+                        <div class="chart-controls">
+                            <button class="btn-small" onclick="toggleChartType('scoresChart')">Toggle View</button>
+                            <button class="btn-small" onclick="refreshAnomalyData()">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    <div class="sample-legend">
+                        <div class="legend-item normal">Normal Samples</div>
+                        <div class="legend-item critical">Anomaly Samples</div>
+                        <div class="legend-item warning">Threshold Line</div>
+                    </div>
+                    <div class="yield-analysis-summary" id="anomalySummary">
+                        <div class="yield-metric">
+                            <div class="yield-metric-label">Total Samples</div>
+                            <div class="yield-metric-value" id="totalSamples">40</div>
+                        </div>
+                        <div class="yield-metric">
+                            <div class="yield-metric-label">Normal Count</div>
+                            <div class="yield-metric-value good" id="normalCount">38</div>
+                        </div>
+                        <div class="yield-metric">
+                            <div class="yield-metric-label">Anomaly Count</div>
+                            <div class="yield-metric-value poor" id="anomalyCountChart">2</div>
+                        </div>
+                        <div class="yield-metric">
+                            <div class="yield-metric-label">Detection Rate</div>
+                            <div class="yield-metric-value average" id="detectionRate">5.0%</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="scoresChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Yield Analysis -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Yield vs Anomaly Score Analysis</h3>
+                        <div class="chart-controls">
+                            <button class="btn-small" onclick="toggleChartType('yieldChart')">Toggle View</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="yieldChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Confusion Matrix -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Confusion Matrix</h3>
+                        <div class="metrics-summary">
+                            <span class="metric">Accuracy: <span id="accuracy">--</span></span>
+                            <span class="metric">Precision: <span id="precision">--</span></span>
+                            <span class="metric">Recall: <span id="recall">--</span></span>
+                        </div>
+                    </div>
+                    <div class="confusion-matrix-container">
+                        <div class="confusion-matrix" id="confusionMatrix">
+                            <!-- Confusion matrix will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training History -->
+                <div class="card chart-card full-width">
+                    <div class="card-header">
+                        <h3>Model Training History</h3>
+                        <div class="chart-controls">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showValidation" checked>
+                                <span class="slider">Show Validation</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trainingChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Sample Data Table -->
+                <div class="card table-card">
+                    <div class="card-header">
+                        <h3>Sample Data</h3>
+                        <div class="table-controls">
+                            <select id="filterType">
+                                <option value="all">All Samples</option>
+                                <option value="anomaly">Anomalies Only</option>
+                                <option value="normal">Normal Only</option>
+                            </select>
+                            <button class="btn-small" onclick="exportData()">Export CSV</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="samplesTable">
+                            <thead>
+                                <tr>
+                                    <th>Sample #</th>
+                                    <th>Yield</th>
+                                    <th>Anomaly Score</th>
+                                    <th>Predicted</th>
+                                    <th>Actual</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="samplesTableBody">
+                                <!-- Table data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- 스크롤 가능한 대시보드 콘텐츠 끝 -->
+            </div>
+            
+            <!-- 맨 위로 버튼 -->
+            <button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()" title="맨 위로">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5L6 11H10V19H14V11H18L12 5Z" fill="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Dashboard data from Django
+        const dashboardData = {
+            "metadata": {
+                "title": "Anomaly Detection Results",
+                "threshold": 0.915939627986258,
+                "total_samples": 40,
+                "normal_count": 38,
+                "anomaly_count": 2,
+                "timestamp": "20250827_083746"
+            },
+            "anomaly_scores": {
+                "normal_scores": [
+                    0.4305169262405091, 0.21414979730677705, 0.9129578919316002, 0.2719476323467619,
+                    0.4271914356256462, 0.23766307171449616, 0.42395132191074003, 0.3041389895420619,
+                    0.3247309029487627, 0.5676834816282492, 0.9068350946586999, 0.49525681381800274,
+                    0.5500080453021553, 0.27549435415058693, 0.4491641362778125, 0.19866526689460534,
+                    0.3120569727475254, 0.37697246471894974, 0.3553499557668026, 0.45324105316188706,
+                    0.3294105890076615, 0.17770619281458, 0.3362636480148384, 0.32126139713356244,
+                    0.4857706308087689, 0.2599211980684481, 0.4788734108140696, 0.6565218809767455,
+                    0.252694494434001, 0.32739917216852976, 0.6323910640198783, 0.30682307735633224,
+                    0.3427453041924481, 0.5337332525447666, 0.4168503824530334, 0.18444716163933086,
+                    0.1938844389824849, 0.33378616460859734
+                ],
+                "anomaly_scores": [0.939913667205212, 0.9248848361502319],
+                "threshold": 0.915939627986258
+            },
+            "yield_analysis": {
+                "final_yield": [
+                    89.5, 92.3, 87.2, 85.1, 91.8, 88.9, 90.4, 93.1, 82.3, 91.2,
+                    89.7, 86.8, 88.5, 92.6, 84.9, 90.8, 91.4, 94.2, 87.6, 89.3,
+                    81.7, 92.9, 88.1, 90.1, 91.6, 86.4, 89.8, 85.5, 93.4, 83.2,
+                    91.0, 90.5, 87.9, 92.1, 88.7, 94.8, 89.1, 91.9, 86.1, 90.7
+                ],
+                "anomaly_score": [
+                    0.939913667205212, 0.4305169262405091, 0.9248848361502319, 0.21414979730677705,
+                    0.9129578919316002, 0.2719476323467619, 0.4271914356256462, 0.23766307171449616,
+                    0.42395132191074003, 0.3041389895420619, 0.3247309029487627, 0.5676834816282492,
+                    0.9068350946586999, 0.49525681381800274, 0.5500080453021553, 0.27549435415058693,
+                    0.4491641362778125, 0.19866526689460534, 0.3120569727475254, 0.37697246471894974,
+                    0.3553499557668026, 0.45324105316188706, 0.3294105890076615, 0.17770619281458,
+                    0.3362636480148384, 0.32126139713356244, 0.4857706308087689, 0.2599211980684481,
+                    0.4788734108140696, 0.6565218809767455, 0.252694494434001, 0.32739917216852976,
+                    0.6323910640198783, 0.30682307735633224, 0.3427453041924481, 0.5337332525447666,
+                    0.4168503824530334, 0.18444716163933086, 0.1938844389824849, 0.33378616460859734
+                ],
+                "predicted_anomaly": [
+                    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]
+            },
+            "confusion_matrix": {
+                "matrix": [[34, 2], [4, 0]],
+                "true_labels": [
+                    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                    1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ],
+                "predicted_labels": [
+                    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]
+            },
+            "training_history": {
+                "epochs": Array.from({length: 50}, (_, i) => i + 1),
+                "training_loss": [
+                    1.8933109045028687, 1.840497612953186, 1.8225117921829224, 1.699434518814087,
+                    1.7124043703079224, 1.6284092664718628, 1.5559444427490234, 1.5307124853134155,
+                    1.5016727447509766, 1.4928900003433228, 1.4121230840682983, 1.4051469564437866,
+                    1.3178575038909912, 1.3024187088012695, 1.226706862449646, 1.2364928722381592,
+                    1.161144495010376, 1.1470606327056885, 1.1010692119598389, 1.0983141660690308,
+                    1.026010513305664, 0.9748851656913757, 0.9878078699111938, 0.9530822038650513,
+                    0.9118770956993103, 0.9090469479560852, 0.8093152046203613, 0.8197164535522461,
+                    0.7992381453514099, 0.802012026309967, 0.7744792699813843, 0.7472628951072693,
+                    0.7084335684776306, 0.7102473378181458, 0.6948534846305847, 0.6811724305152893,
+                    0.6468279957771301, 0.6382805109024048, 0.6278195977210999, 0.5858964323997498,
+                    0.6129230856895447, 0.561357319355011, 0.5451564192771912, 0.6094313859939575,
+                    0.5342456102371216, 0.547989547252655, 0.5403818488121033, 0.5145661234855652,
+                    0.48975855112075806, 0.5302982330322266
+                ],
+                "validation_loss": [
+                    0.834572434425354, 0.8294934630393982, 0.826552152633667, 0.8233189582824707,
+                    0.8190373778343201, 0.8151042461395264, 0.8109554648399353, 0.8061604499816895,
+                    0.8013879060745239, 0.7961314916610718, 0.7902030944824219, 0.7834270596504211,
+                    0.7763805389404297, 0.7689172029495239, 0.7609702944755554, 0.752515435218811,
+                    0.7435649633407593, 0.7341362833976746, 0.7242912650108337, 0.7141366600990295,
+                    0.7033748626708984, 0.6920910477638245, 0.680435299873352, 0.6681545972824097,
+                    0.6557526588439941, 0.6430338621139526, 0.6300725936889648, 0.6168887615203857,
+                    0.603378415107727, 0.5892967581748962, 0.5755645632743835, 0.5619588494300842,
+                    0.5485262870788574, 0.5351499319076538, 0.5220400094985962, 0.5086549520492554,
+                    0.4953973889350891, 0.48274242877960205, 0.4705086946487427, 0.4588853716850281,
+                    0.44781386852264404, 0.43742096424102783, 0.42750975489616394, 0.4181044101715088,
+                    0.4091288447380066, 0.40065211057662964, 0.3921552896499634, 0.3840818703174591,
+                    0.3760972023010254, 0.36808261275291443
+                ],
+                "training_mae": [
+                    1.0617009401321411, 1.0495606660842896, 1.034994125366211, 1.002471685409546,
+                    0.9987149834632874, 0.9807618260383606, 0.9602025151252747, 0.9574857950210571,
+                    0.9442703127861023, 0.939844012260437, 0.912687361240387, 0.9126535654067993,
+                    0.885182797908783, 0.8744686841964722, 0.8452144265174866, 0.8526249527931213,
+                    0.8301886320114136, 0.8180914521217346, 0.8038034439086914, 0.7995455861091614,
+                    0.7772799730300903, 0.751434326171875, 0.763513445854187, 0.7485394477844238,
+                    0.7257728576660156, 0.724683940410614, 0.6902433037757874, 0.6904230117797852,
+                    0.6778593063354492, 0.6787103414535522, 0.6696729063987732, 0.6599975228309631,
+                    0.6358463168144226, 0.6361996531486511, 0.6343297958374023, 0.6250635385513306,
+                    0.6047958731651306, 0.6030896306037903, 0.5876582264900208, 0.5704706907272339,
+                    0.5889818072319031, 0.5573870539665222, 0.5529172420501709, 0.5840301513671875,
+                    0.548003077507019, 0.547896146774292, 0.5516587495803833, 0.5393772125244141,
+                    0.5236607193946838, 0.5415424704551697
+                ],
+                "validation_mae": [
+                    0.7199157476425171, 0.7186882495880127, 0.7178410887718201, 0.7167431116104126,
+                    0.7150955200195312, 0.7135282158851624, 0.7118476629257202, 0.7098188400268555,
+                    0.7077710032463074, 0.7055861353874207, 0.7030895948410034, 0.7000236511230469,
+                    0.6967700123786926, 0.6932427883148193, 0.6893588900566101, 0.6852051615715027,
+                    0.6808215379714966, 0.6761269569396973, 0.6711916923522949, 0.6659985184669495,
+                    0.6603530645370483, 0.6544023752212524, 0.6482524871826172, 0.6417194604873657,
+                    0.635159969329834, 0.6284623146057129, 0.6215652227401733, 0.6143954992294312,
+                    0.6069405674934387, 0.599074125289917, 0.5912075042724609, 0.5830836892127991,
+                    0.5749771595001221, 0.5666159391403198, 0.5583586096763611, 0.5498600006103516,
+                    0.5414263010025024, 0.5332461595535278, 0.5252000093460083, 0.517674446105957,
+                    0.5104788541793823, 0.5036187171936035, 0.4970146715641022, 0.4906280040740967,
+                    0.484434574842453, 0.478517085313797, 0.472558856010437, 0.46665436029434204,
+                    0.46071112155914307, 0.45481443405151367
+                ]
+            }
+        };
+    </script>
+    <script src="{% static 'js/activity-logger.js' %}"></script>
+    <script src="{% static 'js/chat.js' %}"></script>
+    <script src="{% static 'js/agent-creator.js' %}"></script>
+
+    <!-- Include dashboard JavaScript -->
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    
+    <!-- Initialize Anomaly Detection Dashboard -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the anomaly detection dashboard with real data
+            if (!window.anomalyDashboard) {
+                window.anomalyDashboard = new AnomalyDashboard();
+            }
+            
+            // Initialize manufacturing dashboard features
+            if (typeof initializeManufacturingDashboard === 'function') {
+                initializeManufacturingDashboard();
+            }
+            
+            // Set up real-time updates every 30 seconds
+            setInterval(() => {
+                // Update timestamp
+                const now = new Date();
+                const timestamp = now.toLocaleString('ko-KR');
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.textContent = timestamp;
+                }
+                
+                // Update anomaly trend info
+                const anomalyTrendElement = document.getElementById('anomalyTrend');
+                if (anomalyTrendElement) {
+                    const minAgo = Math.floor(Math.random() * 30) + 1;
+                    anomalyTrendElement.textContent = `Last: ${minAgo} min ago`;
+                }
+                
+                // Simulate new anomaly detection results
+                // In a real application, this would fetch from your API
+                if (window.anomalyDashboard) {
+                    window.anomalyDashboard.updateWithNewData();
+                }
+            }, 30000);
+            
+            // Initialize scroll features if available
+            if (typeof initializeScrollFeatures === 'function') {
+                initializeScrollFeatures();
+            }
+        });
+    </script>
+</body>
+</html>

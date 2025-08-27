@@ -21,8 +21,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://147.47.39.144:8000",  # 클라이언트 IP 추가
 ]
 CORS_ALLOW_CREDENTIALS = False  # 세션/쿠키 cross-site 필요 시 True로 (그땐 화이트리스트 필수)
-CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ["content-type", "authorization"]
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+CORS_ALLOW_HEADERS = ["content-type", "authorization", "x-csrftoken", "x-requested-with"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://172.31.36.95",

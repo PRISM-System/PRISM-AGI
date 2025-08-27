@@ -41,6 +41,18 @@ const copyLogBtn = document.getElementById('copyLogBtn');
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing user logs page');
+    
+    // DOM 요소 존재 확인
+    console.log('Pagination elements check:', {
+        prevPageBtn: !!prevPageBtn,
+        nextPageBtn: !!nextPageBtn,
+        pageNumbersEl: !!pageNumbersEl,
+        prevPageBtnId: prevPageBtn ? prevPageBtn.id : 'not found',
+        nextPageBtnId: nextPageBtn ? nextPageBtn.id : 'not found',
+        pageNumbersElId: pageNumbersEl ? pageNumbersEl.id : 'not found'
+    });
+    
     initializeEventListeners();
     initializeDateFilters();
     loadLogs();
@@ -244,7 +256,7 @@ function generateDummyLogs() {
     
     const levels = ['INFO', 'WARNING', 'ERROR'];
     
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 150; i++) { // 50에서 150으로 증가
         const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
         const actionType = actionTypes[Math.floor(Math.random() * actionTypes.length)];
         const level = levels[Math.floor(Math.random() * levels.length)];
@@ -293,6 +305,7 @@ function showLoading(show) {
 
 // 검색 처리
 function handleSearch() {
+    currentPage = 1;
     applyFilters();
 }
 
@@ -378,6 +391,7 @@ function renderLogs() {
     if (filteredLogs.length === 0) {
         emptyState.style.display = 'flex';
         logCountEl.textContent = '0개 항목';
+        updatePagination(); // 페이지네이션 업데이트
         return;
     }
     
@@ -393,6 +407,7 @@ function renderLogs() {
     });
     
     logCountEl.textContent = `${filteredLogs.length}개 항목`;
+    updatePagination(); // 페이지네이션 업데이트
 }
 
 // 로그 행 생성
@@ -645,6 +660,115 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// 페이지네이션 함수들
+function changePage(page) {
+    const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+    
+    if (page < 1 || page > totalPages) {
+        return;
+    }
+    
+    currentPage = page;
+    renderLogs();
+    updatePagination();
+}
+
+function updatePagination() {
+    const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+    
+    // 이전/다음 버튼 상태 업데이트
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+    
+    // 페이지 번호 렌더링
+    renderPageNumbers(totalPages);
+}
+
+function renderPageNumbers(totalPages) {
+    console.log('renderPageNumbers called:', { totalPages, currentPage });
+    
+    pageNumbersEl.innerHTML = '';
+    
+    if (totalPages <= 1) {
+        console.log('totalPages <= 1, returning early');
+        return;
+    }
+    
+    // 페이지 범위 계산
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    console.log('Page range:', { startPage, endPage });
+    
+    // 시작 페이지 조정
+    if (endPage - startPage < 4 && totalPages > 5) {
+        if (startPage === 1) {
+            endPage = Math.min(5, totalPages);
+        } else if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - 4);
+        }
+    }
+    
+    // 첫 페이지
+    if (startPage > 1) {
+        addPageNumber(1);
+        if (startPage > 2) {
+            addPageEllipsis();
+        }
+    }
+    
+    // 중간 페이지들
+    for (let i = startPage; i <= endPage; i++) {
+        addPageNumber(i);
+    }
+    
+    // 마지막 페이지
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            addPageEllipsis();
+        }
+        addPageNumber(totalPages);
+    }
+    
+    console.log('Page numbers rendered. pageNumbersEl children:', pageNumbersEl.children.length);
+}
+
+function addPageNumber(pageNum) {
+    console.log('Adding page number:', pageNum);
+    const pageBtn = document.createElement('button');
+    pageBtn.className = `page-number ${pageNum === currentPage ? 'active' : ''}`;
+    pageBtn.textContent = pageNum;
+    pageBtn.addEventListener('click', () => changePage(pageNum));
+    pageNumbersEl.appendChild(pageBtn);
+    console.log('Page button added to DOM');
+}
+
+function addPageEllipsis() {
+    const ellipsis = document.createElement('span');
+    ellipsis.className = 'page-ellipsis';
+    ellipsis.textContent = '...';
+    pageNumbersEl.appendChild(ellipsis);
+}
+
+// 기본 페이지네이션 렌더링 (더미 데이터용)
+function renderPagination() {
+    const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+    
+    console.log('renderPagination called:', {
+        totalLogs: filteredLogs.length,
+        logsPerPage: logsPerPage,
+        totalPages: totalPages,
+        currentPage: currentPage
+    });
+    
+    // 이전/다음 버튼 상태 업데이트
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+    
+    // 페이지 번호 렌더링
+    renderPageNumbers(totalPages);
 }
 
 // HTML 이스케이프

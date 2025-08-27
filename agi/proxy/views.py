@@ -683,3 +683,60 @@ def proxy_agent_invoke(request, agent_name):
             503,
             details={"message": str(e), "remote_server": REMOTE_SERVER, "agent_name": agent_name}
         )
+
+
+@csrf_exempt
+def proxy_orchestrate(request):
+    """
+    /api/orchestrate 요청을 원격 orchestrate 서버로 프록시합니다.
+    """
+    
+    # OPTIONS 요청 (CORS 프리플라이트)
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # POST 요청만 허용
+    if request.method != 'POST':
+        return create_error_response("Method not allowed. Use POST for orchestrate requests.", 405)
+    
+    try:
+        # orchestrate 서버로 요청 전달
+        orchestrate_server = "http://147.47.39.144:8100"
+        url = f"{orchestrate_server}/api/vi/orchestrate"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # 요청 헤더 및 본문 설정
+        headers = {'Content-Type': 'application/json'}
+        body = request.body.decode('utf-8') if request.body else '{}'
+        logger.info(f"Orchestrate request body: {body}")
+        
+        remote_response = requests.post(url, data=body, headers=headers, timeout=30)
+        
+        logger.info(f"Orchestrate server response: {remote_response.status_code}")
+        if remote_response.status_code >= 400:
+            logger.error(f"Orchestrate server error response: {remote_response.text}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            logger.warning(f"Non-JSON response from orchestrate server: {remote_response.text[:500]}")
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Orchestrate connection failed: {e}")
+        return create_error_response(
+            "orchestrate API 호출 실패",
+            503,
+            details={"message": str(e), "orchestrate_server": "http://147.47.39.144:8100"}
+        )
