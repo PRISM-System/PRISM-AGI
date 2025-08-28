@@ -1,4 +1,4 @@
-// 에이전트 관리 페이지 JavaScript
+// 에이전트 관리 페이지
 
 class AgentManager {
     constructor() {
@@ -14,19 +14,17 @@ class AgentManager {
     }
 
     bindEvents() {
-        // 뒤로 가기 버튼
-        const backButton = document.getElementById('backToChat');
-        if (backButton) {
-            backButton.addEventListener('click', () => {
-                window.location.href = '/';
-            });
-        }
-
         // 새 에이전트 생성 버튼
         const createButton = document.getElementById('createNewAgent');
         if (createButton) {
             createButton.addEventListener('click', () => {
-                window.location.href = '/django/create-agent/';
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user_id');
+                if (userId) {
+                    window.location.href = `/django/create-agent/?user_id=${userId}`;
+                } else {
+                    window.location.href = '/django/create-agent/';
+                }
             });
         }
 

@@ -314,25 +314,141 @@ body {
     border-top: 1px solid #4d4d4f;
 }
 
-.user-info {
+.sidebar-footer .user-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #acacbe;
+    font-size: 14px;
+}
+
+.user-info-content {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #acacbe;
-    font-size: 14px;
+}
+
+.sidebar-logout-button {
+    background: rgba(220, 38, 38, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 4px;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-logout-button:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.4);
+}
+
+.sidebar-logout-button:active {
+    transform: scale(0.95);
 }
 
 .chat-header {
     padding: 12px 24px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
 }
 
 .chat-title {
     font-size: 18px;
     font-weight: 600;
     color: #ffffff;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.institution-badge {
+    background: linear-gradient(135deg, #536492 0%, #4a5a85 100%);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(83, 100, 146, 0.3);
+}
+
+.user-id {
+    color: #acacbe;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+.logout-button svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* 공통 헤더 사용자 정보 스타일 */
+.user-info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+}
+
+.user-id-badge {
+    color: #acacbe;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 로그 헤더 스타일 */
+.logs-header .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .chat-messages {

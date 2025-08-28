@@ -49,7 +49,13 @@ function setupEventListeners() {
     // 이벤트 리스너 등록
     if (backButton) {
         backButton.addEventListener('click', () => {
-            window.location.href = '/';
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            if (userId) {
+                window.location.href = `/django/index/?user_id=${userId}`;
+            } else {
+                window.location.href = '/django/';
+            }
         });
     }
 
@@ -575,7 +581,13 @@ async function createAgent() {
             
             // 채팅 페이지로 이동
             setTimeout(() => {
-                window.location.href = '/django/';
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user_id');
+                if (userId) {
+                    window.location.href = `/django/index/?user_id=${userId}`;
+                } else {
+                    window.location.href = '/django/';
+                }
             }, 1000);
             
         } else {

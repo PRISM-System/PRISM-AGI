@@ -70,8 +70,14 @@ class ChatSessionManager {
     constructor() {
         // console.log('ChatSessionManager 생성자 시작');
         this.currentSessionId = null;
-        this.userId = 'user_1234'; // 테스트용 고정 사용자
+        this.userId = getCurrentUserId(); // 기관별 사용자 ID 가져오기
         this.sessions = [];
+        
+        // userId가 없으면 초기화하지 않음 (페이지에서 리다이렉트 처리됨)
+        if (!this.userId) {
+            console.warn('user_id가 없어 ChatSessionManager 초기화를 건너뜁니다.');
+            return;
+        }
         
         // console.log('ChatSessionManager 설정:', {
         //     userId: this.userId,
@@ -105,17 +111,36 @@ class ChatSessionManager {
 
             // console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
             const response = await fetch(`${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
             const sessions = await response.json();
             
             // console.log('로드된 채팅 세션:', sessions);
-            this.sessions = sessions;
+            // sessions가 배열인지 확인
+            if (Array.isArray(sessions)) {
+                this.sessions = sessions;
+            } else {
+                console.warn('세션 데이터가 배열이 아닙니다:', sessions);
+                this.sessions = [];
+            }
+            
             this.renderSessions();
             // console.log('채팅 세션 렌더링 완료');
         } catch (error) {
             console.error('채팅 세션 로드 실패:', error);
             
+            // 빈 배열로 초기화하여 renderSessions에서 에러가 발생하지 않도록 함
+            this.sessions = [];
+            this.renderSessions();
+            
             // 활동 로그에 세션 로드 에러 기록
-            window.logChatResponse('', `채팅 세션 로드 실패: ${error.message}`, 'session_error');
+            if (window.logChatResponse) {
+                window.logChatResponse('', `채팅 세션 로드 실패: ${error.message}`, 'session_error');
+            }
         } finally {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'none';
@@ -173,7 +198,13 @@ class ChatSessionManager {
         // 세션 클릭 이벤트 (삭제 버튼 제외)
         div.addEventListener('click', (e) => {
             if (!e.target.closest('.session-delete-btn')) {
-                window.location.href = `/django/?session=${session.id}`;
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user_id');
+                if (userId) {
+                    window.location.href = `/django/index/?user_id=${userId}&session=${session.id}`;
+                } else {
+                    window.location.href = `/django/index/?session=${session.id}`;
+                }
             }
         });
         
@@ -220,7 +251,11 @@ class ChatSessionManager {
             this.currentSessionId = newSession.id;
             
             // URL 업데이트
-            window.history.pushState({}, '', `/django/?session=${newSession.id}`);
+            if (this.userId) {
+                window.history.pushState({}, '', `/django/index/?user_id=${this.userId}&session=${newSession.id}`);
+            } else {
+                window.history.pushState({}, '', `/django/index/?session=${newSession.id}`);
+            }
             
             // 사용자 활동 로그 기록
             if (window.logSessionCreate) {
@@ -250,7 +285,11 @@ class ChatSessionManager {
             // URL 업데이트 (클릭으로 오지 않은 경우만)
             const currentUrl = new URL(window.location);
             if (currentUrl.searchParams.get('session') !== sessionId) {
-                window.history.pushState({}, '', `/django/?session=${sessionId}`);
+                const userId = currentUrl.searchParams.get('user_id');
+                const newUrl = userId ? 
+                    `/django/index/?user_id=${userId}&session=${sessionId}` : 
+                    `/django/index/?session=${sessionId}`;
+                window.history.pushState({}, '', newUrl);
             }
             
             // UI 업데이트
@@ -1445,8 +1484,10 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
     try {
         // console.log('기본 AI로 메시지 전송 시작');
         
+        const userId = getCurrentUserId();
+        
         // 현재 세션의 session_user_id 가져오기 (최신 메시지에서 추출)
-        let sessionUserId = 'user_1234_task_1'; // 기본값
+        let sessionUserId = `${userId}_task_1`; // 기본값 (기관별 user_id 사용)
         
         if (chatSessionManager && chatSessionManager.currentSessionId) {
             try {
@@ -1468,7 +1509,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         const requestBody = {
             query: message,
             session_id: sessionUserId,
-            user_id: "user_1234",
+            user_id: userId,
             user_preferences: {
                 additionalProp1: {}
             },
@@ -1610,7 +1651,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
             extra_body: {
                 additionalProp1: {}
             },
-            user_id: "user_1234"
+            user_id: getCurrentUserId()
         };
 
         // 에이전트별 invoke 엔드포인트로 POST 요청
@@ -2039,7 +2080,7 @@ function initChatFeatures() {
                     max_tokens: 1024,
                     temperature: 0.7,
                     stop: [],
-                    client_id: "user_1234",
+                    client_id: getCurrentUserId(),
                     use_tools: false,
                     max_tool_calls: 3
                 })
@@ -2428,19 +2469,37 @@ function initSidebarMenuEvents() {
     
     if (createAgentMenu) {
         createAgentMenu.addEventListener('click', () => {
-            window.location.href = '/django/create-agent/';
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            if (userId) {
+                window.location.href = `/django/create-agent/?user_id=${userId}`;
+            } else {
+                window.location.href = '/django/create-agent/';
+            }
         });
     }
     
     if (manageAgentsMenu) {
         manageAgentsMenu.addEventListener('click', () => {
-            window.location.href = '/django/manage-agents/';
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            if (userId) {
+                window.location.href = `/django/manage-agents/?user_id=${userId}`;
+            } else {
+                window.location.href = '/django/manage-agents/';
+            }
         });
     }
     
     if (registerToolMenu) {
         registerToolMenu.addEventListener('click', () => {
-            window.location.href = '/django/register-tool/';
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            if (userId) {
+                window.location.href = `/django/register-tool/?user_id=${userId}`;
+            } else {
+                window.location.href = '/django/register-tool/';
+            }
         });
     }
 }
@@ -2774,19 +2833,60 @@ window.refreshSidebarAgents = () => {
     }
 };
 
+// 현재 user_id를 가져오는 함수
+function getCurrentUserId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+    
+    // URL 파라미터에 user_id가 없으면 null 반환 (페이지에서 리다이렉트 처리)
+    if (!userId) {
+        console.warn('URL에서 user_id를 찾을 수 없습니다.');
+        return null;
+    }
+    
+    return userId;
+}
+
 // 페이지 네비게이션 함수들
+function goToChat() {
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/index/?user_id=${userId}` : '/django/index/';
+    window.location.href = url;
+}
+
 function goToManageTools() {
-    window.location.href = '/django/manage-tools/';
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/manage-tools/?user_id=${userId}` : '/django/manage-tools/';
+    window.location.href = url;
 }
 
 function goToUserLogs() {
-    window.location.href = '/django/user-logs/';
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/user-logs/?user_id=${userId}` : '/django/user-logs/';
+    window.location.href = url;
 }
 
 function goToServerLogs() {
-    window.location.href = '/django/server-logs/';
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/server-logs/?user_id=${userId}` : '/django/server-logs/';
+    window.location.href = url;
 }
 
 function goToManageRegulations() {
-    window.location.href = '/django/manage-regulations/';
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/manage-regulations/?user_id=${userId}` : '/django/manage-regulations/';
+    window.location.href = url;
+}
+
+function goToDashboard() {
+    const userId = getCurrentUserId();
+    const url = userId ? `/django/dashboard/?user_id=${userId}` : '/django/dashboard/';
+    window.location.href = url;
+}
+
+// Sidebar 로그아웃 함수
+function handleSidebarLogout() {
+    if (confirm('로그아웃하시겠습니까? 기관 선택 페이지로 이동합니다.')) {
+        window.location.href = '/django/';
+    }
 }

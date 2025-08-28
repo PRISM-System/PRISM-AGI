@@ -19,8 +19,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from proxy import views as proxy_views
+from agiApp import views as agi_views
 
 urlpatterns = [
+    path('', agi_views.landing, name='landing'),  # 루트는 랜딩 페이지
     path('django/', include('agiApp.urls')),
     path('django/admin/', admin.site.urls),
     

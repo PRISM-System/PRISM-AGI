@@ -1,10 +1,24 @@
 // 사용자 로그 페이지 JavaScript (페이지네이션 포함 - 6개 항목/페이지)
 
+// 현재 user_id를 가져오는 함수
+function getCurrentUserId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+    
+    // URL 파라미터에 user_id가 없으면 null 반환 (페이지에서 리다이렉트 처리)
+    if (!userId) {
+        console.warn('URL에서 user_id를 찾을 수 없습니다.');
+        return null;
+    }
+    
+    return userId;
+}
+
 // 전역 변수
 let currentLogs = [];
 let filteredLogs = [];
 let currentPage = 1;
-let logsPerPage = 6; // 한 페이지당 6개 항목
+let logsPerPage = 8; // 한 페이지당 6개 항목
 let sortField = 'timestamp';
 let sortDirection = 'desc';
 
@@ -26,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const endDateInput = document.getElementById('endDate');
     const refreshBtn = document.getElementById('refreshLogs');
     const exportBtn = document.getElementById('exportLogs');
-    const backToChat = document.getElementById('backToChat');
     
     // 통계 요소
     const totalLogsEl = document.getElementById('totalLogs');
@@ -42,52 +55,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 모달 요소
     const logDetailModal = document.getElementById('logDetailModal');
-    const closeModal = document.querySelector('.close-modal');
+    const closeModal = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
     
-    // 이벤트 리스너 등록 (요소가 존재하는 경우에만)
-    if (searchInput) searchInput.addEventListener('input', handleSearch);
-    if (logLevelFilter) logLevelFilter.addEventListener('change', handleFilter);
-    if (logCategoryFilter) logCategoryFilter.addEventListener('change', handleFilter);
-    if (startDateInput) startDateInput.addEventListener('change', handleFilter);
-    if (endDateInput) endDateInput.addEventListener('change', handleFilter);
-    
-    // 버튼 이벤트
-    if (refreshBtn) refreshBtn.addEventListener('click', loadLogs);
-    if (exportBtn) exportBtn.addEventListener('click', exportLogs);
-    if (backToChat) {
-        backToChat.addEventListener('click', () => {
-            window.location.href = '/';
-        });
-    }
-    
-    // 페이지네이션 이벤트
-    if (prevPageBtn) prevPageBtn.addEventListener('click', () => changePage(currentPage - 1));
-    if (nextPageBtn) nextPageBtn.addEventListener('click', () => changePage(currentPage + 1));
-    
-    // 테이블 정렬
-    document.querySelectorAll('.sortable').forEach(th => {
-        th.addEventListener('click', () => handleSort(th.dataset.sort));
-    });
-    
-    // 모달 이벤트 (요소가 존재하는 경우에만)
-    if (closeModal) {
-        closeModal.addEventListener('click', closeLogModal);
-    }
-    if (logDetailModal) {
-        logDetailModal.addEventListener('click', (e) => {
-            if (e.target === logDetailModal) {
-                closeLogModal();
-            }
-        });
-    }
-    
-    // 로그 데이터 로드 함수 정의
+    // 로그 데이터 로드 함수 정의 (다른 함수들보다 먼저 정의)
     window.loadLogs = async function() {
         try {
             showLoading(true);
             
+            const userId = getCurrentUserId();
+            if (!userId) {
+                console.error('사용자 ID를 찾을 수 없습니다. 페이지가 리다이렉트되어야 합니다.');
+                showLoading(false);
+                return;
+            }
+            
             const params = new URLSearchParams({
-                user_id: 'user_1234'
+                user_id: userId
             });
             
             // 필터 적용
@@ -111,8 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             
+            console.log('API Response:', data); // 디버깅용
+            
             currentLogs = data.logs;
             filteredLogs = [...data.logs];
+            
+            console.log('Loaded logs:', currentLogs); // 디버깅용
             
             // 통계 업데이트
             if (data.statistics) {
@@ -136,6 +124,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // 이벤트 리스너 등록 (요소가 존재하는 경우에만)
+    if (searchInput) searchInput.addEventListener('input', handleSearch);
+    if (logLevelFilter) logLevelFilter.addEventListener('change', handleFilter);
+    if (logCategoryFilter) logCategoryFilter.addEventListener('change', handleFilter);
+    if (startDateInput) startDateInput.addEventListener('change', handleFilter);
+    if (endDateInput) endDateInput.addEventListener('change', handleFilter);
+    
+    // 버튼 이벤트
+    if (refreshBtn) refreshBtn.addEventListener('click', loadLogs);
+    if (exportBtn) exportBtn.addEventListener('click', exportLogs);
+    
+    // 페이지네이션 이벤트
+    if (prevPageBtn) prevPageBtn.addEventListener('click', () => changePage(currentPage - 1));
+    if (nextPageBtn) nextPageBtn.addEventListener('click', () => changePage(currentPage + 1));
+    
+    // 테이블 정렬
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', () => handleSort(th.dataset.sort));
+    });
+    
+    // 모달 이벤트 (요소가 존재하는 경우에만)
+    if (closeModal) {
+        closeModal.addEventListener('click', closeLogModal);
+    }
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeLogModal);
+    }
+    if (logDetailModal) {
+        logDetailModal.addEventListener('click', (e) => {
+            if (e.target === logDetailModal) {
+                closeLogModal();
+            }
+        });
+    }
+    
     // API에서 받은 통계 데이터 업데이트
     function updateStatisticsFromAPI(stats) {
         if (totalLogsEl) totalLogsEl.textContent = stats.total.toLocaleString();
@@ -146,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 더미 데이터 생성 (API 실패 시 폴백용)
     function generateDummyLogs() {
+        const userId = getCurrentUserId(); // 현재 사용자 ID 사용
         const actionTypes = [
             { type: 'chat_query', display: '자연어 질의' },
             { type: 'session_create', display: '채팅 세션 생성' },
@@ -164,13 +188,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             logs.push({
                 id: i,
-                user_id: 'user_1234',
+                user: userId || 'user_1234', // API 응답 형식에 맞춰 user 필드 추가
+                user_id: userId || 'user_1234', // 현재 사용자 ID 사용, 없으면 기본값
                 action_type: actionType.type,
                 action_type_display: actionType.display,
                 level: level,
                 level_display: level,
                 message: `${actionType.display} 활동이 수행되었습니다.`,
-                details: JSON.stringify({ test: true, id: i }),
+                details: JSON.stringify({ 
+                    test: true, 
+                    id: i, 
+                    user_id: userId,
+                    timestamp: timestamp.toISOString(),
+                    additional_info: "더미 데이터 예시"
+                }),
                 timestamp: timestamp.toISOString(),
                 ip_address: '192.168.1.100',
                 user_agent: 'Mozilla/5.0'
@@ -462,28 +493,70 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 로그 상세 모달 열기 (전역 함수로 정의)
     window.openLogModal = function(logId) {
+        console.log('openLogModal called with logId:', logId);
+        console.log('currentLogs:', currentLogs);
+        console.log('logDetailModal element:', logDetailModal);
+        
         const log = currentLogs.find(l => l.id === logId);
-        if (!log || !logDetailModal) return;
+        if (!log || !logDetailModal) {
+            console.error('Log not found or modal not available:', { logId, log, modal: logDetailModal });
+            return;
+        }
+        
+        console.log('Opening modal for log:', log); // 디버깅용
+        
+        // 사용자 정보 처리 (API 응답에서는 user, 더미 데이터에서는 user_id)
+        const userInfo = log.user || log.user_id || 'N/A';
+        console.log('User info for modal:', { user: log.user, user_id: log.user_id, final: userInfo });
+        
+        // 상세 데이터 처리 (JSON 문자열을 포맷팅)
+        let detailsFormatted = 'N/A';
+        if (log.details) {
+            try {
+                if (typeof log.details === 'string') {
+                    // JSON 문자열인 경우 파싱해서 포맷팅
+                    const parsed = JSON.parse(log.details);
+                    detailsFormatted = JSON.stringify(parsed, null, 2);
+                } else {
+                    // 이미 객체인 경우 직접 포맷팅
+                    detailsFormatted = JSON.stringify(log.details, null, 2);
+                }
+            } catch (e) {
+                // JSON 파싱 실패시 원본 문자열 사용
+                console.warn('Failed to parse log details as JSON:', e);
+                detailsFormatted = log.details;
+            }
+        }
         
         const modalElements = {
-            'modalLogId': log.id,
-            'modalLogUser': log.user_id || 'N/A',
-            'modalLogTimestamp': formatTimestamp(log.timestamp),
-            'modalLogLevel': log.level_display || log.level,
-            'modalLogCategory': log.action_type_display || log.action_type,
-            'modalLogMessage': log.message,
-            'modalLogDetails': log.details || 'N/A',
-            'modalLogIp': log.ip_address || 'N/A',
-            'modalLogUserAgent': log.user_agent || 'N/A'
+            'modalTimestamp': formatTimestamp(log.timestamp),
+            'modalLevel': log.level_display || log.level,
+            'modalCategory': log.action_type_display || log.action_type,
+            'modalUser': userInfo,
+            'modalMessage': log.message || 'N/A',
+            'modalDetails': detailsFormatted
         };
+        
+        console.log('Modal elements to set:', modalElements);
         
         // 모달 요소에 데이터 설정
         Object.entries(modalElements).forEach(([id, value]) => {
             const element = document.getElementById(id);
-            if (element) element.textContent = value;
+            if (element) {
+                if (id === 'modalDetails') {
+                    // pre 태그에는 textContent 사용 (HTML 이스케이프됨)
+                    element.textContent = value;
+                } else {
+                    element.textContent = value;
+                }
+                console.log(`Set ${id}:`, value); // 디버깅용
+            } else {
+                console.warn(`Element not found: ${id}`);
+            }
         });
         
         logDetailModal.style.display = 'block';
+        console.log('Modal should now be visible');
     };
     
     // 로그 상세 모달 닫기
@@ -495,11 +568,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 로그 내보내기
     function exportLogs() {
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + "시간,레벨,카테고리,메시지,IP주소\n"
-            + filteredLogs.map(log => 
-                `"${formatTimestamp(log.timestamp)}","${log.level}","${log.action_type_display || log.action_type}","${log.message}","${log.ip_address || 'N/A'}"`
-            ).join("\n");
+        // BOM 추가로 한글 깨짐 방지
+        const BOM = '\uFEFF';
+        const csvContent = "data:text/csv;charset=utf-8," + BOM
+            + "시간,레벨,카테고리,메시지\n"
+            + filteredLogs.map(log => {
+                // CSV 필드에서 따옴표 이스케이프 처리
+                const timestamp = formatTimestamp(log.timestamp).replace(/"/g, '""');
+                const level = (log.level_display || log.level).replace(/"/g, '""');
+                const category = (log.action_type_display || log.action_type).replace(/"/g, '""');
+                const message = (log.message || '').replace(/"/g, '""');
+                
+                return `"${timestamp}","${level}","${category}","${message}"`;
+            }).join("\n");
         
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");

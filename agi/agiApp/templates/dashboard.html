@@ -29,6 +29,12 @@
             <div class="dashboard-header">
                 <div class="header-left">
                     <h1 class="dashboard-title">PRISM Manufacturing Control Center</h1>
+                    {% if user_id and institution_name %}
+                    <div class="user-info-header">
+                        <span class="institution-badge">{{ institution_name }}</span>
+                        <span class="user-id-badge">{{ user_id }}</span>
+                    </div>
+                    {% endif %}
                     <div class="system-status">
                         <div class="status-indicator online" id="systemStatus">
                             <div class="status-dot"></div>
@@ -736,5 +742,6 @@
             }
         });
     </script>
+    <script src="{% static 'js/logout-handler.js' %}"></script>
 </body>
 </html>

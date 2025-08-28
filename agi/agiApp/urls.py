@@ -5,7 +5,8 @@ from . import api_views
 from proxy.views import proxy_tools
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.landing, name='landing'),  # /django/ -> landing 페이지
+    path('index/', views.index, name='index'),  # /django/index/ -> 채팅 페이지
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('create-agent/', views.create_agent_page, name='create_agent'),
     path('manage-agents/', views.manage_agents_page, name='manage_agents'),

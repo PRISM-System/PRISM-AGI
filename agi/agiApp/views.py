@@ -13,12 +13,38 @@ import json
 import os
 from datetime import datetime
 
+def get_user_context(request):
+    """사용자 컨텍스트 정보를 가져오는 공통 함수"""
+    user_id = request.GET.get('user_id', '')
+    
+    # 기관 정보 매핑
+    institution_map = {
+        'user_1111': '서울대학교',
+        'user_2222': '한양대학교', 
+        'user_3333': '성균관대학교',
+        'user_4444': '카이스트',
+        'user_1234': '비아이매트릭스'
+    }
+    
+    institution_name = institution_map.get(user_id, '')
+    
+    return {
+        'user_id': user_id,
+        'institution_name': institution_name
+    }
+
+def landing(request):
+    """랜딩 페이지 렌더링"""
+    return render(request, 'landing.html')
+
 def index(request):
-    return render(request, 'index.html')
+    context = get_user_context(request)
+    return render(request, 'index.html', context)
 
 def dashboard_view(request):
     """대시보드 페이지 렌더링"""
-    return render(request, 'dashboard.html')
+    context = get_user_context(request)
+    return render(request, 'dashboard.html', context)
 
 def login_view(request):
     if request.method == 'POST':
@@ -152,31 +178,40 @@ def check_email_api(request):
 
 def create_agent_page(request):
     """에이전트 생성 페이지"""
-    return render(request, 'create_agent.html')
+    context = get_user_context(request)
+    return render(request, 'create_agent.html', context)
 
 def manage_agents_page(request):
     """에이전트 관리 페이지"""
-    return render(request, 'manage_agents.html')
+    context = get_user_context(request)
+    return render(request, 'manage_agents.html', context)
 
 def register_tool_page(request):
     """도구 등록 페이지"""
-    return render(request, 'register_tool.html')
+    context = get_user_context(request)
+    return render(request, 'register_tool.html', context)
 
 def manage_tools_page(request):
     """도구 관리 페이지"""
-    return render(request, 'manage_tools.html')
+    context = get_user_context(request)
+    return render(request, 'manage_tools.html', context)
 
 def manage_regulations_page(request):
     """규정 관리 페이지"""
-    return render(request, 'manage_regulations.html')
+    context = get_user_context(request)
+    return render(request, 'manage_regulations.html', context)
 
 def user_logs_page(request):
     """사용자 로그 페이지"""
-    return render(request, 'user_logs.html')
+    context = get_user_context(request)
+    return render(request, 'user_logs.html', context)
 
 def server_logs_page(request):
     """서버 로그 페이지"""
     from django.conf import settings
+    
+    # 사용자 컨텍스트 가져오기
+    context = get_user_context(request)
     
     log_file_path = os.path.join(settings.BASE_DIR, 'logs', 'agi.log')
     logs = []
@@ -267,7 +302,10 @@ def server_logs_page(request):
             "서버 관리자에게 문의하세요."
         ]
     
-    return render(request, 'server_logs.html', {'logs': logs})
+    # context에 logs 추가
+    context['logs'] = logs
+    
+    return render(request, 'server_logs.html', context)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

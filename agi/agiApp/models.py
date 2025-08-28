@@ -23,7 +23,7 @@ class UserActivityLog(models.Model):
         ('DEBUG', '디버그'),
     ]
     
-    user_id = models.CharField(max_length=100, default='user_1234')  # 테스트용 고정 사용자
+    user_id = models.CharField(max_length=100)  # 기관별 사용자 ID
     action_type = models.CharField(max_length=20, choices=ACTION_TYPES)
     level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default='INFO')
     message = models.TextField()
@@ -44,8 +44,12 @@ class UserActivityLog(models.Model):
         return f"{self.get_action_type_display()} - {self.message[:50]}"
     
     @classmethod
-    def log_activity(cls, action_type, message, level='INFO', details=None, user_id='user_1234', request=None):
+    def log_activity(cls, action_type, message, level='INFO', details=None, user_id=None, request=None):
         """활동 로그 생성 헬퍼 메서드"""
+        if not user_id:
+            # user_id가 제공되지 않으면 기본값 사용
+            user_id = 'user_1234'
+            
         log_data = {
             'user_id': user_id,
             'action_type': action_type,
@@ -73,7 +77,7 @@ class UserActivityLog(models.Model):
 
 class ChatSession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user_id = models.CharField(max_length=100, default='user_1234')  # 테스트용 고정 사용자
+    user_id = models.CharField(max_length=100)  # 기관별 사용자 ID
     title = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -123,8 +127,9 @@ class ChatMessage(models.Model):
         super().save(*args, **kwargs)
     
     def generate_session_user_id(self):
-        """session_user_id 자동 생성: user_1234_task_숫자 형식"""
-        user_id = "user_1234"
+        """session_user_id 자동 생성: {user_id}_task_숫자 형식"""
+        # session의 user_id 사용 (기관별 user_id)
+        user_id = self.session.user_id
         
         # 현재 session에서 가장 큰 task 번호 찾기
         last_message = ChatMessage.objects.filter(

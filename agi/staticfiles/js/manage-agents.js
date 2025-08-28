@@ -1,4 +1,4 @@
-// 에이전트 관리 페이지 JavaScript
+// 에이전트 관리 페이지
 
 class AgentManager {
     constructor() {
@@ -14,19 +14,17 @@ class AgentManager {
     }
 
     bindEvents() {
-        // 뒤로 가기 버튼
-        const backButton = document.getElementById('backToChat');
-        if (backButton) {
-            backButton.addEventListener('click', () => {
-                window.location.href = '/';
-            });
-        }
-
         // 새 에이전트 생성 버튼
         const createButton = document.getElementById('createNewAgent');
         if (createButton) {
             createButton.addEventListener('click', () => {
-                window.location.href = '/django/create-agent/';
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('user_id');
+                if (userId) {
+                    window.location.href = `/django/create-agent/?user_id=${userId}`;
+                } else {
+                    window.location.href = '/django/create-agent/';
+                }
             });
         }
 
@@ -137,7 +135,7 @@ class AgentManager {
     async fetchAgentsFromAPI() {
         try {
             // 외부 API에서 에이전트 목록 가져오기
-            const response = await fetch('https://grnd.bimatrix.co.kr/api/agents/');
+            const response = await fetch('/django/api/agents/');
 
             if (!response.ok) {
                 throw new Error(`API 요청 실패: ${response.status}`);
@@ -407,7 +405,7 @@ class AgentManager {
             }
 
             // API 호출로 에이전트 삭제
-            const response = await fetch(`/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
+            const response = await fetch(`/django/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM-AGI - Welcome</title>
+    <link rel="icon" type="image/png" href="{% static 'img/image_logo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+</head>
+<body class="landing-body">
+    <div class="landing-container">
+        <div class="landing-content">
+            <!-- 로고 영역 -->
+            <div class="landing-logo">
+                <img src="{% static 'img/image_logo.png' %}" alt="PRISM-AGI Logo" class="logo-image">
+                <h1 class="landing-title">PRISM-AGI</h1>
+                <p class="landing-subtitle">자율제조 AI 에이전트 DEMO</p>
+            </div>
+
+            <!-- 설명 영역 -->
+            <div class="landing-description">
+                <h2 class="description-title">자율제조 AI 에이전트 DEMO</h2>
+                <p class="description-text">
+                    PRISM-AGI는 다양한 AI 에이전트들을 통합 관리하고<br> 
+                    모니터링할 수 있는 차세대 플랫폼(DEMO)입니다.
+                </p>
+            </div>
+
+            <!-- 액션 버튼 영역 -->
+            <div class="landing-actions">
+                <button class="landing-btn primary" id="demoButton" style="pointer-events: auto; cursor: pointer; z-index: 10; position: relative;">
+                    <span>DEMO 접속</span>
+                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+                <a href="https://github.com/PRISM-System/PRISM-AGI" target="_blank" class="landing-btn secondary">
+                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                    <span>GITHUB</span>
+                </a>
+            </div>
+
+            <!-- 추가 정보 -->
+            <div class="landing-footer">
+                <p class="footer-text">
+                    DEMO
+                </p>
+            </div>
+        </div>
+
+        <!-- 배경 애니메이션 -->
+        <div class="bg-animation">
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+        </div>
+    </div>
+
+    <!-- 기관 선택 모달 -->
+    <div class="institution-modal" id="institutionModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">기관 선택</h2>
+                <button class="modal-close" data-action="close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.3 5.71L12 12.01L5.7 5.71L4.29 7.12L10.59 13.42L4.29 19.72L5.7 21.13L12 14.83L18.3 21.13L19.71 19.72L13.41 13.42L19.71 7.12L18.3 5.71Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">접속할 기관을 선택해주세요.</p>
+                <div class="institution-list">
+                    <div class="institution-item" data-user-id="user_1111" data-institution="서울대학교">
+                        <div class="institution-icon">
+                            <img src="{% static 'img/seoul.png' %}" alt="서울대학교 로고" class="institution-logo">
+                        </div>
+                        <div class="institution-info">
+                            <h3 class="institution-name">서울대학교</h3>
+                            <p class="institution-id">ID: user_1111</p>
+                        </div>
+                        <div class="institution-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="institution-item" data-user-id="user_2222" data-institution="한양대학교">
+                        <div class="institution-icon">
+                            <img src="{% static 'img/hanyang.png' %}" alt="한양대학교 로고" class="institution-logo">
+                        </div>
+                        <div class="institution-info">
+                            <h3 class="institution-name">한양대학교</h3>
+                            <p class="institution-id">ID: user_2222</p>
+                        </div>
+                        <div class="institution-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="institution-item" data-user-id="user_3333" data-institution="성균관대학교">
+                        <div class="institution-icon">
+                            <img src="{% static 'img/sunkyunkwan.png' %}" alt="성균관대학교 로고" class="institution-logo">
+                        </div>
+                        <div class="institution-info">
+                            <h3 class="institution-name">성균관대학교</h3>
+                            <p class="institution-id">ID: user_3333</p>
+                        </div>
+                        <div class="institution-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="institution-item" data-user-id="user_4444" data-institution="카이스트">
+                        <div class="institution-icon">
+                            <img src="{% static 'img/KAIST.png' %}" alt="카이스트 로고" class="institution-logo">
+                        </div>
+                        <div class="institution-info">
+                            <h3 class="institution-name">카이스트</h3>
+                            <p class="institution-id">ID: user_4444</p>
+                        </div>
+                        <div class="institution-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="institution-item" data-user-id="user_1234" data-institution="비아이매트릭스">
+                        <div class="institution-icon">
+                            <img src="{% static 'img/bimatrix.png' %}" alt="비아이매트릭스 로고" class="institution-logo">
+                        </div>
+                        <div class="institution-info">
+                            <h3 class="institution-name">비아이매트릭스</h3>
+                            <p class="institution-id">ID: user_1234</p>
+                        </div>
+                        <div class="institution-arrow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Landing page script loading...');
+
+        // 기본 함수들 정의
+        function showModal() {
+            console.log('showModal called');
+            // alert('DEMO 접속 버튼이 클릭되었습니다!'); // 테스트용
+            const modal = document.getElementById('institutionModal');
+            if (modal) {
+                modal.classList.add('show');
+                console.log('Modal shown');
+            } else {
+                console.error('Modal not found');
+            }
+        }
+
+        function hideModal() {
+            console.log('hideModal called');
+            const modal = document.getElementById('institutionModal');
+            if (modal) {
+                modal.classList.remove('show');
+                console.log('Modal hidden');
+            }
+        }
+
+        function selectInstitution(userId, institutionName) {
+            console.log('Institution selected:', userId, institutionName);
+            localStorage.setItem('selectedUserId', userId);
+            localStorage.setItem('selectedInstitution', institutionName);
+            
+            document.body.classList.add('transitioning');
+            setTimeout(() => {
+                window.location.href = `/django/index/?user_id=${userId}`;
+            }, 300);
+        }
+
+        // DOM 로드 완료 후 이벤트 리스너 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
+            
+            // 페이지 로드 애니메이션
+            document.body.classList.add('loaded');
+            
+            // DEMO 접속 버튼 이벤트
+            const demoButton = document.getElementById('demoButton');
+            if (demoButton) {
+                console.log('Demo button found, adding click listener');
+                
+                // 여러 이벤트 타입으로 등록
+                ['click', 'mousedown', 'touchstart'].forEach(eventType => {
+                    demoButton.addEventListener(eventType, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log(`Demo button ${eventType} event fired!`);
+                        showModal();
+                    }, true); // useCapture = true
+                });
+                
+                // 버튼 스타일 강제 설정
+                demoButton.style.cursor = 'pointer';
+                demoButton.style.pointerEvents = 'auto';
+                demoButton.style.zIndex = '999';
+                demoButton.style.position = 'relative';
+                
+                // 테스트용 hover 이벤트
+                demoButton.addEventListener('mouseenter', function() {
+                    console.log('Demo button hovered');
+                });
+                
+            } else {
+                console.error('Demo button not found!');
+            }
+
+            // 모달 닫기 버튼들
+            const closeButtons = document.querySelectorAll('[data-action="close"]');
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    hideModal();
+                });
+            });
+
+            // 오버레이 클릭으로 닫기
+            const overlay = document.querySelector('.modal-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', hideModal);
+            }
+
+            // 기관 선택 이벤트들
+            const institutionItems = document.querySelectorAll('.institution-item');
+            institutionItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const institution = this.getAttribute('data-institution');
+                    if (userId && institution) {
+                        selectInstitution(userId, institution);
+                    }
+                });
+            });
+
+            // ESC 키로 모달 닫기
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    hideModal();
+                }
+            });
+
+            console.log('All event listeners set up successfully');
+        });
+
+        // 전역 함수로 노출 (혹시 onclick이 작동할 경우를 위해)
+        window.enterSystem = showModal;
+        window.closeModal = hideModal;
+        window.selectInstitution = selectInstitution;
+        
+        console.log('Landing page script loaded');
+    </script>
+</body>
+</html>

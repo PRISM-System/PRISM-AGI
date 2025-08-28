@@ -115,7 +115,13 @@ class ChatSessionsView(APIView):
         """
         사용자의 채팅 세션 목록 반환
         """
-        user_id = request.GET.get('user_id', 'user_1234')
+        user_id = request.GET.get('user_id')
+        if not user_id:
+            return Response({
+                'error': 'user_id 파라미터가 필요합니다.',
+                'message': '기관별 사용자 식별을 위해 user_id를 제공해주세요.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         sessions = ChatSession.objects.filter(user_id=user_id, is_active=True)
         
         data = []
@@ -136,7 +142,13 @@ class ChatSessionsView(APIView):
         """
         새로운 채팅 세션 생성
         """
-        user_id = request.data.get('user_id', 'user_1234')
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({
+                'error': 'user_id가 필요합니다.',
+                'message': '기관별 사용자 식별을 위해 user_id를 제공해주세요.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         title = request.data.get('title', '')
         
         session = ChatSession.objects.create(
@@ -286,7 +298,13 @@ class UserActivityLogsView(APIView):
             from datetime import timedelta
             
             # 쿼리 파라미터 처리
-            user_id = request.GET.get('user_id', 'user_1234')
+            user_id = request.GET.get('user_id')
+            if not user_id:
+                return Response({
+                    'error': 'user_id 파라미터가 필요합니다.',
+                    'message': '기관별 사용자 식별을 위해 user_id를 제공해주세요.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
             action_type = request.GET.get('action_type')
             level = request.GET.get('level')
             start_date = request.GET.get('start_date')
@@ -380,13 +398,19 @@ class UserActivityLogsView(APIView):
             message = request.data.get('message')
             level = request.data.get('level', 'INFO')
             details = request.data.get('details', {})
-            user_id = request.data.get('user_id', 'user_1234')
+            user_id = request.data.get('user_id')
             
             if not action_type or not message:
                 return Response(
                     {'error': 'action_type과 message는 필수입니다.'}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            if not user_id:
+                return Response({
+                    'error': 'user_id가 필요합니다.',
+                    'message': '기관별 사용자 식별을 위해 user_id를 제공해주세요.'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             log = UserActivityLog.log_activity(
                 action_type=action_type,

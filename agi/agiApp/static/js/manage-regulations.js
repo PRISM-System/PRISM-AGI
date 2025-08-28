@@ -13,14 +13,6 @@ class RegulationsManager {
     }
 
     bindEvents() {
-        // 뒤로가기 버튼
-        const backButton = document.getElementById('backToChat');
-        if (backButton) {
-            backButton.addEventListener('click', () => {
-                window.location.href = '/';
-            });
-        }
-
         // 검색 기능
         const searchInput = document.getElementById('searchRegulation');
         if (searchInput) {

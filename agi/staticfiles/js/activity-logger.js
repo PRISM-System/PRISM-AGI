@@ -3,11 +3,29 @@
  * 다른 JavaScript 파일에서 사용자 활동을 로그로 기록할 때 사용
  */
 
+// 현재 user_id를 가져오는 함수
+function getCurrentUserId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id');
+    
+    // URL 파라미터에 user_id가 없으면 null 반환 (페이지에서 리다이렉트 처리)
+    if (!userId) {
+        console.warn('URL에서 user_id를 찾을 수 없습니다.');
+        return null;
+    }
+    
+    return userId;
+}
+
 class ActivityLogger {
     constructor() {
-        this.apiUrl = 'https://grnd.bimatrix.co.kr/django/api/user-logs/';
-        this.userId = 'user_1234'; // 테스트용 고정 사용자
-        this.isEnabled = true; // 로깅 활성화 여부
+        this.apiUrl = '/django/api/user-logs/';
+        this.userId = getCurrentUserId(); // 기관별 사용자 ID 가져오기
+        this.isEnabled = this.userId ? true : false; // user_id가 없으면 로깅 비활성화
+        
+        if (!this.userId) {
+            console.warn('user_id가 없어 ActivityLogger를 비활성화합니다.');
+        }
     }
 
     /**

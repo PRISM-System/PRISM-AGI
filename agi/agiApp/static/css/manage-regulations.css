@@ -32,6 +32,7 @@ body:has(.regulations-manager-container) .chat-sidebar.collapsed ~ .chat-main,
 .manager-header {
     padding: 24px 32px;
     border-bottom: 1px solid #e2e8f0;
+    margin-top: 30px;
 }
 
 .back-button {

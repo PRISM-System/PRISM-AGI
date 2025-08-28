@@ -7,7 +7,6 @@ let allLogs = [];
 const logsList = document.getElementById('logsList');
 const refreshBtn = document.getElementById('refreshLogs');
 const exportBtn = document.getElementById('exportLogs');
-const backToChat = document.getElementById('backToChat');
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,12 +23,6 @@ function initializeEventListeners() {
     
     if (exportBtn) {
         exportBtn.addEventListener('click', exportLogs);
-    }
-    
-    if (backToChat) {
-        backToChat.addEventListener('click', () => {
-            window.location.href = '/';
-        });
     }
 }
 

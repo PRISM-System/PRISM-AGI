@@ -12,7 +12,6 @@ const searchInput = document.getElementById('searchTool');
 const methodFilter = document.getElementById('methodFilter');
 const statusFilter = document.getElementById('statusFilter');
 const addToolBtn = document.getElementById('addToolBtn');
-const backToChat = document.getElementById('backToChat');
 
 // 모달 요소
 const toolDetailModal = document.getElementById('toolDetailModal');
@@ -36,11 +35,13 @@ function initializeEventListeners() {
     
     // 버튼 이벤트
     addToolBtn.addEventListener('click', () => {
-        window.location.href = '/django/register-tool/';
-    });
-    
-    backToChat.addEventListener('click', () => {
-        window.location.href = '/';
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        if (userId) {
+            window.location.href = `/django/register-tool/?user_id=${userId}`;
+        } else {
+            window.location.href = '/django/register-tool/';
+        }
     });
     
     // 모달 이벤트
@@ -70,7 +71,7 @@ async function loadTools() {
         showLoading(true);
         
         // 로컬 프록시를 통해 외부 API 호출
-        const response = await fetch('https://grnd.bimatrix.co.kr/django/api/tools/', {
+        const response = await fetch('/django/api/tools/', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -284,7 +285,7 @@ async function handleDeleteTool() {
     
     try {
         // 삭제 API 호출 (URL 끝에 슬래시 추가)
-        const response = await fetch(`https://grnd.bimatrix.co.kr/django/api/tools/${encodeURIComponent(tool.name)}/`, { 
+        const response = await fetch(`/django/api/tools/${encodeURIComponent(tool.name)}/`, { 
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

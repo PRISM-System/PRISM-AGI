@@ -35,6 +35,7 @@ body:has(.agents-manager-container) .chat-sidebar.collapsed ~ .chat-main,
     flex-direction: column;
     align-items: center;
     margin-bottom: 40px;
+    margin-top: 30px;
 }
 
 .back-button {
