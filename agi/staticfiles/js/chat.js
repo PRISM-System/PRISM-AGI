@@ -2567,7 +2567,7 @@ class SidebarAgentManager {
         this.loadAgents();
     }
 
-    async loadAgents() {
+    async loadAgents(retryCount = 0, maxRetries = 5) {
         if (!this.agentsListContainer) {
             console.warn('❌ agentsList 컨테이너를 찾을 수 없습니다');
             return;
@@ -2592,12 +2592,32 @@ class SidebarAgentManager {
                 const errorText = await response.text();
                 console.error('❌ 에이전트 목록 로딩 실패:', response.status, response.statusText);
                 console.error('❌ 오류 응답:', errorText);
-                this.renderError(`에이전트 목록을 불러올 수 없습니다. (${response.status})`);
+                
+                // 자동 재시도 로직
+                if (retryCount < maxRetries) {
+                    console.log(`🔄 에이전트 목록 자동 재시도 중... (${retryCount + 1}/${maxRetries})`);
+                    this.renderRetrying(retryCount + 1, maxRetries);
+                    setTimeout(() => {
+                        this.loadAgents(retryCount + 1, maxRetries);
+                    }, 2000); // 2초 후 재시도
+                } else {
+                    this.renderError(`에이전트 목록을 불러올 수 없습니다. (${response.status})`);
+                }
             }
         } catch (error) {
             console.error('❌ 에이전트 목록 로딩 실패:', error);
             console.error('❌ 오류 스택:', error.stack);
-            this.renderError('에이전트 목록을 불러올 수 없습니다.');
+            
+            // 자동 재시도 로직
+            if (retryCount < maxRetries) {
+                console.log(`🔄 에이전트 목록 자동 재시도 중... (${retryCount + 1}/${maxRetries})`);
+                this.renderRetrying(retryCount + 1, maxRetries);
+                setTimeout(() => {
+                    this.loadAgents(retryCount + 1, maxRetries);
+                }, 2000); // 2초 후 재시도
+            } else {
+                this.renderError('에이전트 목록을 불러올 수 없습니다.');
+            }
         }
     }
 
@@ -2686,6 +2706,19 @@ class SidebarAgentManager {
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
                 <span>${message}</span>
+            </div>
+        `;
+    }
+
+    renderRetrying(currentRetry, maxRetries) {
+        if (!this.agentsListContainer) return;
+
+        this.agentsListContainer.innerHTML = `
+            <div class="chat-item" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+                    <path d="M12 6V9L16 5L12 1V4C7.58 4 4 7.58 4 12S7.58 20 12 20 20 16.42 20 12H18C18 15.31 15.31 18 12 18S6 15.31 6 12 8.69 6 12 6Z"/>
+                </svg>
+                <span>에이전트 목록 재시도 중... (${currentRetry}/${maxRetries})</span>
             </div>
         `;
     }
