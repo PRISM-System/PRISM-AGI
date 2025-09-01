@@ -159,7 +159,7 @@ body:has(.tools-manager-container) .chat-sidebar.collapsed ~ .chat-main,
     align-items: center;
     gap: 6px;
     padding: 10px 16px;
-    background: #3b82f6;
+    background: #40414f;
     border: none;
     border-radius: 6px;
     color: white;
