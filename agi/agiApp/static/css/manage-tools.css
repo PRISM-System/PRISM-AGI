@@ -192,7 +192,7 @@ body:has(.tools-manager-container) .chat-sidebar.collapsed ~ .chat-main,
     background: #40414f;
     border: 1px solid #565869;
     border-radius: 12px;
-    padding: 16px;
+    padding: 5px;
     transition: all 0.3s ease;
     cursor: pointer;
     height: fit-content;
