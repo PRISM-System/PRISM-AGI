@@ -983,7 +983,7 @@ body {
 }
 
 .status-indicator {
-    width: 140px;
+    width: 12px;
     height: 12px;
     border-radius: 50%;
     position: relative;
