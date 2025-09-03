@@ -1993,16 +1993,14 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             user_preferences: {
                 additionalProp1: {}
             },
-            max_tokens: 1024,
+            max_tokens: 8192,
             temperature: 0.7,
-            stop: [
-                "\n\n",
-                "END"
-            ],
             use_tools: true,
-            max_tool_calls: 3,
+            max_tool_calls: 10,
             extra_body: {
-                tool_choice: "auto"
+                chat_template_kwargs: {
+                    enable_thinking: false
+                }
             }
         };
 
@@ -2023,6 +2021,10 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         if (response.ok) {
             const responseData = await response.json();
             
+            // 디버깅: 응답 데이터 전체 출력
+            console.log('=== 전체 응답 데이터 ===');
+            console.log(responseData);
+            
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
             if (thinkingMessage) {
@@ -2041,16 +2043,22 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             // orchestrate API의 실제 응답 구조에서 final_answer 필드 사용
             if (responseData.final_answer) {
                 basicResponseText = responseData.final_answer;
+                console.log('final_answer 사용:', basicResponseText);
             } else if (responseData.final_markdown) {
                 basicResponseText = responseData.final_markdown;
+                console.log('final_markdown 사용:', basicResponseText);
             } else if (responseData.response) {
                 basicResponseText = responseData.response;
+                console.log('response 사용:', basicResponseText);
             } else if (responseData.content) {
                 basicResponseText = responseData.content;
+                console.log('content 사용:', basicResponseText);
             } else if (responseData.result) {
                 basicResponseText = responseData.result;
+                console.log('result 사용:', basicResponseText);
             } else if (responseData.message) {
                 basicResponseText = responseData.message;
+                console.log('message 사용:', basicResponseText);
             } else {
                 basicResponseText = '응답을 받았지만 내용을 추출할 수 없습니다.';
             }
@@ -2060,7 +2068,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             
             // AI 응답 메시지 표시 (타이핑 효과 포함)
             const chatMessages = document.getElementById('chatMessages');
-            const aiMessage = createAIMessageWithTyping(finalBasicText, 10);
+            const aiMessage = createAIMessageWithTyping(finalBasicText, 5); // 타이핑 속도를 5ms로 빠르게
             chatMessages.appendChild(aiMessage);
             
             // 채팅 세션에 AI 응답 저장 (orchestrate API - </think> 뒷부분만 저장)
@@ -2359,9 +2367,26 @@ function createAIMessageWithTyping(content, typingSpeed = 30) {
 }
 
 // 타이핑 효과 함수
-function startTypingEffect(contentDiv, text, speed = 30) {
+function startTypingEffect(contentDiv, text, speed = 5) {
     let index = 0;
     let displayText = '';
+    
+    // 마크다운을 HTML로 변환 (개선된 버전)
+    const convertMarkdownToHtml = (markdown) => {
+        return markdown
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+            .replace(/^\* (.*$)/gim, '<li>$1</li>')
+            .replace(/^\- (.*$)/gim, '<li>$1</li>')
+            .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+    };
     
     // 커서 스타일 추가
     if (!document.getElementById('typing-cursor-style')) {
@@ -2376,15 +2401,32 @@ function startTypingEffect(contentDiv, text, speed = 30) {
                 0%, 50% { opacity: 1; }
                 51%, 100% { opacity: 0; }
             }
+            .message-content h1, .message-content h2, .message-content h3, .message-content h4 {
+                margin: 10px 0;
+                color: #333;
+            }
+            .message-content li {
+                margin-left: 20px;
+            }
+            .message-content code {
+                background-color: #f4f4f4;
+                padding: 2px 4px;
+                border-radius: 3px;
+            }
         `;
         document.head.appendChild(style);
     }
 
     const typeChar = () => {
         if (index < text.length) {
-            displayText += text[index];
-            contentDiv.innerHTML = displayText + '<span class="typing-cursor">|</span>';
-            index++;
+            // 한 번에 여러 글자씩 처리하여 긴 텍스트도 빠르게 타이핑
+            const charsToAdd = Math.min(3, text.length - index);
+            displayText += text.substr(index, charsToAdd);
+            index += charsToAdd;
+            
+            // 마크다운을 HTML로 변환하여 표시
+            const htmlContent = convertMarkdownToHtml(displayText);
+            contentDiv.innerHTML = '<p>' + htmlContent + '</p><span class="typing-cursor">|</span>';
             
             // 채팅창 스크롤 자동 조정
             const chatMessages = document.getElementById('chatMessages');
@@ -2394,8 +2436,9 @@ function startTypingEffect(contentDiv, text, speed = 30) {
             
             setTimeout(typeChar, speed);
         } else {
-            // 타이핑 완료 - 커서 제거
-            contentDiv.innerHTML = displayText;
+            // 타이핑 완료 - 커서 제거하고 최종 HTML 표시
+            const finalHtml = convertMarkdownToHtml(displayText);
+            contentDiv.innerHTML = '<p>' + finalHtml + '</p>';
         }
     };
 
