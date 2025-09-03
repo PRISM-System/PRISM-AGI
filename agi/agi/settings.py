@@ -13,13 +13,14 @@ ALLOWED_HOSTS = ['*']
 # ----------------------
 # CORS / CSRF
 # ----------------------
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True  # 프록시 서버 환경에서 모든 오리진 허용
 CORS_ALLOWED_ORIGINS = [
     "https://grnd.bimatrix.co.kr",
     "http://192.168.0.57:8080",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://147.47.39.144:8000",  # 클라이언트 IP 추가
+    "http://147.47.39.144:8100",  # orchestrate 서버 IP 추가
 ]
 CORS_ALLOW_CREDENTIALS = False  # 세션/쿠키 cross-site 필요 시 True로 (그땐 화이트리스트 필수)
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -31,6 +32,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://147.47.39.144:8000",  # 클라이언트 IP 추가
+    "http://147.47.39.144:8100",  # orchestrate 서버 IP 추가
 ]
 
 INSTALLED_APPS = [
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'channels',
     'corsheaders',
+    'drf_yasg',
 
     'agiApp',
     'proxy',  # 프록시 서버 앱 추가
@@ -131,10 +134,13 @@ REST_FRAMEWORK = {
 }
 
 ASGI_APPLICATION = 'agi.asgi.application'
+
+# ----------------------
+# Django Channels Configuration
+# ----------------------
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {"hosts": [('127.0.0.1', 6379)]},
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
@@ -223,5 +229,55 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+    },
+}
+
+# ----------------------
+# Channels (WebSocket) 설정 - 중복 제거됨 (위에 설정 있음)
+# ----------------------
+
+# ----------------------
+# Swagger 설정
+# ----------------------
+# Swagger 설정
+# ----------------------
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+        'put',
+        'delete',
+        'patch'
+    ],
+    'OPERATIONS_SORTER': 'alpha',
+    'TAGS_SORTER': 'alpha',
+    'DOC_EXPANSION': 'none',
+    'DEEP_LINKING': True,
+    'SHOW_EXTENSIONS': True,
+    'DEFAULT_MODEL_RENDERING': 'model',
+}
+
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': False,
+}
+
+# ----------------------
+# Django Channels Configuration
+# ----------------------
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }

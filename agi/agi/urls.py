@@ -20,15 +20,40 @@ from django.conf import settings
 from django.conf.urls.static import static
 from proxy import views as proxy_views
 from agiApp import views as agi_views
+from agiApp import websocket_views
+
+# Swagger 설정
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="PRISM-AGI API",
+      default_version='v1',
+      description="PRISM-AGI WebSocket 및 Orchestrate API 문서",
+      contact=openapi.Contact(email="admin@prism-agi.com"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('', agi_views.landing, name='landing'),  # 루트는 랜딩 페이지
     path('django/', include('agiApp.urls')),
     path('django/admin/', admin.site.urls),
     
+    # Swagger API 문서
+    path('django/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('django/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('django/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    
     # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치
     path('django/api/generate/', include('proxy.urls')),  # 프록시를 통한 외부 API 연결
-    path('django/api/vi/orchestrate/', proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
+    path('django/api/v1/orchestrate/', proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
+    
+    # WebSocket API 엔드포인트 - 직접 등록
+    path('django/api/websocket/orchestrate/update/', websocket_views.send_orchestrate_update, name='websocket_orchestrate_update'),
     
     # 도구 관리 API - 직접 뷰 함수 매핑
     path('django/api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),

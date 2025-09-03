@@ -1,7 +1,458 @@
 // ===============================
-// 환경 설정(필요에 맞게 바꿔 사용)
+// WebSocket 연결 관리
 // ===============================
-// console.log('chat.js 파일 로드됨');
+class WebSocketManager {
+    constructor() {
+        this.orchestrateSocket = null;
+        this.currentSessionId = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+    }
+
+    connectOrchestrateSocket(sessionId) {
+        console.log('=== WebSocket 연결 시도 ===');
+        console.log('전달받은 sessionId:', sessionId);
+        console.log('sessionId 타입:', typeof sessionId);
+        console.log('sessionId 길이:', sessionId?.length);
+        
+        if (this.orchestrateSocket && this.orchestrateSocket.readyState === WebSocket.OPEN) {
+            console.log('WebSocket already connected');
+            return;
+        }
+
+        this.currentSessionId = sessionId;
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/orchestrate/${sessionId}/`;
+        
+        console.log(`Connecting to WebSocket: ${wsUrl}`);
+        
+        this.orchestrateSocket = new WebSocket(wsUrl);
+
+        this.orchestrateSocket.onopen = (event) => {
+            console.log('Orchestrate WebSocket connected');
+            this.reconnectAttempts = 0;
+        };
+
+        this.orchestrateSocket.onmessage = (event) => {
+            console.log('=== RAW WebSocket Message Received ===');
+            console.log('Event:', event);
+            console.log('Event data:', event.data);
+            console.log('Event data type:', typeof event.data);
+            
+            try {
+                const data = JSON.parse(event.data);
+                console.log('Parsed WebSocket data:', data);
+                console.log('Message type:', data.type);
+                
+                if (data.type === 'step_update') {
+                    console.log('Handling step_update');
+                    this.handleStepUpdate(data);
+                } else if (data.type === 'orchestrate_update') {
+                    console.log('Handling orchestrate_update');
+                    this.handleOrchestrateUpdate(data);
+                } else {
+                    console.log('Unknown message type:', data.type);
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+                console.error('Raw message was:', event.data);
+            }
+        };
+
+        this.orchestrateSocket.onclose = (event) => {
+            console.log('Orchestrate WebSocket disconnected');
+            this.reconnectSocket();
+        };
+
+        this.orchestrateSocket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
+
+    handleStepUpdate(data) {
+        const { step_name, status, content, progress } = data;
+        const chatMessages = document.getElementById('chatMessages');
+        
+        if (!chatMessages) return;
+
+        // 기존 단계별 메시지가 있는지 확인
+        let stepMessage = document.getElementById(`step-${step_name}`);
+        
+        if (!stepMessage) {
+            // 새로운 단계 메시지 생성
+            stepMessage = this.createStepMessage(step_name, status, content, progress);
+            chatMessages.appendChild(stepMessage);
+        } else {
+            // 기존 메시지 업데이트
+            this.updateStepMessage(stepMessage, status, content, progress);
+        }
+        
+        // 스크롤 하단으로
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    createStepMessage(stepName, status, content, progress) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai step-message';
+        messageDiv.id = `step-${stepName}`;
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar ai-avatar';
+        avatarDiv.textContent = '🔄';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'step-header';
+        headerDiv.innerHTML = `
+            <strong>📊 ${stepName}</strong>
+            <span class="step-status status-${status}">${this.getStatusText(status)}</span>
+            <span class="step-progress">${progress}%</span>
+        `;
+
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'step-content';
+        bodyDiv.innerHTML = this.formatContent(content);
+
+        contentDiv.appendChild(headerDiv);
+        contentDiv.appendChild(bodyDiv);
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+
+        return messageDiv;
+    }
+
+    updateStepMessage(messageElement, status, content, progress) {
+        const statusElement = messageElement.querySelector('.step-status');
+        const progressElement = messageElement.querySelector('.step-progress');
+        const contentElement = messageElement.querySelector('.step-content');
+
+        if (statusElement) {
+            statusElement.className = `step-status status-${status}`;
+            statusElement.textContent = this.getStatusText(status);
+        }
+
+        if (progressElement) {
+            progressElement.textContent = `${progress}%`;
+        }
+
+        if (contentElement && content) {
+            contentElement.innerHTML = this.formatContent(content);
+        }
+    }
+
+    getStatusText(status) {
+        const statusMap = {
+            'processing': '처리 중...',
+            'completed': '완료',
+            'failed': '실패'
+        };
+        return statusMap[status] || status;
+    }
+
+    formatContent(content) {
+        if (!content) return '';
+        
+        // 마크다운 형식이면 간단히 처리
+        return content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+
+    handleOrchestrateUpdate(data) {
+        const { session_id, step_name, content, end_time } = data;
+        console.log('Orchestrate update received:', { session_id, step_name, content, end_time });
+        
+        // process-content 영역 업데이트
+        this.updateProcessContent(step_name, content, end_time);
+    }
+
+    updateProcessContent(stepName, content, endTime) {
+        console.log('=== updateProcessContent 호출됨 ===');
+        console.log('stepName:', stepName);
+        console.log('content:', content);
+        console.log('endTime:', endTime);
+        
+        const processContent = document.getElementById('processContent');
+        const processStatus = document.getElementById('processStatus');
+        const processSteps = document.getElementById('processSteps');
+        const processDetails = document.getElementById('processDetails');
+        
+        console.log('processContent 요소:', processContent);
+        console.log('processStatus 요소:', processStatus);
+        console.log('processSteps 요소:', processSteps);
+        console.log('processDetails 요소:', processDetails);
+        
+        if (!processContent) {
+            console.warn('processContent element not found');
+            return;
+        }
+
+        // 1. 상태 표시기 업데이트
+        if (processStatus) {
+            console.log('상태 표시기 업데이트 중...');
+            const statusIndicator = processStatus.querySelector('.status-indicator');
+            const statusText = processStatus.querySelector('span');
+            
+            console.log('statusIndicator:', statusIndicator);
+            console.log('statusText:', statusText);
+            
+            if (statusIndicator && statusText) {
+                if (endTime) {
+                    statusIndicator.className = 'status-indicator completed';
+                    statusText.textContent = `${stepName} 완료`;
+                } else {
+                    statusIndicator.className = 'status-indicator processing';
+                    statusText.textContent = `${stepName} 진행 중...`;
+                }
+                console.log('상태 업데이트 완료:', statusText.textContent);
+            }
+        }
+
+        // 2. 진행 단계 바 업데이트 (단계별 매핑)
+        if (processSteps) {
+            console.log('진행 단계 바 업데이트 중...');
+            this.updateProgressSteps(stepName, endTime);
+        }
+
+        // 3. 상세 정보 업데이트
+        if (processDetails) {
+            console.log('상세 정보 업데이트 중...');
+            this.updateProcessDetails(stepName, content, endTime);
+        }
+        
+        console.log('=== updateProcessContent 완료 ===');
+    }
+
+    updateProgressSteps(stepName, endTime) {
+        const processSteps = document.getElementById('processSteps');
+        if (!processSteps) return;
+
+        // 단계 매핑 (step_name -> 진행 바 단계)
+        const stepMapping = {
+            '요청 분석': 1,
+            'analysis': 1,
+            '입력 검증': 1,
+            '분석': 1,
+            '모니터링': 2,
+            'monitoring': 2,
+            '데이터 수집': 2,
+            '데이터베이스 조회': 2,
+            '예측': 3,
+            'prediction': 3,
+            'AI 모델 실행': 3,
+            'AI 추론': 3,
+            '제어': 4,
+            'control': 4,
+            '결과 검증': 4,
+            '품질 검토': 4,
+            '오케스트레이션': 5,
+            'orchestration': 5,
+            '응답 생성': 5,
+            '최종 처리': 5,
+            '결과': 5,
+            'result': 5,
+            '🎯 테스트 완료': 5,
+            '테스트 완료': 5,
+            '완료': 5,
+            'complete': 5
+        };
+
+        const currentStep = stepMapping[stepName] || 1;
+
+        // 진행 바가 없으면 새로 생성
+        let progressBar = processSteps.querySelector('.process-progress-bar');
+        if (!progressBar) {
+            console.log('진행 바가 없음 - 새로 생성');
+            this.createProgressBar(processSteps);
+            progressBar = processSteps.querySelector('.process-progress-bar');
+        }
+
+        // 현재 단계까지 활성화
+        const progressSteps = progressBar.querySelectorAll('.progress-step');
+        progressSteps.forEach((step, index) => {
+            const stepNum = index + 1;
+            const indicator = step.querySelector('.progress-indicator');
+            const label = step.querySelector('.progress-label');
+            
+            if (stepNum <= currentStep) {
+                step.classList.add('active');
+                if (indicator) indicator.classList.add('active');
+                if (label) label.classList.add('active');
+                
+                // 완료된 단계 표시
+                if (endTime && stepNum === currentStep) {
+                    step.classList.add('completed');
+                    if (indicator) indicator.classList.add('completed');
+                }
+            } else {
+                step.classList.remove('active');
+                if (indicator) indicator.classList.remove('active');
+                if (label) label.classList.remove('active');
+            }
+        });
+        
+        console.log(`진행 바 업데이트 완료: ${currentStep}단계까지 활성화`);
+    }
+
+    createProgressBar(container) {
+        const progressBarHTML = `
+            <div class="process-progress-bar">
+                <div class="progress-step">
+                    <div class="progress-indicator">1</div>
+                    <div class="progress-label">요청 분석</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">2</div>
+                    <div class="progress-label">데이터 수집</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">3</div>
+                    <div class="progress-label">AI 모델 실행</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">4</div>
+                    <div class="progress-label">결과 검증</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">5</div>
+                    <div class="progress-label">응답 생성</div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = progressBarHTML;
+    }
+
+    updateProcessDetails(stepName, content, endTime) {
+        const processDetails = document.getElementById('processDetails');
+        if (!processDetails) return;
+
+        // 기존 내용을 업데이트하거나 새로 생성
+        const detailsHTML = `
+            <div class="detail-item">
+                <span class="detail-label">현재 단계</span>
+                <span class="detail-value">${stepName}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">상태</span>
+                <span class="detail-value">${endTime ? '완료' : '진행 중'}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">내용</span>
+                <span class="detail-value">${this.formatContent(content)}</span>
+            </div>
+            ${endTime ? `
+            <div class="detail-item">
+                <span class="detail-label">완료 시간</span>
+                <span class="detail-value">${new Date(endTime).toLocaleString()}</span>
+            </div>
+            ` : `
+            <div class="detail-item">
+                <span class="detail-label">시작 시간</span>
+                <span class="detail-value">${new Date().toLocaleString()}</span>
+            </div>
+            `}
+        `;
+        
+        processDetails.innerHTML = detailsHTML;
+    }
+
+    // 새 세션 시작 시 진행 상태 초기화
+    resetProcessContent() {
+        const processSteps = document.getElementById('processSteps');
+        const processDetails = document.getElementById('processDetails');
+        const processStatus = document.getElementById('processStatus');
+        
+        console.log('=== 진행 상태 초기화 시작 ===');
+        
+        // 진행 바 제거
+        if (processSteps) {
+            processSteps.innerHTML = '';
+            console.log('진행 바 초기화 완료');
+        }
+        
+        // 상세 정보 초기화
+        if (processDetails) {
+            processDetails.innerHTML = '';
+            console.log('상세 정보 초기화 완료');
+        }
+        
+        // 상태 초기화
+        if (processStatus) {
+            const statusIndicator = processStatus.querySelector('.status-indicator');
+            const statusText = processStatus.querySelector('span');
+            
+            if (statusIndicator) statusIndicator.className = 'status-indicator ready';
+            if (statusText) statusText.textContent = '대기 중...';
+            console.log('상태 표시기 초기화 완료');
+        }
+        
+        console.log('=== 진행 상태 초기화 완료 ===');
+    }
+
+    createOrchestrateMessage(stepName, content, endTime) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai orchestrate-message';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar ai-avatar';
+        
+        // 단계별 아이콘 설정
+        const stepIcons = {
+            'monitoring': '🔍',
+            'prediction': '🔮',
+            'control': '⚙️',
+            'orchestration': '🎯'
+        };
+        avatarDiv.textContent = stepIcons[stepName] || '📊';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // 헤더 생성
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'orchestrate-header';
+        headerDiv.innerHTML = `
+            <strong>📋 ${stepName.charAt(0).toUpperCase() + stepName.slice(1)} 업데이트</strong>
+            ${endTime ? `<span class="end-time">완료: ${new Date(endTime).toLocaleTimeString()}</span>` : ''}
+        `;
+
+        // 내용 생성
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'orchestrate-content';
+        bodyDiv.innerHTML = this.formatContent(content);
+
+        contentDiv.appendChild(headerDiv);
+        contentDiv.appendChild(bodyDiv);
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+
+        return messageDiv;
+    }
+
+    reconnectSocket() {
+        if (this.reconnectAttempts < this.maxReconnectAttempts && this.currentSessionId) {
+            this.reconnectAttempts++;
+            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+            
+            setTimeout(() => {
+                this.connectOrchestrateSocket(this.currentSessionId);
+            }, 2000 * this.reconnectAttempts);
+        }
+    }
+
+    disconnect() {
+        if (this.orchestrateSocket) {
+            this.orchestrateSocket.close();
+            this.orchestrateSocket = null;
+        }
+    }
+}
+
+// 전역 WebSocket 매니저 인스턴스
+const webSocketManager = new WebSocketManager();
 
 const API_BASE = 'https://grnd.bimatrix.co.kr'; // 외부 웹 도메인
 const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
@@ -1486,10 +1937,19 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         
         const userId = getCurrentUserId();
         
-        // 현재 세션의 session_user_id 가져오기 (최신 메시지에서 추출)
-        let sessionUserId = `${userId}_task_1`; // 기본값 (기관별 user_id 사용)
+        // URL에서 session 파라미터 가져오기 (우선순위)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSessionId = urlParams.get('session');
         
-        if (chatSessionManager && chatSessionManager.currentSessionId) {
+        // 현재 세션의 session_user_id 가져오기 (최신 메시지에서 추출)
+        let sessionUserId = urlSessionId || `${userId}_task_1`; // URL 파라미터 우선, 없으면 기본값
+        console.log('1. 초기 sessionUserId:', sessionUserId);
+        console.log('1. urlSessionId:', urlSessionId);
+        console.log('1. userId:', userId);
+        
+        if (chatSessionManager && chatSessionManager.currentSessionId && !urlSessionId) {
+            console.log('2. 메시지에서 session_user_id 조회 시도');
+            console.log('2. chatSessionManager.currentSessionId:', chatSessionManager.currentSessionId);
             try {
                 // 현재 세션의 메시지를 가져와서 session_user_id 확인
                 const messagesResponse = await fetch(`${API_BASE}/django/api/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
@@ -1498,17 +1958,36 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
                     const lastMessage = messagesData[messagesData.length - 1];
                     if (lastMessage && lastMessage.metadata && lastMessage.metadata.session_user_id) {
                         sessionUserId = lastMessage.metadata.session_user_id;
+                        console.log('3. 메시지에서 찾은 session_user_id:', sessionUserId);
+                    } else {
+                        console.log('3. 메시지에서 session_user_id를 찾지 못함, 기본값 유지:', sessionUserId);
                     }
+                } else {
+                    console.log('3. 메시지 조회 실패, 기본값 유지:', sessionUserId);
                 }
             } catch (e) {
                 console.warn('session_user_id 조회 실패, 기본값 사용:', e);
             }
         }
+
+        // WebSocket 연결 설정 (실시간 단계별 업데이트 수신)
+        console.log('4. 최종 WebSocket 연결에 사용할 sessionUserId:', sessionUserId);
+        console.log('4. 현재 chatSessionManager.currentSessionId:', chatSessionManager?.currentSessionId);
+        
+        // UUID 형태 확인 및 수정 (WebSocket과 API에서 동일한 ID 사용)
+        let finalSessionId = sessionUserId;
+        if (sessionUserId && sessionUserId.includes('-') && sessionUserId.length > 20) {
+            finalSessionId = `${userId}_task_${Date.now() % 1000}`;
+            console.log('4. UUID 감지, 새로운 session_id 생성:', finalSessionId);
+        }
+        
+        webSocketManager.connectOrchestrateSocket(finalSessionId);
         
         // 새로운 API 요청 본문 구성
+        console.log('5. 최종 API 요청 본문에 사용할 session_id:', finalSessionId);
         const requestBody = {
             query: message,
-            session_id: sessionUserId,
+            session_id: finalSessionId,
             user_id: userId,
             user_preferences: {
                 additionalProp1: {}
@@ -1529,7 +2008,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         // console.log('새로운 orchestrate API 요청:', requestBody);
 
         // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
-        const response = await fetch('/django/api/vi/orchestrate/', {
+        const response = await fetch('/django/api/v1/orchestrate/', {
             method: 'POST',
             headers: {
                 ...getDefaultHeaders(),
@@ -1542,7 +2021,6 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
 
         if (response.ok) {
             const responseData = await response.json();
-            // console.log('orchestrate API 응답 수신:', responseData);
             
             // "생각하는 중..." 메시지 제거
             const thinkingMessage = document.getElementById(thinkingMessageId);
@@ -1556,9 +2034,28 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
                 window.processManager.updateStatus('처리 완료', 'completed');
             }
             
-            // 새로운 API 응답에서 텍스트 추출 (응답 구조에 따라 조정 필요)
-            const basicResponseText = responseData.response || responseData.content || responseData.result || '응답을 받았습니다.';
-            const finalBasicText = extractTextAfterThink(basicResponseText);
+            // orchestrate API 응답에서 텍스트 추출 (실제 응답 구조에 맞춰)
+            let basicResponseText = '';
+            
+            // orchestrate API의 실제 응답 구조에서 final_answer 필드 사용
+            if (responseData.final_answer) {
+                basicResponseText = responseData.final_answer;
+            } else if (responseData.final_markdown) {
+                basicResponseText = responseData.final_markdown;
+            } else if (responseData.response) {
+                basicResponseText = responseData.response;
+            } else if (responseData.content) {
+                basicResponseText = responseData.content;
+            } else if (responseData.result) {
+                basicResponseText = responseData.result;
+            } else if (responseData.message) {
+                basicResponseText = responseData.message;
+            } else {
+                basicResponseText = '응답을 받았지만 내용을 추출할 수 없습니다.';
+            }
+            
+            // <think> 태그 내용만 제거하고 나머지는 모두 출력
+            const finalBasicText = removeThinktags(basicResponseText);
             
             // AI 응답 메시지 표시 (타이핑 효과 포함)
             const chatMessages = document.getElementById('chatMessages');
@@ -1592,7 +2089,18 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
             
         } else {
-            throw new Error(`orchestrate API 응답 오류: ${response.status} ${response.statusText}`);
+            // 에러 응답의 상세 내용 확인
+            let errorDetails = '';
+            try {
+                const errorData = await response.json();
+                errorDetails = JSON.stringify(errorData, null, 2);
+                console.error('Orchestrate API 에러 응답:', errorData);
+            } catch (e) {
+                // JSON 파싱 실패 시에는 response를 다시 읽을 수 없으므로 기본 에러 메시지 사용
+                errorDetails = `JSON 파싱 실패: ${e.message}`;
+                console.error('Orchestrate API 응답 파싱 오류:', e);
+            }
+            throw new Error(`orchestrate API 응답 오류: ${response.status} ${response.statusText}\n상세: ${errorDetails}`);
         }
         
     } catch (error) {
@@ -1812,23 +2320,14 @@ function extractArtifactData(responseData) {
     }
 }
 
-// </think> 뒷부분 텍스트 추출 함수
-function extractTextAfterThink(text) {
+// <think> 태그 전체 제거 함수 (내용도 함께 제거)
+function removeThinktags(text) {
     if (!text || typeof text !== 'string') {
         return text;
     }
     
-    // </think> 태그를 찾아서 뒷부분만 추출
-    const thinkEndIndex = text.lastIndexOf('</think>');
-    if (thinkEndIndex !== -1) {
-        // </think> 뒷부분 추출
-        let afterThink = text.substring(thinkEndIndex + '</think>'.length).trim();
-        // console.log('</think> 태그 발견, 뒷부분만 추출');
-        return afterThink || '응답을 처리했습니다.';
-    }
-    
-    // </think> 태그가 없으면 원본 텍스트 반환
-    return text;
+    // <think>...</think> 태그와 내용을 모두 제거 (대소문자 구분 없이)
+    return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 }
 
 // AI 응답 메시지 생성 (타이핑 효과 포함)

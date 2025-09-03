@@ -29,6 +29,90 @@ body {
     transition: width 0.3s ease;
 }
 
+/* WebSocket 단계별 메시지 스타일 */
+.step-message {
+    border-left: 3px solid #10a37f;
+    background: rgba(16, 163, 127, 0.1);
+    margin: 10px 0;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-status {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-processing {
+    background: #fbbf24;
+    color: #92400e;
+}
+
+.status-completed {
+    background: #10b981;
+    color: #065f46;
+}
+
+.status-failed {
+    background: #ef4444;
+    color: #991b1b;
+}
+
+.step-progress {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-left: auto;
+}
+
+.step-content {
+    color: #e5e7eb;
+    line-height: 1.6;
+}
+
+/* Orchestrate 업데이트 메시지 스타일 */
+.orchestrate-message {
+    border-left: 3px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    margin: 10px 0;
+}
+
+.orchestrate-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.orchestrate-header strong {
+    color: #3b82f6;
+    font-size: 14px;
+}
+
+.end-time {
+    font-size: 12px;
+    color: #9ca3af;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.orchestrate-content {
+    color: #e5e7eb;
+    line-height: 1.6;
+    margin-top: 5px;
+}
+
 .chat-sidebar.collapsed {
     width: 64px;
 }

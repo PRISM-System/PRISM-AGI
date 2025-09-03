@@ -2,6 +2,8 @@
 from django.urls import path
 from . import views
 from . import api_views
+from . import websocket_views
+from . import test_swagger
 from proxy.views import proxy_tools
 
 urlpatterns = [
@@ -32,9 +34,18 @@ urlpatterns = [
     # 도구 관리 API (프록시를 통한 외부 API)
     path('api/tools/', proxy_tools, name='tools_api'),
 
+    # WebSocket 상태 API (메인 WebSocket API는 main urls.py에서 처리)
+    path('api/websocket/status/', websocket_views.websocket_status, name='websocket_status'),
+
+    # Swagger 테스트 API
+    path('api/test/swagger/', test_swagger.test_swagger_api, name='test_swagger_api'),
+
     # 서버 로그 API
     path('api/server-logs/refresh/', views.refresh_server_logs, name='refresh_server_logs_api'),
     path('api/server-logs/export/', views.export_server_logs, name='export_server_logs_api'),
+
+    # WebSocket 테스트 페이지
+    path('websocket-test/', views.websocket_test, name='websocket_test'),
 
     # 로그인 및 회원가입(아직 사용 안할 예정)
     path('login/', views.login_view, name='login'),

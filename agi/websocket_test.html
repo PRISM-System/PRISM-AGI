@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+
+    <script>
+        const sessionId = 'user_1234_task_1';
+        const wsUrl = `ws://127.0.0.1:8000/ws/orchestrate/${sessionId}/`;
+        
+        console.log('Attempting WebSocket connection to:', wsUrl);
+        
+        const socket = new WebSocket(wsUrl);
+        
+        socket.onopen = function(event) {
+            console.log('WebSocket connected!');
+            document.getElementById('status').innerHTML = '<span style="color: green;">Connected!</span>';
+            
+            // Test sending a message
+            socket.send(JSON.stringify({
+                'type': 'test_message',
+                'message': 'Hello from test client'
+            }));
+        };
+        
+        socket.onmessage = function(event) {
+            console.log('Received message:', event.data);
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += `<div>Received: ${event.data}</div>`;
+        };
+        
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            document.getElementById('status').innerHTML = '<span style="color: red;">Error occurred!</span>';
+        };
+        
+        socket.onclose = function(event) {
+            console.log('WebSocket closed:', event.code, event.reason);
+            document.getElementById('status').innerHTML = '<span style="color: orange;">Connection closed</span>';
+        };
+        
+        // Test button
+        function sendTestMessage() {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    'type': 'test',
+                    'message': 'Button click test'
+                }));
+            }
+        }
+    </script>
+    
+    <button onclick="sendTestMessage()">Send Test Message</button>
+</body>
+</html>

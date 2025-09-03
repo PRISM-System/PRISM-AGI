@@ -5,6 +5,7 @@ import requests
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.utils import timezone
 import json
 import logging
 
@@ -702,7 +703,7 @@ def proxy_orchestrate(request):
     try:
         # orchestrate 서버로 요청 전달
         orchestrate_server = "http://147.47.39.144:8100"
-        url = f"{orchestrate_server}/api/vi/orchestrate"
+        url = f"{orchestrate_server}/api/v1/orchestrate/"
         logger.info(f"Proxying {request.method} request to {url}")
         
         # 요청 헤더 및 본문 설정
@@ -710,19 +711,23 @@ def proxy_orchestrate(request):
         body = request.body.decode('utf-8') if request.body else '{}'
         logger.info(f"Orchestrate request body: {body}")
         
-        remote_response = requests.post(url, data=body, headers=headers, timeout=30)
+        remote_response = requests.post(url, data=body, headers=headers, timeout=600)
         
         logger.info(f"Orchestrate server response: {remote_response.status_code}")
+        logger.info(f"Orchestrate server response content: {remote_response.text}")  # 응답 내용 전체 로그
+        
         if remote_response.status_code >= 400:
             logger.error(f"Orchestrate server error response: {remote_response.text}")
         
         # JSON 응답 파싱 시도
         try:
             data = remote_response.json()
+            logger.info(f"Parsed JSON data: {json.dumps(data, indent=2, ensure_ascii=False)}")  # JSON 파싱 결과 전체 로그
             response = JsonResponse(data, safe=False, status=remote_response.status_code)
-        except:
+        except Exception as json_error:
             # JSON이 아닌 경우 원본 응답 전달
-            logger.warning(f"Non-JSON response from orchestrate server: {remote_response.text[:500]}")
+            logger.warning(f"JSON parsing failed: {json_error}")
+            logger.warning(f"Non-JSON response from orchestrate server: {remote_response.text}")
             response = HttpResponse(
                 remote_response.content,
                 content_type=remote_response.headers.get('content-type', 'application/json'),
@@ -737,6 +742,163 @@ def proxy_orchestrate(request):
         logger.error(f"Orchestrate connection failed: {e}")
         return create_error_response(
             "orchestrate API 호출 실패",
+            503,
+            details={"message": str(e), "orchestrate_server": "http://147.47.39.144:8100"}
+        )
+
+
+@csrf_exempt
+def proxy_orchestrate(request):
+    """
+    Orchestrate API 프록시 + 채팅 메시지 저장
+    """
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    if request.method != 'POST':
+        return create_error_response("Method not allowed. Use POST for orchestrate requests.", 405)
+    
+    try:
+        # 요청 데이터 파싱
+        if request.content_type and 'application/json' in request.content_type:
+            try:
+                body_data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return create_error_response("Invalid JSON format", 400)
+        else:
+            return create_error_response("Content-Type must be application/json", 400)
+        
+        query = body_data.get('query', '')
+        session_id = body_data.get('session_id', '')
+        user_id = body_data.get('user_id', '')
+        
+        if not all([query, session_id, user_id]):
+            return create_error_response("query, session_id, user_id are required", 400)
+        
+        # 채팅 세션 저장/업데이트
+        from agiApp.models import ChatSession, ChatMessage
+        
+        # 기존 세션 찾기 (session_user_id 기반)
+        existing_messages = ChatMessage.objects.filter(session_user_id=session_id).first()
+        
+        if existing_messages:
+            # 기존 세션 사용
+            chat_session = existing_messages.session
+            chat_session.is_active = True
+            chat_session.save()
+        else:
+            # 새 세션 생성
+            chat_session = ChatSession.objects.create(
+                user_id=user_id,
+                title=query[:50] + ('...' if len(query) > 50 else ''),
+                is_active=True
+            )
+        
+        # 사용자 메시지 저장
+        user_message = ChatMessage.objects.create(
+            session=chat_session,
+            session_user_id=session_id,
+            role='user',
+            content=query,
+            metadata={
+                'timestamp': str(timezone.now()),
+                'ip_address': request.META.get('REMOTE_ADDR', ''),
+                'user_agent': request.META.get('HTTP_USER_AGENT', '')[:200]
+            }
+        )
+        
+        logger.info(f"사용자 메시지 저장됨 - session_id: {session_id}, user_id: {user_id}")
+        
+        # 외부 Orchestrate API 호출
+        orchestrate_url = "http://147.47.39.144:8100/api/v1/orchestrate/"
+        
+        logger.info(f"Proxying POST request to {orchestrate_url}")
+        logger.info(f"Orchestrate request body: {json.dumps(body_data, ensure_ascii=False)}")
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+        
+        # 원본 헤더에서 필요한 것들 복사
+        for header_key in ['Authorization', 'User-Agent']:
+            if header_key.lower().replace('-', '_') in request.META:
+                headers[header_key] = request.META[header_key.lower().replace('-', '_')]
+        
+        response = requests.post(
+            orchestrate_url,
+            json=body_data,
+            headers=headers,
+            timeout=600  # 10분 타임아웃
+        )
+        
+        logger.info(f"Remote server response: {response.status_code}")
+        
+        # 응답 처리
+        if response.status_code == 200:
+            try:
+                response_data = response.json()
+                ai_content = response_data.get('content', response.text)
+                
+                # AI 응답 메시지 저장
+                ai_message = ChatMessage.objects.create(
+                    session=chat_session,
+                    session_user_id=session_id,
+                    role='assistant',
+                    content=ai_content,
+                    metadata={
+                        'timestamp': str(timezone.now()),
+                        'response_time': response.elapsed.total_seconds(),
+                        'status_code': response.status_code,
+                        'orchestrate_response': response_data
+                    }
+                )
+                
+                logger.info(f"AI 응답 메시지 저장됨 - session_id: {session_id}")
+                
+                return JsonResponse(response_data, status=200)
+                
+            except json.JSONDecodeError:
+                # JSON이 아닌 응답
+                ai_message = ChatMessage.objects.create(
+                    session=chat_session,
+                    session_user_id=session_id,
+                    role='assistant',
+                    content=response.text,
+                    metadata={
+                        'timestamp': str(timezone.now()),
+                        'response_time': response.elapsed.total_seconds(),
+                        'status_code': response.status_code,
+                        'content_type': response.headers.get('content-type', '')
+                    }
+                )
+                
+                return HttpResponse(response.text, status=200, content_type=response.headers.get('content-type', 'text/plain'))
+        else:
+            # 오류 응답도 저장
+            ChatMessage.objects.create(
+                session=chat_session,
+                session_user_id=session_id,
+                role='system',
+                content=f"오류 발생: {response.status_code} - {response.text}",
+                metadata={
+                    'timestamp': str(timezone.now()),
+                    'error': True,
+                    'status_code': response.status_code,
+                    'error_response': response.text
+                }
+            )
+            
+            return create_error_response(
+                f"Orchestrate API error: {response.status_code}",
+                response.status_code,
+                details={"response": response.text}
+            )
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Orchestrate connection failed: {e}")
+        return create_error_response(
+            "Orchestrate API 호출 실패",
             503,
             details={"message": str(e), "orchestrate_server": "http://147.47.39.144:8100"}
         )
