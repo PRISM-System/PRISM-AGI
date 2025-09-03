@@ -22,7 +22,8 @@ class WebSocketManager {
 
         this.currentSessionId = sessionId;
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${wsProtocol}//${window.location.host}/ws/orchestrate/${sessionId}/`;
+        const wsHost = 'grnd.bimatrix.co.kr';
+        const wsUrl = `${wsProtocol}//${wsHost}/django/ws/orchestrate/${sessionId}/`;
         
         console.log(`Connecting to WebSocket: ${wsUrl}`);
         

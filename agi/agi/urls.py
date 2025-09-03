@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from proxy import views as proxy_views
 from agiApp import views as agi_views
 from agiApp import websocket_views
+from agiApp import proxy_views as agi_proxy_views
 
 # Swagger 설정
 from rest_framework import permissions
@@ -36,6 +37,7 @@ schema_view = get_schema_view(
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
+   url='https://grnd.bimatrix.co.kr/',  # 프록시 서버 URL로 설정
 )
 
 urlpatterns = [
@@ -50,10 +52,10 @@ urlpatterns = [
     
     # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치
     path('django/api/generate/', include('proxy.urls')),  # 프록시를 통한 외부 API 연결
-    path('django/api/v1/orchestrate/', proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
+    path('django/api/v1/orchestrate/', agi_proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
     
-    # WebSocket API 엔드포인트 - 직접 등록
-    path('django/api/websocket/orchestrate/update/', websocket_views.send_orchestrate_update, name='websocket_orchestrate_update'),
+    # WebSocket API 엔드포인트 - 외부에서 단계별 업데이트를 받는 엔드포인트
+    path('django/api/websocket/orchestrate/update/', agi_proxy_views.WebSocketUpdateView.as_view(), name='websocket_update_endpoint'),
     
     # 도구 관리 API - 직접 뷰 함수 매핑
     path('django/api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),

@@ -21,8 +21,8 @@ urlpatterns = [
     path('check-email/', views.check_email_api, name='check_email_api'),
 
     # 채팅 관련 API
-    path('api/chat/sessions/', api_views.ChatSessionsView.as_view(), name='chat_sessions_api'),
-    path('api/chat/sessions/<str:session_id>/', api_views.ChatSessionsView.as_view(), name='chat_session_detail_api'),
+    path('api/chat/sessions/', api_views.ChatSessionsListView.as_view(), name='chat_sessions_list_api'),
+    path('api/chat/sessions/<str:session_id>/', api_views.ChatSessionDetailView.as_view(), name='chat_session_detail_api'),
     path('api/chat/sessions/<str:session_id>/messages/', api_views.ChatMessagesView.as_view(), name='chat_messages_api'),
 
     # 사용자 활동 로그 API

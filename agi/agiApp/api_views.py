@@ -94,9 +94,9 @@ class AgentsListView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ChatSessionsView(APIView):
+class ChatSessionsListView(APIView):
     """
-    채팅 세션 관리 API
+    채팅 세션 목록 관리 API - /api/chat/sessions/
     """
     permission_classes = [AllowAny]
     
@@ -161,6 +161,25 @@ class ChatSessionsView(APIView):
             'title': session.title,
             'created_at': session.created_at.isoformat(),
         }, status=status.HTTP_201_CREATED)
+
+
+@method_decorator(csrf_exempt, name='dispatch')  
+class ChatSessionDetailView(APIView):
+    """
+    개별 채팅 세션 관리 API - /api/chat/sessions/{session_id}/
+    """
+    permission_classes = [AllowAny]
+    
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response["Access-Control-Max-Age"] = "86400"
+        return response
+        
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
     
     def delete(self, request, session_id=None):
         """
