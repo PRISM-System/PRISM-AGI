@@ -360,6 +360,14 @@ body:has(.logs-container) .chat-sidebar.collapsed ~ .chat-main,
     vertical-align: middle;
 }
 
+/* 메시지 컬럼 특별 처리 */
+.logs-table td.message-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .logs-table tbody tr {
     transition: background-color 0.2s ease;
 }

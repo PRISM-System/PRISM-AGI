@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="log-timestamp">${formattedTime}</td>
             <td><span class="log-level ${log.level}">${log.level_display || log.level}</span></td>
             <td><span class="log-category">${log.action_type_display || log.action_type}</span></td>
-            <td class="log-message">${escapeHtml(log.message)}</td>
+            <td class="log-message message-cell" title="${escapeHtml(log.message)}">${escapeHtml(log.message)}</td>
             <td class="log-actions">
                 <button class="action-btn" onclick="openLogModal(${log.id})">상세</button>
             </td>
