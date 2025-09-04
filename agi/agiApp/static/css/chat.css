@@ -772,8 +772,9 @@ body {
 }
 
 .process-sidebar.active {
-    width: 1215px; /* 초기 크기 */
-    min-width: 400px; /* active 상태에서만 최소 너비 적용 */
+    width: 450px !important; /* 초기 크기 - !important 추가 */
+    min-width: 400px !important; /* active 상태에서만 최소 너비 적용 - !important 추가 */
+    display: flex !important; /* 확실히 표시되도록 */
 }
 
 /* 크기 조절 핸들 */
@@ -1049,6 +1050,250 @@ body {
     color: #ffffff;
 }
 
+/* 전체 진행률 */
+.overall-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.overall-progress .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #374151;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.overall-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.overall-progress .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.overall-progress .progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    min-width: 45px;
+    text-align: right;
+}
+
+/* 단계별 정보 컨테이너 */
+.process-step {
+    background: #2d2e3f;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #374151;
+    transition: all 0.3s ease;
+}
+
+.process-step.status-running {
+    border-left-color: #3b82f6;
+    background: linear-gradient(135deg, #2d2e3f, #1e3a8a20);
+}
+
+.process-step.status-completed {
+    border-left-color: #10b981;
+    background: linear-gradient(135deg, #2d2e3f, #05975f20);
+}
+
+.process-step.status-failed {
+    border-left-color: #ef4444;
+    background: linear-gradient(135deg, #2d2e3f, #dc262620);
+}
+
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-icon {
+    font-size: 16px;
+    animation: none;
+}
+
+.step-icon.status-running {
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.step-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.step-progress {
+    font-size: 14px;
+    font-weight: 500;
+    color: #8e8ea0;
+}
+
+.step-content {
+    margin-left: 24px;
+}
+
+.step-description {
+    font-size: 14px;
+    color: #d1d5db;
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+.step-time {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 상세 로그 영역 */
+.process-details {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #374151;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.details-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.details-clear-btn {
+    background: #374151;
+    border: none;
+    color: #8e8ea0;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.details-clear-btn:hover {
+    background: #4b5563;
+    color: #ffffff;
+}
+
+.detail-log {
+    background: #1a1b26;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-left: 3px solid #374151;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    position: relative;
+}
+
+.detail-log.status-running {
+    border-left-color: #3b82f6;
+    background: linear-gradient(135deg, #1a1b26, #1e3a8a15);
+}
+
+.detail-log.status-completed {
+    border-left-color: #10b981;
+    background: linear-gradient(135deg, #1a1b26, #05975f15);
+}
+
+.detail-log.status-failed {
+    border-left-color: #ef4444;
+    background: linear-gradient(135deg, #1a1b26, #dc262615);
+}
+
+.detail-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.detail-log-step {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.detail-log-time {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.detail-log-content {
+    font-size: 13px;
+    color: #d1d5db;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.detail-log-status {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.detail-log-status.running {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.detail-log-status.completed {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.detail-log-status.failed {
+    background: #ef4444;
+    color: #ffffff;
+}
+
 .process-content {
     flex: 1;
     padding: 24px; /* 20px에서 24px로 증가 */
@@ -1104,107 +1349,6 @@ body {
     margin-bottom: 24px; /* 20px에서 24px로 증가 */
 }
 
-/* ========================================
-   가로 진행바 스타일 (새로운 스타일)
-======================================== */
-
-.process-progress-bar {
-    display: flex;
-    align-items: center;
-    gap: clamp(4px, 1vw, 12px); /* 동적 간격 */
-    margin-bottom: clamp(16px, 2vw, 32px);
-    padding: clamp(16px, 3vw, 40px); /* 동적 패딩 */
-    background: #2d2e3f;
-    border-radius: clamp(8px, 1vw, 16px);
-    overflow-x: auto;
-    min-height: 80px;
-}
-
-.progress-step {
-    flex: 1;
-    min-width: clamp(60px, 8vw, 140px); /* 동적 최소 너비 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    margin: 0 clamp(2px, 0.5vw, 12px);
-    
-    min-width: 60px;
-}
-
-.progress-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: clamp(14px, 2vw, 22px);
-    right: -50%;
-    width: calc(100% - clamp(20px, 3vw, 44px));
-    height: clamp(2px, 0.3vw, 6px);
-    background: #374151;
-    z-index: 1;
-    border-radius: 2px;
-}
-
-.progress-step.completed:not(:last-child)::after {
-    background: #10b981;
-}
-
-.progress-step.active:not(:last-child)::after {
-    background: linear-gradient(to right, #3b82f6 50%, #374151 50%);
-}
-
-.progress-indicator {
-    width: clamp(24px, 4vw, 48px); /* 동적 크기 */
-    height: clamp(24px, 4vw, 48px);
-    border-radius: 50%;
-    background: #374151;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(10px, 1.5vw, 18px); /* 동적 폰트 크기 */
-    font-weight: bold;
-    color: #ffffff;
-    margin-bottom: clamp(6px, 1vw, 16px);
-    position: relative;
-    z-index: 2;
-    border: clamp(2px, 0.5vw, 6px) solid #1a1b26;
-}
-
-.progress-indicator.active {
-    background: #3b82f6;
-    animation: pulse 2s infinite;
-    color: #fff;
-}
-
-.progress-indicator.completed {
-    background: #10b981;
-}
-
-.progress-indicator.error {
-    background: #ef4444;
-}
-
-.progress-label {
-    font-size: clamp(9px, 1.2vw, 16px); /* 동적 폰트 크기 */
-    color: #8e8ea0;
-    text-align: center;
-    line-height: 1.4;
-    max-width: clamp(60px, 10vw, 160px); /* 동적 최대 너비 */
-    word-wrap: break-word;
-    font-weight: 400;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.progress-label.active {
-    color: #3b82f6;
-    font-weight: 500;
-}
-
-.progress-label.completed {
-    color: #10b981;
-    font-weight: 500;
-}
-
 /* 현재 진행 중인 스텝의 상세 정보 */
 .current-step-detail {
     background: #2d2e3f;
@@ -1231,85 +1375,6 @@ body {
 .current-step-time {
     font-size: 14px; /* 12px에서 14px로 증가 */
     color: #6b7280;
-}
-
-/* 기존 세로 스타일은 숨김 */
-
-/* 기존 세로 스타일은 숨김 */
-.process-step {
-    display: none; /* 가로 진행바 사용시 숨김 */
-    align-items: flex-start;
-    gap: 16px; /* 12px에서 16px로 증가 */
-    padding: 16px 0; /* 12px에서 16px로 증가 */
-    border-left: 3px solid #374151; /* 2px에서 3px로 증가 */
-    padding-left: 20px; /* 16px에서 20px로 증가 */
-    margin-left: 8px; /* 6px에서 8px로 증가 */
-    position: relative;
-}
-
-.process-step.active {
-    border-left-color: #3b82f6;
-}
-
-.process-step.completed {
-    border-left-color: #10b981;
-}
-
-.process-step.error {
-    border-left-color: #ef4444;
-}
-
-.step-indicator {
-    width: 24px; /* 20px에서 24px로 증가 */
-    height: 24px; /* 20px에서 24px로 증가 */
-    border-radius: 50%;
-    background: #374151;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px; /* 10px에서 11px로 증가 */
-    font-weight: bold;
-    color: #ffffff;
-    position: absolute;
-    left: -13px; /* -11px에서 -13px로 조정 */
-    top: 16px; /* 12px에서 16px로 조정 */
-}
-
-.step-indicator.active {
-    background: #3b82f6;
-    animation: pulse 2s infinite;
-}
-
-.step-indicator.completed {
-    background: #10b981;
-}
-
-.step-indicator.error {
-    background: #ef4444;
-}
-
-.step-content {
-    flex: 1;
-    margin-left: 24px; /* 20px에서 24px로 증가 */
-}
-
-.step-title {
-    font-size: 15px; /* 14px에서 15px로 증가 */
-    font-weight: 500;
-    color: #ffffff;
-    margin-bottom: 6px; /* 4px에서 6px로 증가 */
-}
-
-.step-description {
-    font-size: 13px; /* 12px에서 13px로 증가 */
-    color: #8e8ea0;
-    line-height: 1.5; /* 1.4에서 1.5로 증가 */
-}
-
-.step-time {
-    font-size: 12px; /* 11px에서 12px로 증가 */
-    color: #6b7280;
-    margin-top: 6px; /* 4px에서 6px로 증가 */
 }
 
 .process-details {
@@ -1779,4 +1844,246 @@ body {
 .agent-item.active {
     background: rgba(16, 163, 127, 0.1);
     border-radius: 8px;
+}
+
+/* ========================================
+   동적 공정 진행 상태 스타일
+======================================== */
+
+/* 전체 진행률 표시 */
+.overall-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10a37f, #1dd1a1);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #10a37f;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* 공정 단계 컨테이너 */
+.process-steps {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* 개별 공정 단계 */
+.process-step {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.process-step:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 상태별 스타일 */
+.process-step.status-running {
+    border-left: 4px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.process-step.status-running::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    animation: progress-shimmer 2s infinite;
+}
+
+.process-step.status-completed {
+    border-left: 4px solid #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.process-step.status-failed {
+    border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.process-step.status-pending {
+    border-left: 4px solid #6b7280;
+    background: rgba(107, 114, 128, 0.05);
+}
+
+/* 단계 헤더 */
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.step-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.step-icon.status-running {
+    background: rgba(59, 130, 246, 0.2);
+    animation: spin 2s linear infinite;
+}
+
+.step-icon.status-completed {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.step-icon.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.step-icon.status-pending {
+    background: rgba(107, 114, 128, 0.2);
+}
+
+.step-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.step-progress {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: rgba(16, 163, 127, 0.2);
+    color: #10a37f;
+    border-radius: 12px;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* 단계 내용 */
+.step-content {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.step-description {
+    font-size: 14px;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.step-time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* 애니메이션 */
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 스크롤바 스타일 */
+.process-steps::-webkit-scrollbar {
+    width: 6px;
+}
+
+.process-steps::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.process-steps::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.process-steps::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+    .process-sidebar.active {
+        width: 400px;
+        min-width: 300px;
+    }
+    
+    .process-steps {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .process-step {
+        padding: 12px;
+    }
+    
+    .step-name {
+        font-size: 14px;
+    }
+    
+    .step-progress {
+        font-size: 12px;
+        padding: 2px 6px;
+    }
+}
+
+/* 사용자 요청: process-progress-bar의 하위 요소들과 progress-detail 클래스 숨김 */
+.process-progress-bar .progress-indicator,
+.process-progress-bar .progress-label {
+    display: none !important;
+}
+
+.progress-detail {
+    display: none !important;
 }

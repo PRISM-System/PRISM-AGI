@@ -82,6 +82,7 @@
             <!-- 크기 조절 핸들 -->
             <div class="resize-handle" id="resizeHandle"></div>
             
+            <!-- 헤더 영역 -->
             <div class="process-header">
                 <div>
                     <h3 class="process-title">공정 진행 상태</h3>
@@ -92,42 +93,48 @@
                     </button>
                 </div>
                 
-                <!-- 에이전트 통신 상태 -->
-                <div class="agent-status-container">
-                    <div class="agent-status" id="predictionAgent">
-                        <div class="agent-indicator offline"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">예측</span>
-                            <span class="agent-status-text">오프라인</span>
-                        </div>
+                <!-- 전체 진행률 -->
+                <div class="overall-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
                     </div>
-                    <div class="agent-status" id="monitoringAgent">
-                        <div class="agent-indicator offline"></div>
+                    <span class="progress-text" id="overallProgressText">0%</span>
+                </div>
+
+                <!-- 에이전트 상태 표시 -->
+                <div class="agent-status-container">
+                    <div class="agent-status offline" id="monitoringAgent">
+                        <div class="agent-indicator"></div>
                         <div class="agent-info">
                             <span class="agent-name">모니터링</span>
-                            <span class="agent-status-text">오프라인</span>
+                            <span class="agent-status-text">대기</span>
                         </div>
                     </div>
-                    <div class="agent-status" id="controlAgent">
-                        <div class="agent-indicator offline"></div>
+                    <div class="agent-status offline" id="predictionAgent">
+                        <div class="agent-indicator"></div>
+                        <div class="agent-info">
+                            <span class="agent-name">예측</span>
+                            <span class="agent-status-text">대기</span>
+                        </div>
+                    </div>
+                    <div class="agent-status offline" id="controlAgent">
+                        <div class="agent-indicator"></div>
                         <div class="agent-info">
                             <span class="agent-name">제어</span>
-                            <span class="agent-status-text">오프라인</span>
+                            <span class="agent-status-text">대기</span>
                         </div>
                     </div>
                 </div>
             </div>
             
+            <!-- 컨텐츠 영역 -->
             <div class="process-content" id="processContent">
-                <div class="process-status" id="processStatus">
-                    <div class="status-indicator ready"></div>
-                    <span>대기 중...</span>
+                <!-- 진행 단계 영역 -->
+                <div class="process-steps" id="processSteps">
+                    <!-- 단계별 정보가 동적으로 추가됩니다 -->
                 </div>
                 
-                <div class="process-steps" id="processSteps">
-                    <!-- 진행 단계가 동적으로 추가됩니다 -->
-                </div>
-
+                <!-- 상세 정보 영역 -->
                 <div class="process-details" id="processDetails">
                     <!-- 상세 정보가 동적으로 추가됩니다 -->
                 </div>
