@@ -87,14 +87,59 @@ def send_websocket_update(session_id, data):
     try:
         channel_layer = get_channel_layer()
         if channel_layer:
+            # 먼저 직접적인 세션 ID로 시도
+            group_name = f'orchestrate_{session_id}'
             async_to_sync(channel_layer.group_send)(
-                f'orchestrate_{session_id}',
+                group_name,
                 {
                     'type': 'orchestrate_message',
                     'message': data
                 }
             )
             logger.info(f"WebSocket update sent to session {session_id}: {data}")
+            
+            # 만약 session_id가 단순한 user_id 형태라면, 활성 세션에서 실제 세션 ID 찾기
+            if len(session_id.split('_')) <= 2:  # user_1234 형태
+                from .consumers import ACTIVE_SESSIONS
+                logger.info(f"Looking for active session for user_id: {session_id}")
+                logger.info(f"Available active sessions: {ACTIVE_SESSIONS}")
+                
+                if session_id in ACTIVE_SESSIONS:
+                    real_session_id = ACTIVE_SESSIONS[session_id]
+                    logger.info(f"✅ Found active session mapping: {session_id} -> {real_session_id}")
+                    
+                    # 실제 세션 ID로 다시 전송
+                    real_group_name = f'orchestrate_{real_session_id}'
+                    async_to_sync(channel_layer.group_send)(
+                        real_group_name,
+                        {
+                            'type': 'orchestrate_message',
+                            'message': data
+                        }
+                    )
+                    logger.info(f"✅ WebSocket update sent to real session {real_session_id}: {data}")
+                else:
+                    logger.warning(f"❌ No active session found for user_id: {session_id}")
+                    logger.info(f"💡 Hint: External server should use full session ID like 'user_1234_task_XXX'")
+                    
+                    # 부분 매칭 시도 (최후의 수단)
+                    matching_sessions = [sid for uid, sid in ACTIVE_SESSIONS.items() if session_id in uid]
+                    if matching_sessions:
+                        fallback_session = matching_sessions[0]  # 첫 번째 매칭 세션 사용
+                        logger.warning(f"🔄 Fallback: Using partial match {fallback_session}")
+                        
+                        fallback_group_name = f'orchestrate_{fallback_session}'
+                        async_to_sync(channel_layer.group_send)(
+                            fallback_group_name,
+                            {
+                                'type': 'orchestrate_message',
+                                'message': data
+                            }
+                        )
+                        logger.info(f"🔄 WebSocket update sent to fallback session {fallback_session}: {data}")
+                    else:
+                        logger.error(f"💥 No matching sessions found for {session_id}")
+                
         else:
             logger.warning("Channel layer not configured")
     except Exception as e:
@@ -189,7 +234,34 @@ class WebSocketUpdateView(APIView):
                     'error': 'session_id is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # WebSocket으로 업데이트 전송
+            # 🔧 세션 ID 자동 보완 로직
+            original_session_id = session_id
+            
+            # user_1234 같은 불완전한 세션 ID인 경우 활성 세션에서 완전한 ID 찾기
+            if len(session_id.split('_')) <= 2:  # user_1234 형태
+                from .consumers import ACTIVE_SESSIONS
+                logger.info(f"🔍 불완전한 세션 ID 감지: {session_id}")
+                logger.info(f"📋 활성 세션 목록: {ACTIVE_SESSIONS}")
+                
+                if session_id in ACTIVE_SESSIONS:
+                    # 활성 세션에서 완전한 세션 ID 가져오기
+                    session_id = ACTIVE_SESSIONS[session_id]
+                    logger.info(f"✅ 세션 ID 자동 보완: {original_session_id} -> {session_id}")
+                else:
+                    logger.warning(f"❌ 활성 세션에서 {session_id}를 찾을 수 없음")
+                    # 부분 매칭 시도
+                    matching_sessions = [sid for uid, sid in ACTIVE_SESSIONS.items() if session_id in uid]
+                    if matching_sessions:
+                        session_id = matching_sessions[0]  # 첫 번째 매칭 세션 사용
+                        logger.info(f"🔄 부분 매칭으로 세션 ID 보완: {original_session_id} -> {session_id}")
+                    else:
+                        logger.error(f"💥 매칭되는 활성 세션이 없음: {session_id}")
+                        return Response({
+                            'error': f'No active session found for {session_id}',
+                            'available_sessions': list(ACTIVE_SESSIONS.keys())
+                        }, status=status.HTTP_404_NOT_FOUND)
+            
+            # WebSocket으로 업데이트 전송 (이제 완전한 세션 ID 사용)
             send_websocket_update(session_id, {
                 'type': 'step_update',
                 'step_name': data.get('step_name'),

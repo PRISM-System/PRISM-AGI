@@ -16,7 +16,7 @@ class WebSocketManager {
         console.log('sessionId 길이:', sessionId?.length);
         
         if (this.orchestrateSocket && this.orchestrateSocket.readyState === WebSocket.OPEN) {
-            console.log('WebSocket already connected');
+            console.log('WebSocket already connected for session:', this.currentSessionId);
             return;
         }
 
@@ -25,39 +25,66 @@ class WebSocketManager {
         const wsHost = 'grnd.bimatrix.co.kr';
         const wsUrl = `${wsProtocol}//${wsHost}/django/ws/orchestrate/${sessionId}/`;
         
-        console.log(`Connecting to WebSocket: ${wsUrl}`);
+        console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
+        console.log(`📡 Session ID: ${sessionId}`);
         
         this.orchestrateSocket = new WebSocket(wsUrl);
 
         this.orchestrateSocket.onopen = (event) => {
-            console.log('Orchestrate WebSocket connected');
+            console.log('✅ Orchestrate WebSocket 연결 성공!');
+            console.log('연결된 세션 ID:', this.currentSessionId);
+            console.log('WebSocket 상태:', this.orchestrateSocket.readyState);
+            console.log('연결 URL:', wsUrl);
             this.reconnectAttempts = 0;
+            
+            // 전역 디버깅 함수 추가
+            window.debugWebSocket = () => {
+                console.log('=== WebSocket 디버깅 정보 ===');
+                console.log('연결 상태:', this.orchestrateSocket.readyState);
+                console.log('현재 세션 ID:', this.currentSessionId);
+                console.log('연결 URL:', wsUrl);
+                console.log('WebSocket 객체:', this.orchestrateSocket);
+            };
+            
+            console.log('💡 WebSocket 상태 확인: window.debugWebSocket() 실행하세요');
         };
 
         this.orchestrateSocket.onmessage = (event) => {
-            console.log('=== RAW WebSocket Message Received ===');
+            console.log('🔥🔥🔥 WEBSOCKET MESSAGE RECEIVED 🔥🔥🔥');
+            console.log('=== 📨 RAW WebSocket Message Received ===');
             console.log('Event:', event);
+            console.log('현재 시간:', new Date().toLocaleTimeString());
+            console.log('연결된 세션 ID:', this.currentSessionId);
             console.log('Event data:', event.data);
             console.log('Event data type:', typeof event.data);
+            console.log('Event data length:', event.data?.length);
+            
+            // 강제로 알림
+            alert('WebSocket 메시지 수신됨! 콘솔을 확인하세요.');
             
             try {
                 const data = JSON.parse(event.data);
-                console.log('Parsed WebSocket data:', data);
-                console.log('Message type:', data.type);
+                console.log('🎯 Parsed WebSocket data:', data);
+                console.log('🏷️ Message type:', data.type);
+                console.log('📋 Message content:', data);
                 
                 if (data.type === 'step_update') {
-                    console.log('Handling step_update');
+                    console.log('🚀 Handling step_update');
                     this.handleStepUpdate(data);
                 } else if (data.type === 'orchestrate_update') {
-                    console.log('Handling orchestrate_update');
+                    console.log('🔧 Handling orchestrate_update');
                     this.handleOrchestrateUpdate(data);
                 } else {
-                    console.log('Unknown message type:', data.type);
+                    console.log('❓ Unknown message type:', data.type);
+                    console.log('💡 Available data keys:', Object.keys(data));
                 }
             } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-                console.error('Raw message was:', event.data);
+                console.error('💥 Error parsing WebSocket message:', error);
+                console.error('🔍 Raw message was:', event.data);
+                alert('WebSocket 메시지 파싱 오류! 콘솔 확인하세요.');
             }
+            
+            console.log('🔥🔥🔥 WEBSOCKET MESSAGE PROCESSING END 🔥🔥🔥');
         };
 
         this.orchestrateSocket.onclose = (event) => {
@@ -66,24 +93,36 @@ class WebSocketManager {
         };
 
         this.orchestrateSocket.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error('❌ WebSocket 에러 발생:', error);
+            console.error('세션 ID:', this.currentSessionId);
+            console.error('연결 URL:', wsUrl);
         };
     }
 
     handleStepUpdate(data) {
+        console.log('=== handleStepUpdate 호출됨 ===');
+        console.log('Step update data:', data);
+        
         const { step_name, status, content, progress } = data;
+        console.log('Extracted data:', { step_name, status, content, progress });
+        
         const chatMessages = document.getElementById('chatMessages');
         
-        if (!chatMessages) return;
+        if (!chatMessages) {
+            console.warn('chatMessages element not found');
+            return;
+        }
 
         // 기존 단계별 메시지가 있는지 확인
         let stepMessage = document.getElementById(`step-${step_name}`);
         
         if (!stepMessage) {
+            console.log('Creating new step message for:', step_name);
             // 새로운 단계 메시지 생성
             stepMessage = this.createStepMessage(step_name, status, content, progress);
             chatMessages.appendChild(stepMessage);
         } else {
+            console.log('Updating existing step message for:', step_name);
             // 기존 메시지 업데이트
             this.updateStepMessage(stepMessage, status, content, progress);
         }
@@ -163,11 +202,49 @@ class WebSocketManager {
     }
 
     handleOrchestrateUpdate(data) {
-        const { session_id, step_name, content, end_time } = data;
-        console.log('Orchestrate update received:', { session_id, step_name, content, end_time });
+        console.log('🚀 =================');
+        console.log('📨 WebSocket 업데이트 수신됨!');
+        console.log('🕐 시간:', new Date().toLocaleTimeString());
+        console.log('📋 데이터:', data);
+        console.log('=================');
+        
+        const { session_id, step_name, content, end_time, status } = data;
+        console.log('📊 추출된 정보:');
+        console.log('  - 세션 ID:', session_id);
+        console.log('  - 단계명:', step_name);
+        console.log('  - 상태:', status);
+        console.log('  - 완료시간:', end_time);
+        console.log('  - 내용:', content);
+        
+        // ✅ 첫 번째 WebSocket 업데이트에서 사이드바 활성화 (아직 비어있는 상태)
+        if (window.processManager && !window.processManager.isActive) {
+            console.log('🎯 첫 번째 업데이트 - 사이드바 활성화');
+            window.processManager.showSidebar();
+            window.processManager.updateStatus('실시간 단계별 업데이트 수신 중...', 'processing');
+        }
         
         // process-content 영역 업데이트
         this.updateProcessContent(step_name, content, end_time);
+        
+        // ✅ 완료 신호 확인 (end_time이 있거나 특정 완료 상태)
+        if (end_time && (status === 'completed' || step_name === '완료' || step_name === 'complete' || content.includes('완료'))) {
+            console.log('🎉 프로세스 완료 신호 감지!');
+            
+            // 타임아웃 클리어
+            if (window.currentWebSocketTimeout) {
+                clearTimeout(window.currentWebSocketTimeout);
+                window.currentWebSocketTimeout = null;
+                console.log('⏰ WebSocket 타임아웃 클리어됨');
+            }
+            
+            setTimeout(() => {
+                if (window.processManager) {
+                    console.log('✅ 최종 완료 처리 실행');
+                    window.processManager.completeProcess();
+                    window.processManager.updateStatus('모든 단계 완료', 'completed');
+                }
+            }, 1000); // 1초 후 완료 처리
+        }
     }
 
     updateProcessContent(stepName, content, endTime) {
@@ -2031,10 +2108,12 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
                 thinkingMessage.remove();
             }
             
-            // 프로세스 매니저 완료 처리
+            // ✅ 사이드바 표시하고 WebSocket 업데이트 대기 상태로 설정
+            console.log('🔄 사이드바 활성화 및 WebSocket 업데이트 대기 중...');
             if (window.processManager) {
-                window.processManager.completeProcess();
-                window.processManager.updateStatus('처리 완료', 'completed');
+                window.processManager.showSidebar();
+                window.processManager.updateStatus('단계별 업데이트 수신 중...', 'processing');
+                console.log('📱 공정상태창 활성화됨');
             }
             
             // orchestrate API 응답에서 텍스트 추출 (실제 응답 구조에 맞춰)
@@ -2403,7 +2482,6 @@ function startTypingEffect(contentDiv, text, speed = 5) {
             }
             .message-content h1, .message-content h2, .message-content h3, .message-content h4 {
                 margin: 10px 0;
-                color: #333;
             }
             .message-content li {
                 margin-left: 20px;

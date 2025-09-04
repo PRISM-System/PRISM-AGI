@@ -10,6 +10,9 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 활성 세션 추적을 위한 전역 딕셔너리
+ACTIVE_SESSIONS = {}
+
 class ChatConsumer(AsyncWebsocketConsumer):
     """일반 채팅 WebSocket 컨슈머"""
     
@@ -76,6 +79,27 @@ class OrchestrateConsumer(AsyncWebsocketConsumer):
         logger.info(f"URL route kwargs: {self.scope['url_route']['kwargs']}")
         logger.info(f"Full scope path: {self.scope.get('path', 'No path')}")
 
+        # 활성 세션 등록 (가장 최근 세션만 유지)
+        # user_1234_task_527 -> user_1234 추출
+        if '_' in self.session_id:
+            parts = self.session_id.split('_')
+            if len(parts) >= 3:  # user_1234_task_527 형태
+                user_id = f"{parts[0]}_{parts[1]}"  # user_1234
+            else:
+                user_id = parts[0]  # 첫 번째 부분만
+        else:
+            user_id = self.session_id
+            
+        # 기존 세션이 있다면 경고 로그
+        if user_id in ACTIVE_SESSIONS:
+            old_session = ACTIVE_SESSIONS[user_id]
+            logger.warning(f"Replacing active session for {user_id}: {old_session} -> {self.session_id}")
+        
+        # 최신 세션으로 업데이트 (덮어쓰기)
+        ACTIVE_SESSIONS[user_id] = self.session_id
+        logger.info(f"Active session registered: {user_id} -> {self.session_id}")
+        logger.info(f"Current active sessions: {ACTIVE_SESSIONS}")
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -86,6 +110,21 @@ class OrchestrateConsumer(AsyncWebsocketConsumer):
         logger.info(f"Orchestrate WebSocket connected: session_id={self.session_id}")
 
     async def disconnect(self, close_code):
+        # 활성 세션 제거
+        # user_1234_task_527 -> user_1234 추출
+        if '_' in self.session_id:
+            parts = self.session_id.split('_')
+            if len(parts) >= 3:  # user_1234_task_527 형태
+                user_id = f"{parts[0]}_{parts[1]}"  # user_1234
+            else:
+                user_id = parts[0]  # 첫 번째 부분만
+        else:
+            user_id = self.session_id
+            
+        if user_id in ACTIVE_SESSIONS:
+            del ACTIVE_SESSIONS[user_id]
+            logger.info(f"Active session removed: {user_id}")
+        
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
