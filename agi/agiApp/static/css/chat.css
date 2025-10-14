@@ -1558,6 +1558,35 @@ body {
     text-overflow: ellipsis;
 }
 
+/* 세션 제목 편집 모드 */
+.session-title-input {
+    font-size: 14px;
+    font-weight: 500;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.5);
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+}
+
+.chat-session-item.active .session-title-input {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.session-title-input:focus {
+    border-color: #6366f1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.chat-session-item.active .session-title-input:focus {
+    border-color: #ffffff;
+}
+
 .session-time {
     font-size: 11px;
     color: #9ca3af;
@@ -1570,7 +1599,6 @@ body {
 
 /* 새 채팅 버튼 특별 스타일 */
 #newChatBtn:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     transform: translateX(2px);
 }
@@ -1605,6 +1633,50 @@ body {
     display: none;
 }
 
+/* 채팅 세션 액션 버튼 컨테이너 */
+.session-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-left: auto;
+}
+
+/* 채팅 세션 편집 버튼 */
+.session-edit-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+}
+
+.chat-session-item:hover .session-edit-btn {
+    opacity: 1;
+}
+
+.session-edit-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    transform: scale(1.1);
+}
+
+.chat-session-item.active .session-edit-btn {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.chat-session-item.active .session-edit-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
 /* 채팅 세션 삭제 버튼 */
 .session-delete-btn {
     background: none;
@@ -1618,7 +1690,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: auto;
     min-width: 20px;
     height: 20px;
 }

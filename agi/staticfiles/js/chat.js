@@ -968,16 +968,23 @@ class ChatSessionManager {
                     <span class="session-time">${timeAgo}</span>
                 </div>
             </div>
-            <button class="session-delete-btn" title="채팅 삭제">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                </svg>
-            </button>
+            <div class="session-actions">
+                <button class="session-edit-btn" title="채팅 이름 변경">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                </button>
+                <button class="session-delete-btn" title="채팅 삭제">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                    </svg>
+                </button>
+            </div>
         `;
         
-        // 세션 클릭 이벤트 (삭제 버튼 제외)
+        // 세션 클릭 이벤트 (편집/삭제 버튼 제외)
         div.addEventListener('click', (e) => {
-            if (!e.target.closest('.session-delete-btn')) {
+            if (!e.target.closest('.session-actions')) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const userId = urlParams.get('user_id');
                 if (userId) {
@@ -986,6 +993,13 @@ class ChatSessionManager {
                     window.location.href = `/django/index/?session=${session.id}`;
                 }
             }
+        });
+        
+        // 편집 버튼 이벤트
+        const editBtn = div.querySelector('.session-edit-btn');
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.renameSession(session.id, session.title);
         });
         
         // 삭제 버튼 이벤트
@@ -1342,6 +1356,121 @@ class ChatSessionManager {
         if (hours > 0) return `${hours}시간 전`;
         if (minutes > 0) return `${minutes}분 전`;
         return '방금 전';
+    }
+
+    renameSession(sessionId, currentTitle) {
+        // 해당 세션 요소 찾기
+        const sessionElement = document.querySelector(`[data-session-id="${sessionId}"]`);
+        if (!sessionElement) return;
+
+        const titleSpan = sessionElement.querySelector('.session-title');
+        if (!titleSpan) return;
+
+        // 이미 편집 중이면 무시
+        if (sessionElement.querySelector('.session-title-input')) return;
+
+        const originalTitle = currentTitle || '새 채팅';
+
+        // input 요소 생성
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'session-title-input';
+        input.value = originalTitle;
+        input.maxLength = 200;
+
+        // titleSpan을 input으로 교체
+        titleSpan.replaceWith(input);
+        input.focus();
+        input.select();
+
+        // 편집 완료 처리 함수
+        const finishEditing = async (save = false) => {
+            const newTitle = input.value.trim();
+
+            // 취소하거나 변경사항이 없으면 원래 제목으로 복원
+            if (!save || !newTitle || newTitle === originalTitle) {
+                const restoredSpan = document.createElement('span');
+                restoredSpan.className = 'session-title';
+                restoredSpan.textContent = originalTitle;
+                input.replaceWith(restoredSpan);
+                return;
+            }
+
+            // 제목 길이 제한
+            if (newTitle.length > 200) {
+                alert('제목은 200자를 초과할 수 없습니다.');
+                input.focus();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/update-title/`, {
+                    method: 'POST',
+                    headers: getDefaultHeaders(),
+                    body: JSON.stringify({
+                        title: newTitle
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 성공 시 span으로 교체
+                    const updatedSpan = document.createElement('span');
+                    updatedSpan.className = 'session-title';
+                    updatedSpan.textContent = newTitle;
+                    input.replaceWith(updatedSpan);
+
+                    // 사용자 활동 로그 기록
+                    if (window.logSessionRename) {
+                        window.logSessionRename(sessionId, originalTitle, newTitle, {
+                            user_id: this.userId
+                        });
+                    }
+
+                    console.log('채팅방 이름 변경됨:', data);
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '이름 변경 실패');
+                }
+            } catch (error) {
+                console.error('채팅방 이름 변경 실패:', error);
+                
+                // 활동 로그에 에러 기록
+                if (window.logChatResponse) {
+                    window.logChatResponse('', `채팅방 이름 변경 실패: ${error.message}`, 'session_error');
+                }
+                
+                alert(`이름 변경에 실패했습니다: ${error.message}`);
+                
+                // 실패 시 원래 제목으로 복원
+                const restoredSpan = document.createElement('span');
+                restoredSpan.className = 'session-title';
+                restoredSpan.textContent = originalTitle;
+                input.replaceWith(restoredSpan);
+            }
+        };
+
+        // Enter 키로 저장
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                finishEditing(true);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                finishEditing(false);
+            }
+        });
+
+        // focus 잃으면 저장
+        input.addEventListener('blur', () => {
+            setTimeout(() => finishEditing(true), 100);
+        });
+
+        // 클릭 이벤트 전파 방지
+        input.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
     }
 
     async deleteSession(sessionId, sessionTitle) {

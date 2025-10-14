@@ -257,6 +257,18 @@ class ActivityLogger {
     }
 
     /**
+     * 채팅 세션 이름 변경 로그
+     */
+    async logSessionRename(sessionId, oldTitle, newTitle, details = {}) {
+        return this.logActivity(
+            'session_rename',
+            `채팅방 이름을 "${oldTitle || '새 채팅'}"에서 "${newTitle}"로 변경했습니다.`,
+            'INFO',
+            { session_id: sessionId, old_title: oldTitle, new_title: newTitle, ...details }
+        );
+    }
+
+    /**
      * 오류 로그
      */
     async logError(message, error, details = {}) {
@@ -314,6 +326,7 @@ window.logChatQuery = (query, details) => window.activityLogger.logChatQuery(que
 window.logChatResponse = (response, details) => window.activityLogger.logChatResponse(response, details);
 window.logSessionCreate = (id, details) => window.activityLogger.logSessionCreate(id, details);
 window.logSessionDelete = (id, title, details) => window.activityLogger.logSessionDelete(id, title, details);
+window.logSessionRename = (id, oldTitle, newTitle, details) => window.activityLogger.logSessionRename(id, oldTitle, newTitle, details);
 window.logError = (message, error, details) => window.activityLogger.logError(message, error, details);
 
 console.log('Activity Logger initialized');

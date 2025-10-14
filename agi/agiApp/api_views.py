@@ -423,12 +423,13 @@ class ChatMessagesView(APIView):
                 metadata=metadata
             )
             
-            # 세션 업데이트 시간 갱신
-            session.save()
-            
-            # 첫 번째 사용자 메시지인 경우 세션 제목 업데이트
-            if role == 'user' and not session.title:
+            # 첫 번째 사용자 메시지인 경우 세션 제목을 질문 내용으로 자동 설정
+            if role == 'user' and (not session.title or session.title.strip() == ''):
+                # 질문 내용을 제목으로 설정 (최대 50자)
                 session.title = content[:50] + ('...' if len(content) > 50 else '')
+                session.save()
+            else:
+                # 세션 업데이트 시간만 갱신
                 session.save()
             
             return Response({

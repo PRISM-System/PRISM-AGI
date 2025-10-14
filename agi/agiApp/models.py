@@ -93,13 +93,7 @@ class ChatSession(models.Model):
         return f"{self.title or 'New Chat'} - {self.user_id}"
     
     def save(self, *args, **kwargs):
-        if not self.title:
-            # 첫 번째 메시지가 있으면 그것을 제목으로 사용
-            first_message = self.messages.filter(role='user').first()
-            if first_message:
-                self.title = first_message.content[:50] + ('...' if len(first_message.content) > 50 else '')
-            else:
-                self.title = f"Chat {self.created_at.strftime('%m/%d %H:%M')}"
+        # 제목이 없으면 빈 문자열로 유지 (첫 메시지로 자동 설정됨)
         super().save(*args, **kwargs)
 
 
