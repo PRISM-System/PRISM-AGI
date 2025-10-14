@@ -183,6 +183,7 @@ body:has(.tools-manager-container) .chat-sidebar.collapsed ~ .chat-main,
     overflow-y: auto;
     padding-right: 8px;
     padding-top: 5px;
+    justify-content: center;
 }
 
 /* 도구 카드 flex 설정 (한 줄에 4개) */

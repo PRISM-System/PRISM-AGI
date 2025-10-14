@@ -12,113 +12,34 @@ import logging
 logger = logging.getLogger(__name__)
 
 # 원격 서버 설정
+# settings.py에서 PROXY_REMOTE_SERVER 값을 가져오고, 없으면 기본값 사용
 REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://147.47.39.144:8000')
 
-@csrf_exempt
-def proxy_tools(request):
-    """
-    /api/tools 요청을 원격 서버로 프록시합니다.
-    """
-    
-    # OPTIONS 요청 (CORS 프리플라이트)
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
-    # GET, POST 요청 허용 (tools 조회 및 생성)
-    if request.method not in ['GET', 'POST']:
-        return create_error_response("Method not allowed. Use GET for listing or POST for creating tools.", 405)
-    
-    try:
-        # 원격 서버로 요청 전달
-        url = f"{REMOTE_SERVER}/api/tools"
-        logger.info(f"Proxying {request.method} request to {url}")
-        
-        # 요청 메서드에 따라 처리
-        headers = {'Content-Type': 'application/json'}
-        
-        if request.method == 'GET':
-            remote_response = requests.get(url, timeout=10)
-        elif request.method == 'POST':
-            body = request.body.decode('utf-8') if request.body else '{}'
-            remote_response = requests.post(url, data=body, headers=headers, timeout=10)
-        
-        logger.info(f"Remote server response: {remote_response.status_code}")
-        
-        # JSON 응답 파싱 시도
-        try:
-            data = remote_response.json()
-            response = JsonResponse(data, safe=False, status=remote_response.status_code)
-        except:
-            # JSON이 아닌 경우 원본 응답 전달
-            response = HttpResponse(
-                remote_response.content,
-                content_type=remote_response.headers.get('content-type', 'application/json'),
-                status=remote_response.status_code
-            )
-        
-        # CORS 헤더 추가
-        add_cors_headers(response)
-        return response
-        
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Remote server connection failed: {e}")
-        return create_error_response(
-            "원격 서버 연결 실패",
-            503,
-            details={"message": str(e), "remote_server": REMOTE_SERVER}
-        )
+def create_cors_response():
+    """CORS Preflight 응답 생성"""
+    response = HttpResponse()
+    add_cors_headers(response)
+    return response
 
-@csrf_exempt
-def proxy_generate(request):
-    """
-    /api/generate 요청을 원격 서버로 프록시합니다.
-    """
-    
-    # OPTIONS 요청 (CORS 프리플라이트)
-    if request.method == 'OPTIONS':
-        return create_cors_response()
-    
-    # POST 요청만 허용 (텍스트 생성은 POST만 사용)
-    if request.method != 'POST':
-        return create_error_response("Method not allowed. Use POST for text generation.", 405)
-    
-    try:
-        # 원격 서버로 요청 전달
-        url = f"{REMOTE_SERVER}/api/generate"
-        logger.info(f"Proxying {request.method} request to {url}")
-        
-        # POST 데이터 전달
-        headers = {'Content-Type': 'application/json'}
-        body = request.body.decode('utf-8') if request.body else '{}'
-        logger.debug(f"POST body: {body}")
-        remote_response = requests.post(url, data=body, headers=headers, timeout=30)  # 텍스트 생성은 시간이 걸릴 수 있음
-        
-        logger.info(f"Remote server response: {remote_response.status_code}")
-        
-        # JSON 응답 파싱 시도
-        try:
-            data = remote_response.json()
-            response = JsonResponse(data, safe=False, status=remote_response.status_code)
-        except:
-            # JSON이 아닌 경우 원본 응답 전달
-            response = HttpResponse(
-                remote_response.content,
-                content_type=remote_response.headers.get('content-type', 'application/json'),
-                status=remote_response.status_code
-            )
-        
-        # CORS 헤더 추가
-        add_cors_headers(response)
-        return response
-        
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Remote server connection failed: {e}")
-        return create_error_response(
-            "원격 서버 연결 실패",
-            503,
-            details={"message": str(e), "remote_server": REMOTE_SERVER}
-        )
+def add_cors_headers(response):
+    """응답에 CORS 헤더 추가"""
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+    response["Access-Control-Max-Age"] = "86400"
 
+def create_error_response(message, status_code, details=None):
+    """에러 응답 생성"""
+    error_data = {"error": message}
+    if details:
+        error_data.update(details)
+    
+    response = JsonResponse(error_data, status=status_code)
+    add_cors_headers(response)
+    return response
+
+# 일반 API 프록시 (경로 기반)
+# /proxy/api/<path> -> 147.47.39.144:8000/<path>
 @csrf_exempt
 def proxy_api(request, path):
     """
@@ -176,6 +97,120 @@ def proxy_api(request, path):
             details={"message": str(e), "remote_server": REMOTE_SERVER, "requested_path": path}
         )
 
+# 도구 관리 API 프록시
+@csrf_exempt
+def proxy_tools(request):
+    """
+    /api/tools 요청을 원격 서버로 프록시합니다.
+    """
+    
+    # OPTIONS 요청 (CORS Preflight)
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # GET, POST 요청 허용 (tools 조회 및 생성)
+    # /api/tools (GET: 목록 조회, POST: 새 도구 등록, PUT/DELETE 등 405 에러 처리)
+    if request.method not in ['GET', 'POST']:
+        return create_error_response("Method not allowed. Use GET for listing or POST for creating tools.", 405)
+    
+    try:
+        # 원격 서버로 요청 전달
+        # 실제 호출할 원격 서버 URL 설정(요청 기록을 로그로 남김)
+        url = f"{REMOTE_SERVER}/api/tools"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # 요청 메서드에 따라 처리
+        headers = {'Content-Type': 'application/json'}
+        
+        # GET 요청 처리(단순 목록 조회라 BODY 없음, 10초 타임아웃)
+        if request.method == 'GET':
+            remote_response = requests.get(url, timeout=10)
+
+        # POST 요청 처리(request.body를 그대로 읽어서 JSON으로 전달, 10초 타임아웃)
+        elif request.method == 'POST':
+            body = request.body.decode('utf-8') if request.body else '{}'
+            remote_response = requests.post(url, data=body, headers=headers, timeout=10)
+        
+        # 원격 서버의 HTTP 상태코드를 로그에 남김
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        
+        # JSON 응답 파싱 시도(원격 응답이 JSON이면 파싱 후 JsoneResponse로 반환), safe=False로 JSON 배열도 가능
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달(HttpResponse로 그대로 반환)
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    # 예외 처리(원격 서버 연결 실패 등, 로그에 기록 후 503(Service Unavailable) 에러 반환)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Remote server connection failed: {e}")
+        return create_error_response(
+            "원격 서버 연결 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER}
+        )
+
+# 텍스트 생성 API 프록시(테스트용, 실제 자연어 질의는 147.47.39.144:8100 서버에서 처리)
+@csrf_exempt
+def proxy_generate(request):
+    """
+    /api/generate 요청을 원격 서버로 프록시합니다.
+    """
+    
+    # OPTIONS 요청 (CORS Preflight)
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # POST 요청만 허용 (텍스트 생성은 POST만 사용)
+    if request.method != 'POST':
+        return create_error_response("Method not allowed. Use POST for text generation.", 405)
+    
+    try:
+        # 원격 서버로 요청 전달
+        url = f"{REMOTE_SERVER}/api/generate"
+        logger.info(f"Proxying {request.method} request to {url}")
+        
+        # POST 데이터 전달
+        headers = {'Content-Type': 'application/json'}
+        body = request.body.decode('utf-8') if request.body else '{}'
+        logger.debug(f"POST body: {body}")
+        remote_response = requests.post(url, data=body, headers=headers, timeout=30)  # 텍스트 생성은 시간이 걸릴 수 있음
+        
+        logger.info(f"Remote server response: {remote_response.status_code}")
+        
+        # JSON 응답 파싱 시도
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except:
+            # JSON이 아닌 경우 원본 응답 전달
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Remote server connection failed: {e}")
+        return create_error_response(
+            "원격 서버 연결 실패",
+            503,
+            details={"message": str(e), "remote_server": REMOTE_SERVER}
+        )
+
 @csrf_exempt
 def proxy_tool_detail(request, tool_name):
     """
@@ -229,30 +264,6 @@ def proxy_tool_detail(request, tool_name):
             503,
             details={"message": str(e), "remote_server": REMOTE_SERVER, "tool_name": tool_name}
         )
-
-def create_cors_response():
-    """CORS 프리플라이트 응답 생성"""
-    response = HttpResponse()
-    add_cors_headers(response)
-    return response
-
-def add_cors_headers(response):
-    """응답에 CORS 헤더 추가"""
-    response["Access-Control-Allow-Origin"] = "*"
-    response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-    response["Access-Control-Max-Age"] = "86400"
-
-def create_error_response(message, status_code, details=None):
-    """에러 응답 생성"""
-    error_data = {"error": message}
-    if details:
-        error_data.update(details)
-    
-    response = JsonResponse(error_data, status=status_code)
-    add_cors_headers(response)
-    return response
-
 
 @csrf_exempt
 def agents_api(request, agent_name=None):
@@ -447,6 +458,8 @@ def tools_api(request):
     if request.method == 'OPTIONS':
         return create_cors_response()
     
+    # GET, POST 요청 허용 (도구 조회 및 생성)
+    # GET 요청은 단순 조회라 BODY 없음
     if request.method == 'GET':
         try:
             # 외부 API에서 도구 목록 가져오기
@@ -479,6 +492,8 @@ def tools_api(request):
         add_cors_headers(response)
         return response
     
+    # POST 요청은 새 도구 등록
+    # 도구 등록 시 필수 필드(name, description, input_schema, endpoint) 검증
     elif request.method == 'POST':
         try:
             # 요청 본문 파싱
@@ -692,7 +707,7 @@ def proxy_orchestrate(request):
     /api/orchestrate 요청을 원격 orchestrate 서버로 프록시합니다.
     """
     
-    # OPTIONS 요청 (CORS 프리플라이트)
+    # OPTIONS 요청 (CORS Preflight)
     if request.method == 'OPTIONS':
         return create_cors_response()
     

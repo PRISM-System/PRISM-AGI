@@ -14,6 +14,9 @@ class UserActivityLog(models.Model):
         ('chat_query', '자연어 질의'),
         ('session_create', '채팅 세션 생성'),
         ('session_delete', '채팅 세션 삭제'),
+        ('session_rename', '채팅 세션 이름 변경'),
+        ('orchestrate_error', '에이전트 연결 실패'),
+        ('system_error', '시스템 오류'),
     ]
     
     LEVEL_CHOICES = [

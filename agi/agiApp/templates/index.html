@@ -82,63 +82,7 @@
             <!-- 크기 조절 핸들 -->
             <div class="resize-handle" id="resizeHandle"></div>
             
-            <!-- 헤더 영역 -->
-            <div class="process-header">
-                <div>
-                    <h3 class="process-title">공정 진행 상태</h3>
-                    <button class="process-close-btn" id="processCloseBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- 전체 진행률 -->
-                <div class="overall-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
-                    </div>
-                    <span class="progress-text" id="overallProgressText">0%</span>
-                </div>
-
-                <!-- 에이전트 상태 표시 -->
-                <div class="agent-status-container">
-                    <div class="agent-status offline" id="monitoringAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">모니터링</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                    <div class="agent-status offline" id="predictionAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">예측</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                    <div class="agent-status offline" id="controlAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">제어</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 컨텐츠 영역 -->
-            <div class="process-content" id="processContent">
-                <!-- 진행 단계 영역 -->
-                <div class="process-steps" id="processSteps">
-                    <!-- 단계별 정보가 동적으로 추가됩니다 -->
-                </div>
-                
-                <!-- 상세 정보 영역 -->
-                <div class="process-details" id="processDetails">
-                    <!-- 상세 정보가 동적으로 추가됩니다 -->
-                </div>
-            </div>
+            <!-- WebSocket 데이터로 동적으로 생성될 컨텐츠 영역 -->
         </div>
     </div>
     

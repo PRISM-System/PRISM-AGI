@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
-from .models import ChatSession, ChatMessage
+from .models import ChatSession, ChatMessage, UserActivityLog
 import json
 
 
@@ -74,7 +74,7 @@ class AgentsListView(APIView):
             
         except Exception as e:
             return Response(
-                {"error": f"에이전트 생성 중 오류가 발생했습니다: {str(e)}"},
+                {"error": "에이전트 생성 중 오류가 발생했습니다: {}".format(str(e))},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
@@ -169,8 +169,13 @@ class ChatSessionDetailView(APIView):
     개별 채팅 세션 관리 API - /api/chat/sessions/{session_id}/
     """
     permission_classes = [AllowAny]
+    http_method_names = ['get', 'post', 'put', 'delete', 'options']
     
     def dispatch(self, request, *args, **kwargs):
+        # 디버깅을 위한 로그 추가
+        print("ChatSessionDetailView - Method: {}, Path: {}".format(request.method, request.path))
+        print("kwargs: {}".format(kwargs))
+        
         response = super().dispatch(request, *args, **kwargs)
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
@@ -181,10 +186,81 @@ class ChatSessionDetailView(APIView):
     def options(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK)
     
-    def delete(self, request, session_id=None):
+    def get(self, request, *args, **kwargs):
+        """
+        특정 채팅 세션 정보 조회
+        """
+        session_id = kwargs.get('session_id')
+        if not session_id:
+            return Response({'error': 'session_id가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            session = get_object_or_404(ChatSession, id=session_id)
+            return Response({
+                'id': str(session.id),
+                'title': session.title,
+                'created_at': session.created_at.isoformat(),
+                'updated_at': session.updated_at.isoformat(),
+                'message_count': session.messages.count()
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, *args, **kwargs):
+        """
+        채팅 세션 정보 수정 (제목 변경)
+        """
+        return self._update_session_title(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        """
+        채팅 세션 정보 수정 (제목 변경) - POST 메서드로도 지원
+        """
+        # title_update 액션이 있는 경우에만 업데이트 처리
+        if request.data.get('action') == 'update_title':
+            return self._update_session_title(request, *args, **kwargs)
+        else:
+            return Response({'error': '지원하지 않는 액션입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _update_session_title(self, request, *args, **kwargs):
+        """
+        실제 제목 변경 로직
+        """
+        session_id = kwargs.get('session_id')
+        if not session_id:
+            return Response({'error': 'session_id가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            session = get_object_or_404(ChatSession, id=session_id)
+            
+            # 새로운 제목 가져오기
+            new_title = request.data.get('title')
+            if not new_title:
+                return Response({'error': '새로운 제목이 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 제목 길이 제한 (200자)
+            if len(new_title) > 200:
+                return Response({'error': '제목은 200자를 초과할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 제목 업데이트
+            session.title = new_title.strip()
+            session.save()
+            
+            return Response({
+                'id': str(session.id),
+                'title': session.title,
+                'updated_at': session.updated_at.isoformat(),
+                'message': '채팅방 이름이 변경되었습니다.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, *args, **kwargs):
         """
         채팅 세션 삭제 (소프트 삭제)
         """
+        session_id = kwargs.get('session_id')
         if not session_id:
             return Response({'error': 'session_id가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -196,6 +272,83 @@ class ChatSessionDetailView(APIView):
             session.save()
             
             return Response({'message': '채팅 세션이 삭제되었습니다.'}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')  
+class ChatSessionUpdateTitleView(APIView):
+    """
+    채팅 세션 제목 변경 전용 API - /api/chat/sessions/{session_id}/update-title/
+    ASGI 서버 호환성을 위해 POST 메서드만 사용
+    """
+    permission_classes = [AllowAny]
+    http_method_names = ['post', 'options']
+    
+    def dispatch(self, request, *args, **kwargs):
+        # 디버깅을 위한 로그 추가
+        print("ChatSessionUpdateTitleView - Method: {}, Path: {}".format(request.method, request.path))
+        print("kwargs: {}".format(kwargs))
+        
+        response = super().dispatch(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        response["Access-Control-Max-Age"] = "86400"
+        return response
+        
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+    
+    def post(self, request, *args, **kwargs):
+        """
+        채팅 세션 제목 변경
+        """
+        session_id = kwargs.get('session_id')
+        if not session_id:
+            return Response({'error': 'session_id가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            session = get_object_or_404(ChatSession, id=session_id)
+            
+            # 새로운 제목 가져오기
+            new_title = request.data.get('title')
+            if not new_title:
+                return Response({'error': '새로운 제목이 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 제목 길이 제한 (200자)
+            if len(new_title) > 200:
+                return Response({'error': '제목은 200자를 초과할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 이전 제목 백업 (로그용)
+            old_title = session.title
+            
+            # 제목 업데이트
+            session.title = new_title.strip()
+            session.save()
+            
+            # 사용자 활동 로그 기록
+            UserActivityLog.log_activity(
+                action_type='session_rename',
+                message='채팅방 이름을 "{}"에서 "{}"로 변경했습니다.'.format(old_title, session.title),
+                level='INFO',
+                details={
+                    'session_id': str(session.id),
+                    'old_title': old_title,
+                    'new_title': session.title,
+                    'user_id': session.user_id
+                },
+                user_id=session.user_id,
+                request=request
+            )
+            
+            return Response({
+                'id': str(session.id),
+                'title': session.title,
+                'updated_at': session.updated_at.isoformat(),
+                'message': '채팅방 이름이 변경되었습니다.'
+            }, status=status.HTTP_200_OK)
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -314,8 +467,7 @@ class UserActivityLogsView(APIView):
         try:
             from .models import UserActivityLog
             from django.utils import timezone
-            from datetime import timedelta
-            
+
             # 쿼리 파라미터 처리
             user_id = request.GET.get('user_id')
             if not user_id:

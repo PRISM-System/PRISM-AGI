@@ -84,20 +84,6 @@ class WebSocketManager {
         const { step_name, status, content, progress } = data;
         console.log('Extracted data:', { step_name, status, content, progress });
         
-        // ✅ 첫 번째 웹소켓 데이터 수신 시 사이드바 강제 활성화
-        const processSidebar = document.getElementById('processSidebar');
-        if (processSidebar && !processSidebar.classList.contains('active')) {
-            console.log('🚀 첫 번째 웹소켓 데이터 수신 - 사이드바 활성화');
-            processSidebar.classList.add('active');
-            processSidebar.style.display = 'flex'; // 명시적으로 표시
-            
-            // 상세 정보 영역도 초기화
-            const processDetails = document.getElementById('processDetails');
-            if (processDetails && !processDetails.querySelector('.details-header')) {
-                this.initializeDetailsArea(processDetails);
-            }
-        }
-        
         // ✅ 채팅창에는 표시하지 않고 사이드바에만 표시
         console.log('🔄 사이드바 업데이트만 진행 (채팅창 업데이트 제외)');
         
@@ -190,10 +176,9 @@ class WebSocketManager {
             return;
         }
 
-        // 사이드바가 아직 활성화되지 않았다면 활성화
-        if (!processSidebar.classList.contains('active')) {
-            processSidebar.classList.add('active');
-            console.log('📱 사이드바 활성화됨');
+        // 사이드바가 비어있으면 초기 구조 생성
+        if (!processSidebar.querySelector('.process-header')) {
+            this.initializeProcessSidebar(processSidebar);
         }
 
         // 단계별 정보 업데이트
@@ -206,6 +191,11 @@ class WebSocketManager {
         } else {
             this.updateOverallProgress(); // 기존 방식
         }
+        
+        // 사이드바 표시
+        processSidebar.classList.add('active');
+        processSidebar.style.display = 'flex';
+        console.log('📱 사이드바 활성화됨');
         
         // ✅ 100% 완료 시 완료 상태로 표시
         if (progress === 100) {
@@ -239,42 +229,85 @@ class WebSocketManager {
         }
     }
 
+    initializeProcessSidebar(sidebar) {
+        sidebar.innerHTML = `
+            <!-- 크기 조절 핸들 -->
+            <div class="resize-handle" id="resizeHandle"></div>
+            
+            <div class="process-header">
+                <div>
+                    <h3 class="process-title">공정 진행 상태</h3>
+                    <button class="process-close-btn" id="processCloseBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- 전체 진행률 -->
+                <div class="overall-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="overallProgressText">0%</span>
+                </div>
+            </div>
+            
+            <div class="process-content" id="processContent">
+                <div class="process-steps" id="processSteps">
+                    <!-- 단계별 정보가 동적으로 추가됩니다 -->
+                </div>
+            </div>
+        `;
+
+        // 닫기 버튼 이벤트 리스너
+        const closeBtn = sidebar.querySelector('#processCloseBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                sidebar.style.display = 'none';
+            });
+        }
+
+        // 크기 조절 핸들 이벤트 리스너
+        const resizeHandle = sidebar.querySelector('#resizeHandle');
+        if (resizeHandle) {
+            let isResizing = false;
+            let startX = 0;
+            let startWidth = 0;
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                startX = e.clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+                document.addEventListener('mousemove', doResize);
+                document.addEventListener('mouseup', stopResize);
+                e.preventDefault();
+            });
+
+            function doResize(e) {
+                if (!isResizing) return;
+                const newWidth = startWidth - (e.clientX - startX);
+                if (newWidth >= 280 && newWidth <= 600) {
+                    sidebar.style.width = newWidth + 'px';
+                }
+            }
+
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', doResize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        }
+    }
+
     updateProcessStep(stepName, status, content, progress, endTime) {
         console.log('=== updateProcessStep 호출됨 ===');
         console.log('Step 데이터:', { stepName, status, content, progress, endTime });
         
-        // 먼저 사이드바가 활성화되어 있는지 확인
-        const processSidebar = document.getElementById('processSidebar');
-        if (!processSidebar) {
-            console.warn('processSidebar element not found');
+        const processSteps = document.getElementById('processSteps');
+        if (!processSteps) {
+            console.warn('processSteps element not found');
             return;
-        }
-        
-        // 사이드바가 비활성화 상태라면 활성화
-        if (!processSidebar.classList.contains('active')) {
-            console.log('🚀 사이드바 비활성화 상태 - 강제 활성화');
-            processSidebar.classList.add('active');
-            processSidebar.style.display = 'flex';
-        }
-        
-        let processSteps = document.getElementById('processSteps');
-        
-        // processSteps가 없거나 사이드바 구조가 잘못되었을 때 강제로 재생성
-        if (!processSteps || !processSidebar.querySelector('.process-header')) {
-            console.warn('processSteps element not found - 사이드바 구조 재생성');
-            console.log('DOM 상태 디버깅:');
-            console.log('- processSidebar 존재:', !!processSidebar);
-            console.log('- processSidebar 클래스:', processSidebar?.className);
-            console.log('- processSidebar innerHTML:', processSidebar?.innerHTML?.substring(0, 200));
-            
-            // 사이드바 구조 강제 재생성
-            this.initializeSidebarStructure(processSidebar);
-            processSteps = document.getElementById('processSteps');
-            
-            if (!processSteps) {
-                console.error('사이드바 구조 재생성 후에도 processSteps를 찾을 수 없습니다');
-                return;
-            }
         }
         
         console.log('✅ processSteps 요소 찾음:', processSteps);
@@ -317,130 +350,8 @@ class WebSocketManager {
         
         stepElement.className = `process-step ${statusClass}`;
         
-        // 에이전트 상태 업데이트
-        this.updateAgentStatus(stepName, status);
-        
-        // 상세 로그에 추가
-        this.addDetailLog(stepNameKorean, content, status, endTime);
-        
         console.log('✅ 단계 요소 HTML 업데이트 완료');
         console.log('현재 processSteps 자식 요소 수:', processSteps.children.length);
-    }
-
-    // 사이드바 구조를 강제로 재생성하는 함수
-    initializeSidebarStructure(sidebar) {
-        console.log('🔧 사이드바 구조 강제 재생성 시작');
-        
-        sidebar.innerHTML = `
-            <!-- 크기 조절 핸들 -->
-            <div class="resize-handle" id="resizeHandle"></div>
-            
-            <!-- 헤더 영역 -->
-            <div class="process-header">
-                <div>
-                    <h3 class="process-title">공정 진행 상태</h3>
-                    <button class="process-close-btn" id="processCloseBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- 전체 진행률 -->
-                <div class="overall-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
-                    </div>
-                    <span class="progress-text" id="overallProgressText">0%</span>
-                </div>
-
-                <!-- 에이전트 상태 표시 -->
-                <div class="agent-status-container">
-                    <div class="agent-status offline" id="monitoringAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">모니터링</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                    <div class="agent-status offline" id="predictionAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">예측</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                    <div class="agent-status offline" id="controlAgent">
-                        <div class="agent-indicator"></div>
-                        <div class="agent-info">
-                            <span class="agent-name">제어</span>
-                            <span class="agent-status-text">대기</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 컨텐츠 영역 -->
-            <div class="process-content" id="processContent">
-                <!-- 진행 단계 영역 -->
-                <div class="process-steps" id="processSteps">
-                    <!-- 단계별 정보가 동적으로 추가됩니다 -->
-                </div>
-                
-                <!-- 상세 정보 영역 -->
-                <div class="process-details" id="processDetails">
-                    <!-- 상세 정보가 동적으로 추가됩니다 -->
-                </div>
-            </div>
-        `;
-
-        // 이벤트 리스너 재등록
-        this.reattachSidebarEvents(sidebar);
-        
-        console.log('✅ 사이드바 구조 재생성 완료');
-    }
-
-    // 사이드바 이벤트 리스너 재등록
-    reattachSidebarEvents(sidebar) {
-        // 닫기 버튼 이벤트 리스너
-        const closeBtn = sidebar.querySelector('#processCloseBtn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-                console.log('🔒 사이드바 닫힘');
-            });
-        }
-
-        // 크기 조절 핸들 이벤트 리스너
-        const resizeHandle = sidebar.querySelector('#resizeHandle');
-        if (resizeHandle) {
-            let isResizing = false;
-            let startX = 0;
-            let startWidth = 0;
-
-            resizeHandle.addEventListener('mousedown', (e) => {
-                isResizing = true;
-                startX = e.clientX;
-                startWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
-                document.addEventListener('mousemove', doResize);
-                document.addEventListener('mouseup', stopResize);
-                e.preventDefault();
-            });
-
-            function doResize(e) {
-                if (!isResizing) return;
-                const newWidth = startWidth - (e.clientX - startX);
-                if (newWidth >= 400 && newWidth <= 800) {
-                    sidebar.style.width = newWidth + 'px';
-                }
-            }
-
-            function stopResize() {
-                isResizing = false;
-                document.removeEventListener('mousemove', doResize);
-                document.removeEventListener('mouseup', stopResize);
-            }
-        }
     }
 
     getKoreanStepName(stepName) {
@@ -449,12 +360,7 @@ class WebSocketManager {
             'Monitoring': '모니터링',
             'Prediction': '예측 분석',
             'Autonomous Control': '자율 제어',
-            'Orchestration': '오케스트레이션',
-            'Compliance Check': '컴플라이언스 검증',
-            'Data Processing': '데이터 처리',
-            'Model Execution': '모델 실행',
-            'Result Validation': '결과 검증',
-            'Response Generation': '응답 생성'
+            'Orchestration': '오케스트레이션'
         };
         return nameMap[stepName] || stepName;
     }
@@ -544,131 +450,6 @@ class WebSocketManager {
         }
         
         console.log(`✅ 진행률 ${progress}% 업데이트 완료`);
-    }
-
-    // 에이전트 상태 업데이트
-    updateAgentStatus(stepName, status) {
-        // 단계명에 따라 해당하는 에이전트 찾기
-        let agentId = null;
-        if (stepName.includes('Monitoring') || stepName.includes('모니터링')) {
-            agentId = 'monitoringAgent';
-        } else if (stepName.includes('Prediction') || stepName.includes('예측')) {
-            agentId = 'predictionAgent';
-        } else if (stepName.includes('Control') || stepName.includes('제어')) {
-            agentId = 'controlAgent';
-        }
-        
-        if (!agentId) return;
-        
-        const agentElement = document.getElementById(agentId);
-        if (!agentElement) return;
-        
-        const indicator = agentElement.querySelector('.agent-indicator');
-        const statusText = agentElement.querySelector('.agent-status-text');
-        
-        // 모든 상태 클래스 제거
-        agentElement.classList.remove('offline', 'online', 'communicating', 'error');
-        if (indicator) {
-            indicator.classList.remove('offline', 'online', 'communicating', 'error');
-        }
-        
-        // 새로운 상태 적용
-        if (status === 'running') {
-            agentElement.classList.add('communicating');
-            if (indicator) indicator.classList.add('communicating');
-            if (statusText) statusText.textContent = '작업중';
-        } else if (status === 'completed') {
-            agentElement.classList.add('online');
-            if (indicator) indicator.classList.add('online');
-            if (statusText) statusText.textContent = '완료';
-        } else if (status === 'failed') {
-            agentElement.classList.add('error');
-            if (indicator) indicator.classList.add('error');
-            if (statusText) statusText.textContent = '오류';
-        } else {
-            agentElement.classList.add('offline');
-            if (indicator) indicator.classList.add('offline');
-            if (statusText) statusText.textContent = '대기';
-        }
-        
-        console.log(`🤖 에이전트 상태 업데이트: ${agentId} → ${status}`);
-    }
-
-    // 상세 로그 추가
-    addDetailLog(stepName, content, status, endTime) {
-        let processDetails = document.getElementById('processDetails');
-        
-        if (!processDetails) {
-            console.warn('processDetails element not found');
-            return;
-        }
-        
-        // 상세 로그 영역이 초기화되지 않았다면 초기화
-        if (!processDetails.querySelector('.details-header')) {
-            this.initializeDetailsArea(processDetails);
-        }
-        
-        const logContainer = processDetails.querySelector('.detail-logs');
-        if (!logContainer) return;
-        
-        // 새로운 로그 엔트리 생성
-        const logEntry = document.createElement('div');
-        logEntry.className = `detail-log status-${status}`;
-        
-        const currentTime = endTime ? new Date(endTime).toLocaleTimeString() : new Date().toLocaleTimeString();
-        
-        logEntry.innerHTML = `
-            <div class="detail-log-header">
-                <span class="detail-log-step">${stepName}</span>
-                <span class="detail-log-time">${currentTime}</span>
-            </div>
-            <div class="detail-log-content">${content}</div>
-            <div class="detail-log-status ${status}">${this.getStatusText(status)}</div>
-        `;
-        
-        // 최신 로그를 맨 위에 추가
-        logContainer.insertBefore(logEntry, logContainer.firstChild);
-        
-        // 로그가 너무 많아지면 오래된 것 제거 (최대 20개)
-        while (logContainer.children.length > 20) {
-            logContainer.removeChild(logContainer.lastChild);
-        }
-        
-        // 새로운 로그 추가 애니메이션
-        logEntry.style.opacity = '0';
-        logEntry.style.transform = 'translateY(-10px)';
-        setTimeout(() => {
-            logEntry.style.transition = 'all 0.3s ease';
-            logEntry.style.opacity = '1';
-            logEntry.style.transform = 'translateY(0)';
-        }, 50);
-        
-        console.log(`📝 상세 로그 추가: ${stepName} → ${status}`);
-    }
-
-    // 상세 정보 영역 초기화
-    initializeDetailsArea(processDetails) {
-        processDetails.innerHTML = `
-            <div class="details-header">
-                <h4 class="details-title">상세 진행 로그</h4>
-                <button class="details-clear-btn" onclick="webSocketManager.clearDetailLogs()">
-                    로그 지우기
-                </button>
-            </div>
-            <div class="detail-logs">
-                <!-- 상세 로그가 여기에 추가됩니다 -->
-            </div>
-        `;
-        console.log('✅ 상세 정보 영역 초기화 완료');
-    }
-
-    // 상세 로그 지우기
-    clearDetailLogs() {
-        const logContainer = document.querySelector('.detail-logs');
-        if (logContainer) {
-            logContainer.innerHTML = '';
-            console.log('🗑️ 상세 로그 모두 지워짐');
-        }
     }
 
     handleOrchestrateUpdate(data) {
@@ -847,7 +628,28 @@ class WebSocketManager {
 
     createProgressBar(container) {
         const progressBarHTML = `
-            
+            <div class="process-progress-bar">
+                <div class="progress-step">
+                    <div class="progress-indicator">1</div>
+                    <div class="progress-label">요청 분석</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">2</div>
+                    <div class="progress-label">데이터 수집</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">3</div>
+                    <div class="progress-label">AI 모델 실행</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">4</div>
+                    <div class="progress-label">결과 검증</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-indicator">5</div>
+                    <div class="progress-label">응답 생성</div>
+                </div>
+            </div>
         `;
         container.innerHTML = progressBarHTML;
     }
@@ -3616,64 +3418,9 @@ document.addEventListener('DOMContentLoaded', function () {
     window.processManager = new ProcessManager();
     // console.log('ProcessManager initialized:', window.processManager);
     
-    // 공정 진행 상태 사이드바 초기화
-    initializeProcessSidebar();
-    
     // 사이드바 메뉴 이벤트 리스너 추가
     initSidebarMenuEvents();
 });
-
-// 공정 진행 상태 사이드바 초기화
-function initializeProcessSidebar() {
-    const processSidebar = document.getElementById('processSidebar');
-    const processCloseBtn = document.getElementById('processCloseBtn');
-    const resizeHandle = document.getElementById('resizeHandle');
-    
-    if (!processSidebar) {
-        console.warn('processSidebar element not found');
-        return;
-    }
-    
-    // 닫기 버튼 이벤트 리스너
-    if (processCloseBtn) {
-        processCloseBtn.addEventListener('click', () => {
-            processSidebar.classList.remove('active');
-            console.log('🔒 사이드바 닫힘');
-        });
-    }
-    
-    // 크기 조절 핸들 이벤트 리스너
-    if (resizeHandle) {
-        let isResizing = false;
-        let startX = 0;
-        let startWidth = 0;
-
-        resizeHandle.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            startX = e.clientX;
-            startWidth = parseInt(document.defaultView.getComputedStyle(processSidebar).width, 10);
-            document.addEventListener('mousemove', doResize);
-            document.addEventListener('mouseup', stopResize);
-            e.preventDefault();
-        });
-
-        function doResize(e) {
-            if (!isResizing) return;
-            const newWidth = startWidth - (e.clientX - startX);
-            if (newWidth >= 400 && newWidth <= 800) {
-                processSidebar.style.width = newWidth + 'px';
-            }
-        }
-
-        function stopResize() {
-            isResizing = false;
-            document.removeEventListener('mousemove', doResize);
-            document.removeEventListener('mouseup', stopResize);
-        }
-    }
-    
-    console.log('✅ 공정 진행 상태 사이드바 초기화 완료');
-}
 
 // ===============================
 // 사이드바 메뉴 이벤트 처리

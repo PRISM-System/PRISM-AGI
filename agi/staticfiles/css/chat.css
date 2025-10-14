@@ -1670,7 +1670,23 @@ body {
     display: none;
 }
 
-/* 채팅 세션 삭제 버튼 */
+/* 채팅 세션 액션 버튼들 */
+.session-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.chat-session-item:hover .session-actions {
+    opacity: 1;
+}
+
+.session-edit-btn,
+.session-save-btn,
+.session-cancel-btn,
 .session-delete-btn {
     background: none;
     border: none;
@@ -1678,24 +1694,86 @@ body {
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
-    opacity: 0;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: auto;
     min-width: 20px;
     height: 20px;
 }
 
-.chat-session-item:hover .session-delete-btn {
-    opacity: 1;
+.session-edit-btn:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    transform: scale(1.1);
+}
+
+.session-save-btn:hover {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    transform: scale(1.1);
+}
+
+.session-cancel-btn:hover {
+    background: rgba(156, 163, 175, 0.1);
+    color: #6b7280;
+    transform: scale(1.1);
 }
 
 .session-delete-btn:hover {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
     transform: scale(1.1);
+}
+
+/* 편집 모드 스타일 */
+.chat-session-item.editing {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+}
+
+.chat-session-item.editing .session-actions {
+    opacity: 1;
+}
+
+.session-title-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.session-title-input:focus {
+    border-color: #3b82f6;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* 축소된 사이드바에서 액션 버튼들 숨기기 */
+.chat-sidebar.collapsed .session-actions {
+    display: none;
+}
+
+/* 기존 삭제 버튼 스타일 제거 (새로운 액션 그룹으로 대체됨) */
+.session-delete-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
 }
 
 .chat-session-item.active .session-delete-btn {

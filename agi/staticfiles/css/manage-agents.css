@@ -208,6 +208,7 @@ body:has(.agents-manager-container) .chat-sidebar.collapsed ~ .chat-main,
     flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 30px;
+    justify-content: center;
 }
 
 .agent-card {
