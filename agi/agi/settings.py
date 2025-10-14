@@ -9,6 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-h^l^qa_6n@e9!qj#u*!_f&501fx&9)t3m0bpnjwow(b#@nmepf'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+FORCE_SCRIPT_NAME = '/django/agi'
+
 
 # ----------------------
 # CORS / CSRF

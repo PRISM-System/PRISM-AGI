@@ -20,7 +20,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from proxy import views as proxy_views
 from agiApp import views as agi_views
-from agiApp import websocket_views
 from agiApp import proxy_views as agi_proxy_views
 
 # Swagger 설정
