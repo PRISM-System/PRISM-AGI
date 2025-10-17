@@ -10,10 +10,10 @@ class WebSocketManager {
     }
 
     connectOrchestrateSocket(sessionId) {
-        console.log('=== WebSocket 연결 시도 ===');
-        console.log('전달받은 sessionId:', sessionId);
-        console.log('sessionId 타입:', typeof sessionId);
-        console.log('sessionId 길이:', sessionId?.length);
+        // console.log('=== WebSocket 연결 시도 ===');
+        // console.log('전달받은 sessionId:', sessionId);
+        // console.log('sessionId 타입:', typeof sessionId);
+        // console.log('sessionId 길이:', sessionId?.length);
         
         if (this.orchestrateSocket && this.orchestrateSocket.readyState === WebSocket.OPEN) {
             console.log('WebSocket already connected for session:', this.currentSessionId);
@@ -25,39 +25,39 @@ class WebSocketManager {
         const wsHost = 'grnd.bimatrix.co.kr';
         const wsUrl = `${wsProtocol}//${wsHost}/django/ws/orchestrate/${sessionId}/`;
         
-        console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
-        console.log(`📡 Session ID: ${sessionId}`);
+        // console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
+        // console.log(`📡 Session ID: ${sessionId}`);
         
         this.orchestrateSocket = new WebSocket(wsUrl);
 
         this.orchestrateSocket.onopen = (event) => {
-            console.log('✅ Orchestrate WebSocket 연결 성공!');
-            console.log('연결된 세션 ID:', this.currentSessionId);
-            console.log('WebSocket 상태:', this.orchestrateSocket.readyState);
+            // console.log('✅ Orchestrate WebSocket 연결 성공!');
+            // console.log('연결된 세션 ID:', this.currentSessionId);
+            // console.log('WebSocket 상태:', this.orchestrateSocket.readyState);
             this.reconnectAttempts = 0;
         };
 
         this.orchestrateSocket.onmessage = (event) => {
-            console.log('=== 📨 RAW WebSocket Message Received ===');
-            console.log('Event:', event);
-            console.log('현재 시간:', new Date().toLocaleTimeString());
-            console.log('세션 ID:', this.currentSessionId);
-            console.log('Event data:', event.data);
-            console.log('Event data type:', typeof event.data);
+            // console.log('=== 📨 RAW WebSocket Message Received ===');
+            // console.log('Event:', event);
+            // console.log('현재 시간:', new Date().toLocaleTimeString());
+            // console.log('세션 ID:', this.currentSessionId);
+            // console.log('Event data:', event.data);
+            // console.log('Event data type:', typeof event.data);
             
             try {
                 const data = JSON.parse(event.data);
-                console.log('Parsed WebSocket data:', data);
-                console.log('Message type:', data.type);
+                // console.log('Parsed WebSocket data:', data);
+                // console.log('Message type:', data.type);
                 
                 if (data.type === 'step_update') {
-                    console.log('Handling step_update');
+                    // console.log('Handling step_update');
                     this.handleStepUpdate(data);
                 } else if (data.type === 'orchestrate_update') {
-                    console.log('Handling orchestrate_update');
+                    // console.log('Handling orchestrate_update');
                     this.handleOrchestrateUpdate(data);
                 } else {
-                    console.log('Unknown message type:', data.type);
+                    // console.log('Unknown message type:', data.type);
                 }
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
@@ -66,7 +66,7 @@ class WebSocketManager {
         };
 
         this.orchestrateSocket.onclose = (event) => {
-            console.log('Orchestrate WebSocket disconnected');
+            // console.log('Orchestrate WebSocket disconnected');
             this.reconnectSocket();
         };
 
@@ -78,61 +78,58 @@ class WebSocketManager {
     }
 
     handleStepUpdate(data) {
-        console.log('=== handleStepUpdate 호출됨 ===');
-        console.log('Step update data:', data);
+        // console.log('=== handleStepUpdate 호출됨 ===');
+        // console.log('Step update data:', data);
         
         const { step_name, status, content, progress } = data;
-        console.log('Extracted data:', { step_name, status, content, progress });
+        // console.log('Extracted data:', { step_name, status, content, progress });
         
         // ✅ 채팅창에는 표시하지 않고 사이드바에만 표시
-        console.log('🔄 사이드바 업데이트만 진행 (채팅창 업데이트 제외)');
+        // console.log('🔄 사이드바 업데이트만 진행 (채팅창 업데이트 제외)');
         
         // 사이드바 업데이트
         this.updateProcessSidebar(data);
     }
 
-    /* 
-    // ✅ 채팅창에 표시하지 않으므로 주석처리
+    // 우측 사이드바에 단계별 메시지 카드 생성
     createStepMessage(stepName, status, content, progress) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ai step-message';
+        messageDiv.className = 'process-step step-message';
         messageDiv.id = `step-${stepName}`;
 
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar ai-avatar';
-        avatarDiv.textContent = '🔄';
+        const stepNameKorean = this.getKoreanStepName(stepName);
+        const statusIcon = this.getStatusIcon(status);
+        const statusClass = this.getStatusClass(status);
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'step-header';
-        headerDiv.innerHTML = `
-            <strong>📊 ${stepName}</strong>
-            <span class="step-status status-${status}">${this.getStatusText(status)}</span>
-            <span class="step-progress">${progress}%</span>
+        messageDiv.innerHTML = `
+            <div class="step-header">
+                <div class="step-info">
+                    <span class="step-icon ${statusClass}">${statusIcon}</span>
+                    <span class="step-name">${stepNameKorean}</span>
+                </div>
+                <span class="step-progress">${progress}%</span>
+            </div>
+            <div class="step-content">
+                <p class="step-description">${this.formatContent(content)}</p>
+            </div>
         `;
-
-        const bodyDiv = document.createElement('div');
-        bodyDiv.className = 'step-content';
-        bodyDiv.innerHTML = this.formatContent(content);
-
-        contentDiv.appendChild(headerDiv);
-        contentDiv.appendChild(bodyDiv);
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(contentDiv);
+        
+        messageDiv.className = `process-step ${statusClass}`;
 
         return messageDiv;
     }
 
     updateStepMessage(messageElement, status, content, progress) {
-        const statusElement = messageElement.querySelector('.step-status');
+        const statusIcon = this.getStatusIcon(status);
+        const statusClass = this.getStatusClass(status);
+        
+        const iconElement = messageElement.querySelector('.step-icon');
         const progressElement = messageElement.querySelector('.step-progress');
-        const contentElement = messageElement.querySelector('.step-content');
+        const contentElement = messageElement.querySelector('.step-description');
 
-        if (statusElement) {
-            statusElement.className = `step-status status-${status}`;
-            statusElement.textContent = this.getStatusText(status);
+        if (iconElement) {
+            iconElement.className = `step-icon ${statusClass}`;
+            iconElement.textContent = statusIcon;
         }
 
         if (progressElement) {
@@ -142,8 +139,10 @@ class WebSocketManager {
         if (contentElement && content) {
             contentElement.innerHTML = this.formatContent(content);
         }
+        
+        // 전체 요소 클래스 업데이트
+        messageElement.className = `process-step ${statusClass}`;
     }
-    */
 
     getStatusText(status) {
         const statusMap = {
@@ -165,8 +164,8 @@ class WebSocketManager {
     }
 
     updateProcessSidebar(data) {
-        console.log('=== updateProcessSidebar 호출됨 ===');
-        console.log('Sidebar update data:', data);
+        // console.log('=== updateProcessSidebar 호출됨 ===');
+        // console.log('Sidebar update data:', data);
         
         const { step_name, status, content, progress, end_time } = data;
         const processSidebar = document.getElementById('processSidebar');
@@ -186,7 +185,7 @@ class WebSocketManager {
         
         // ✅ 전체 진행률 업데이트 (progress 값 직접 사용)
         if (progress !== undefined) {
-            console.log(`🎯 진행률 직접 설정: ${progress}%`);
+            // console.log(`🎯 진행률 직접 설정: ${progress}%`);
             this.updateOverallProgressDirect(progress);
         } else {
             this.updateOverallProgress(); // 기존 방식
@@ -195,11 +194,11 @@ class WebSocketManager {
         // 사이드바 표시
         processSidebar.classList.add('active');
         processSidebar.style.display = 'flex';
-        console.log('📱 사이드바 활성화됨');
+        // console.log('📱 사이드바 활성화됨');
         
         // ✅ 100% 완료 시 완료 상태로 표시
         if (progress === 100) {
-            console.log('🎯 진행률 100% 달성 - 완료 상태로 변경');
+            // console.log('🎯 진행률 100% 달성 - 완료 상태로 변경');
             setTimeout(() => {
                 const progressFill = document.getElementById('overallProgressFill');
                 const progressText = document.getElementById('overallProgressText');
@@ -207,14 +206,14 @@ class WebSocketManager {
                 if (progressFill) {
                     progressFill.style.width = '100%';
                     progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-                    console.log('✅ 진행률 바 100% 완료 스타일 적용');
+                    // console.log('✅ 진행률 바 100% 완료 스타일 적용');
                 }
                 
                 if (progressText) {
                     progressText.textContent = '100% 완료';
                     progressText.style.color = '#059669';
                     progressText.style.fontWeight = 'bold';
-                    console.log('✅ 진행률 텍스트 완료 스타일 적용');
+                    // console.log('✅ 진행률 텍스트 완료 스타일 적용');
                 }
                 
                 // 완료 효과 추가
@@ -222,7 +221,7 @@ class WebSocketManager {
                 if (processHeader) {
                     processHeader.style.background = 'linear-gradient(135deg, #059669, #047857)';
                     processHeader.style.transition = 'background 0.5s ease';
-                    console.log('✅ 헤더 완료 스타일 적용');
+                    // console.log('✅ 헤더 완료 스타일 적용');
                 }
                 
             }, 300); // 0.3초 후 스타일 적용
@@ -230,43 +229,9 @@ class WebSocketManager {
     }
 
     initializeProcessSidebar(sidebar) {
-        sidebar.innerHTML = `
-            <!-- 크기 조절 핸들 -->
-            <div class="resize-handle" id="resizeHandle"></div>
-            
-            <div class="process-header">
-                <div>
-                    <h3 class="process-title">공정 진행 상태</h3>
-                    <button class="process-close-btn" id="processCloseBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- 전체 진행률 -->
-                <div class="overall-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
-                    </div>
-                    <span class="progress-text" id="overallProgressText">0%</span>
-                </div>
-            </div>
-            
-            <div class="process-content" id="processContent">
-                <div class="process-steps" id="processSteps">
-                    <!-- 단계별 정보가 동적으로 추가됩니다 -->
-                </div>
-            </div>
-        `;
-
-        // 닫기 버튼 이벤트 리스너
-        const closeBtn = sidebar.querySelector('#processCloseBtn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                sidebar.style.display = 'none';
-            });
-        }
+        // console.log('📌 initializeProcessSidebar 호출됨 - HTML에 이미 구조가 있으므로 스킵');
+        // HTML 템플릿에 이미 구조가 포함되어 있으므로 
+        // 이 메서드는 더 이상 필요하지 않지만 호환성을 위해 유지
 
         // 크기 조절 핸들 이벤트 리스너
         const resizeHandle = sidebar.querySelector('#resizeHandle');
@@ -312,45 +277,33 @@ class WebSocketManager {
         
         console.log('✅ processSteps 요소 찾음:', processSteps);
 
-        // 단계 이름을 한국어로 변환
-        const stepNameKorean = this.getKoreanStepName(stepName);
-        console.log(`단계명 변환: ${stepName} → ${stepNameKorean}`);
-        
-        // 기존 단계 요소 찾기 또는 생성
-        let stepElement = document.getElementById(`sidebar-step-${stepName}`);
+        // 기존 단계 메시지 찾기
+        let stepElement = document.getElementById(`step-${stepName}`);
         
         if (!stepElement) {
-            console.log('새로운 단계 요소 생성:', `sidebar-step-${stepName}`);
-            stepElement = document.createElement('div');
-            stepElement.className = 'process-step';
-            stepElement.id = `sidebar-step-${stepName}`;
+            // 새로운 단계 메시지 카드 생성
+            console.log('새로운 단계 메시지 카드 생성:', stepName);
+            stepElement = this.createStepMessage(stepName, status, content, progress);
             processSteps.appendChild(stepElement);
-            console.log('✅ 단계 요소가 processSteps에 추가됨');
+            console.log('✅ 단계 메시지 카드가 processSteps에 추가됨');
         } else {
-            console.log('기존 단계 요소 업데이트:', `sidebar-step-${stepName}`);
+            // 기존 단계 메시지 업데이트
+            console.log('기존 단계 메시지 업데이트:', stepName);
+            this.updateStepMessage(stepElement, status, content, progress);
         }
-
-        // 상태에 따른 아이콘
-        const statusIcon = this.getStatusIcon(status);
-        const statusClass = this.getStatusClass(status);
         
-        stepElement.innerHTML = `
-            <div class="step-header">
-                <div class="step-info">
-                    <span class="step-icon ${statusClass}">${statusIcon}</span>
-                    <span class="step-name">${stepNameKorean}</span>
-                </div>
-                <span class="step-progress">${progress}%</span>
-            </div>
-            <div class="step-content">
-                <p class="step-description">${content}</p>
-                ${endTime ? `<span class="step-time">${new Date(endTime).toLocaleTimeString()}</span>` : ''}
-            </div>
-        `;
+        // 완료 시간 추가/업데이트
+        if (endTime) {
+            let timeElement = stepElement.querySelector('.step-time');
+            if (!timeElement) {
+                timeElement = document.createElement('span');
+                timeElement.className = 'step-time';
+                stepElement.querySelector('.step-content').appendChild(timeElement);
+            }
+            timeElement.textContent = new Date(endTime).toLocaleTimeString();
+        }
         
-        stepElement.className = `process-step ${statusClass}`;
-        
-        console.log('✅ 단계 요소 HTML 업데이트 완료');
+        console.log('✅ 단계 메시지 업데이트 완료');
         console.log('현재 processSteps 자식 요소 수:', processSteps.children.length);
     }
 
@@ -1551,16 +1504,7 @@ class ProcessManager {
     }
     
     initEventListeners() {
-        // console.log('Initializing event listeners');
-        // console.log('Process close button:', this.processCloseBtn);
-        // console.log('Resize handle:', this.resizeHandle);
-        
-        if (this.processCloseBtn) {
-            this.processCloseBtn.addEventListener('click', () => {
-                // console.log('Close button clicked');
-                this.hideSidebar();
-            });
-        }
+        // 닫기 버튼은 DOMContentLoaded에서 등록됨
         
         // 크기 조절 핸들 이벤트
         if (this.resizeHandle) {
@@ -1629,9 +1573,8 @@ class ProcessManager {
     }
     
     updateStatus(text, type = 'processing') {
-        // processStatus 요소가 없으면 생략
+        // processStatus 요소가 없으면 조용히 무시 (선택적 기능)
         if (!this.processStatus) {
-            console.log('processStatus element not found, skipping status update');
             return;
         }
         
@@ -3546,6 +3489,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // ProcessManager 초기화
     window.processManager = new ProcessManager();
     // console.log('ProcessManager initialized:', window.processManager);
+    
+    // 우측 사이드바 닫기 버튼 이벤트
+    const processCloseBtn = document.getElementById('processCloseBtn');
+    const processSidebar = document.getElementById('processSidebar');
+    if (processCloseBtn && processSidebar) {
+        processCloseBtn.addEventListener('click', () => {
+            processSidebar.classList.remove('active');
+            console.log('🔴 사이드바 닫힘');
+        });
+    }
     
     // 사이드바 메뉴 이벤트 리스너 추가
     initSidebarMenuEvents();

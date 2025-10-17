@@ -791,7 +791,7 @@ async function loadAvailableTools() {
         return;
     }
     
-    console.log('도구 목록 로드 시작...');
+    // console.log('도구 목록 로드 시작...');
     
     try {
         // console.log('API 요청 시작: https://grnd.bimatrix.co.kr/django/api/tools/');
