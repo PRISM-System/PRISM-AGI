@@ -22,14 +22,14 @@ from drf_yasg import openapi
 logger = logging.getLogger(__name__)
 
 # 외부 서버 설정
-ORCHESTRATE_API_BASE_URL = 'http://147.47.39.144:8100'
+ORCHESTRATE_API_BASE_URL = 'http://192.168.0.57:8100'
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def proxy_orchestrate(request):
     """
-    Orchestrate API 전용 프록시 - 147.47.39.144:8100으로 전달
+    Orchestrate API 전용 프록시 - 192.168.0.57:8100으로 전달
     """
     try:
         # 요청 데이터 파싱
