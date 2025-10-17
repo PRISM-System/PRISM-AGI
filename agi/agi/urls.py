@@ -56,11 +56,11 @@ urlpatterns = [
     # WebSocket API 엔드포인트 - 외부에서 단계별 업데이트를 받는 엔드포인트
     path('django/api/websocket/orchestrate/update/', agi_proxy_views.WebSocketUpdateView.as_view(), name='websocket_update_endpoint'),
     
-    # 도구 관리 API - 직접 뷰 함수 매핑
+    # 도구 관리 API - 외부 서버로 프록시 (192.168.0.57:8000)
     path('django/api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),
     path('django/api/tools/<str:tool_name>/', proxy_views.proxy_tool_detail, name='proxy-tool-detail'),
     
-    # 에이전트 관리 API - 외부 서버로 프록시
+    # 에이전트 관리 API - 외부 서버로 프록시 (192.168.0.57:8000)
     path('django/api/agents/', proxy_views.proxy_api, {'path': 'api/agents'}, name='proxy-agents-list'),
     path('django/api/agents/<str:agent_name>/invoke', proxy_views.proxy_agent_invoke, name='proxy-agent-invoke'),
     path('django/api/agents/<str:agent_name>/', proxy_views.proxy_agent_detail, name='proxy-agent-detail'),

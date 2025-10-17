@@ -64,7 +64,7 @@ class ActivityLogger {
             }
 
             const result = await response.json();
-            console.log('Activity logged:', result);
+            //console.log('Activity logged:', result);
             return result;
 
         } catch (error) {
@@ -329,4 +329,4 @@ window.logSessionDelete = (id, title, details) => window.activityLogger.logSessi
 window.logSessionRename = (id, oldTitle, newTitle, details) => window.activityLogger.logSessionRename(id, oldTitle, newTitle, details);
 window.logError = (message, error, details) => window.activityLogger.logError(message, error, details);
 
-console.log('Activity Logger initialized');
+// console.log('Activity Logger initialized');
