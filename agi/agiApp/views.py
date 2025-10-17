@@ -464,12 +464,12 @@ def websocket_test(request):
         const sessionId = 'user_1234_task_1';
         const wsUrl = `ws://127.0.0.1:8000/ws/orchestrate/${sessionId}/`;
         
-        console.log('Attempting WebSocket connection to:', wsUrl);
+        // console.log('Attempting WebSocket connection to:', wsUrl);
         
         const socket = new WebSocket(wsUrl);
         
         socket.onopen = function(event) {
-            console.log('WebSocket connected!');
+            // console.log('WebSocket connected!');
             document.getElementById('status').innerHTML = '<span style="color: green;">Connected!</span>';
             
             // Test sending a message
@@ -480,7 +480,7 @@ def websocket_test(request):
         };
         
         socket.onmessage = function(event) {
-            console.log('Received message:', event.data);
+            // console.log('Received message:', event.data);
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML += `<div>Received: ${event.data}</div>`;
         };
@@ -491,7 +491,7 @@ def websocket_test(request):
         };
         
         socket.onclose = function(event) {
-            console.log('WebSocket closed:', event.code, event.reason);
+            // console.log('WebSocket closed:', event.code, event.reason);
             document.getElementById('status').innerHTML = '<span style="color: orange;">Connection closed</span>';
         };
         
