@@ -87,7 +87,7 @@ async function loadAgentForEdit(agentName) {
         // console.log('Loading agent for edit:', agentName);
         
         // 에이전트 목록에서 해당 에이전트 찾기
-        const response = await fetch('https://grnd.bimatrix.co.kr/django/api/agents/', {
+        const response = await fetch('https://grnd.bimatrix.co.kr/django/agi/api/agents/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -674,7 +674,7 @@ async function createAgent() {
             // console.log('CSRF 토큰:', getCsrfToken());
 
             // 에이전트 생성 (POST 방식만 사용)
-            const url = 'https://grnd.bimatrix.co.kr/django/api/agents/';
+            const url = 'https://grnd.bimatrix.co.kr/django/agi/api/agents/';
             const method = 'POST';
             
             // console.log('Creating agent with URL:', url, 'Method:', method);
@@ -720,9 +720,9 @@ async function createAgent() {
                     const urlParams = new URLSearchParams(window.location.search);
                     const userId = urlParams.get('user_id');
                     if (userId) {
-                        window.location.href = `/django/index/?user_id=${userId}`;
+                        window.location.href = `/django/agi/index/?user_id=${userId}`;
                     } else {
-                        window.location.href = '/django/';
+                        window.location.href = '/django/agi/';
                     }
                 }, 1000);
                 
@@ -794,8 +794,8 @@ async function loadAvailableTools() {
     // console.log('도구 목록 로드 시작...');
     
     try {
-        // console.log('API 요청 시작: https://grnd.bimatrix.co.kr/django/api/tools/');
-        const response = await fetch('https://grnd.bimatrix.co.kr/django/api/tools/');
+        // console.log('API 요청 시작: https://grnd.bimatrix.co.kr/django/agi/api/tools/');
+        const response = await fetch('https://grnd.bimatrix.co.kr/django/agi/api/tools/');
         // console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {

@@ -1377,7 +1377,6 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     border-radius: 6px;
-    margin: 2px 8px;
 }
 
 .agent-item:hover {
@@ -1529,7 +1528,6 @@ body {
 }
 
 .chat-session-item.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
 }
 
@@ -1740,7 +1738,6 @@ body {
     gap: 8px;
     cursor: pointer;
     width: 100%;
-    padding: 8px 12px;
     border-radius: 8px;
     transition: all 0.2s ease;
     position: relative;
@@ -1748,7 +1745,7 @@ body {
 
 /* 에이전트 라벨 호버 효과 */
 .agent-label:hover {
-    background: rgba(255, 255, 255, 0.05);
+    
 }
 
 /* 선택된 에이전트 스타일 */

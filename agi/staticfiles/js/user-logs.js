@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (endDate) params.append('end_date', endDate + 'T23:59:59');
             if (search) params.append('search', search);
             
-            const response = await fetch(`/django/api/user-logs/?${params}`);
+            const response = await fetch(`/django/agi/user-logs/?${params}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

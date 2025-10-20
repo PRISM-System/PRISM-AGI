@@ -150,7 +150,7 @@ def send_websocket_update(session_id, data):
 class WebSocketUpdateView(APIView):
     """
     외부 서버가 WebSocket 업데이트를 보낼 수 있는 엔드포인트
-    grnd.bimatrix.co.kr/django/api/websocket/orchestrate/update/ 로 들어오는 요청 처리
+    grnd.bimatrix.co.kr/django/agi/api/websocket/orchestrate/update/ 로 들어오는 요청 처리
     """
     permission_classes = [AllowAny]
     

@@ -39,7 +39,7 @@ function selectInstitution(userId, institutionName) {
     setTimeout(() => {
         // /django/ 페이지로 이동하면서 user_id 전달
         // 기관 선택 완료 후 채팅 페이지로 이동
-        window.location.href = `/django/index/?user_id=${userId}`;
+        window.location.href = `/django/agi/index/?user_id=${userId}`;
     }, 300);
 }
 

@@ -50,8 +50,19 @@ class UserActivityLog(models.Model):
     def log_activity(cls, action_type, message, level='INFO', details=None, user_id=None, request=None):
         """활동 로그 생성 헬퍼 메서드"""
         if not user_id:
-            # user_id가 제공되지 않으면 기본값 사용
-            user_id = 'user_1234'
+            # user_id가 제공되지 않으면 request에서 추출 시도
+            if request:
+                # POST 데이터에서 user_id 추출 시도
+                if hasattr(request, 'data') and 'user_id' in request.data:
+                    user_id = request.data.get('user_id')
+                # GET 파라미터에서 user_id 추출 시도
+                elif hasattr(request, 'GET') and 'user_id' in request.GET:
+                    user_id = request.GET.get('user_id')
+            
+            # 그래도 없으면 기본값 사용
+            if not user_id:
+                user_id = 'anonymous_user'
+                print(f"WARNING: user_id가 제공되지 않아 '{user_id}'로 설정됩니다. action_type={action_type}, message={message[:50]}")
             
         log_data = {
             'user_id': user_id,

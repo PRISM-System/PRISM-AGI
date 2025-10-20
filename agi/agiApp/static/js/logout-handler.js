@@ -20,7 +20,7 @@ function getCurrentUserId() {
 // 로그아웃 함수 (기관 선택 페이지로 이동)
 function handleLogout() {
     if (confirm('로그아웃하시겠습니까? 기관 선택 페이지로 이동합니다.')) {
-        window.location.href = '/django/';
+        window.location.href = '/django/agi/';
     }
 }
 
@@ -32,7 +32,7 @@ function checkUserIdAndRedirect() {
     // user_id가 없으면 landing 페이지로 리다이렉트
     if (!userId) {
         console.log('user_id가 없어 기관 선택 페이지로 이동합니다.');
-        window.location.href = '/django/';
+        window.location.href = '/django/agi/';
         return false;
     }
     
@@ -66,49 +66,49 @@ document.addEventListener('DOMContentLoaded', function() {
 // 네비게이션 헬퍼 함수들
 function goToChat() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/index/?user_id=${userId}` : '/django/index/';
+    const url = userId ? `/django/agi/index/?user_id=${userId}` : '/django/agi/index/';
     window.location.href = url;
 }
 
 function goToUserLogs() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/user-logs/?user_id=${userId}` : '/django/user-logs/';
+    const url = userId ? `/django/agi/user-logs/?user_id=${userId}` : '/django/agi/user-logs/';
     window.location.href = url;
 }
 
 function goToServerLogs() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/server-logs/?user_id=${userId}` : '/django/server-logs/';
+    const url = userId ? `/django/agi/server-logs/?user_id=${userId}` : '/django/agi/server-logs/';
     window.location.href = url;
 }
 
 function goToManageTools() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/manage-tools/?user_id=${userId}` : '/django/manage-tools/';
+    const url = userId ? `/django/agi/manage-tools/?user_id=${userId}` : '/django/agi/manage-tools/';
     window.location.href = url;
 }
 
 function goToManageAgents() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/manage-agents/?user_id=${userId}` : '/django/manage-agents/';
+    const url = userId ? `/django/agi/manage-agents/?user_id=${userId}` : '/django/agi/manage-agents/';
     window.location.href = url;
 }
 
 function goToManageRegulations() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/manage-regulations/?user_id=${userId}` : '/django/manage-regulations/';
+    const url = userId ? `/django/agi/manage-regulations/?user_id=${userId}` : '/django/agi/manage-regulations/';
     window.location.href = url;
 }
 
 function goToDashboard() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/dashboard/?user_id=${userId}` : '/django/dashboard/';
+    const url = userId ? `/django/agi/dashboard/?user_id=${userId}` : '/django/agi/dashboard/';
     window.location.href = url;
 }
 
 function navigateToIndex() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/index/?user_id=${userId}` : '/django/';
+    const url = userId ? `/django/agi/index/?user_id=${userId}` : '/django/agi/';
     window.location.href = url;
 }
 

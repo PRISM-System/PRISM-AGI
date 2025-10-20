@@ -33,9 +33,9 @@ function initializeAgentCreator() {
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             if (userId) {
-                window.location.href = `/django/index/?user_id=${userId}`;
+                window.location.href = `/django/agi/index/?user_id=${userId}`;
             } else {
-                window.location.href = '/django/';
+                window.location.href = '/django/agi/';
             }
         });
     }
@@ -338,7 +338,7 @@ async function createAgent() {
             });
         }
 
-        const response = await fetch('/django/api/agents', {
+        const response = await fetch('/django/agi/api/agents', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrfToken()
@@ -362,9 +362,9 @@ async function createAgent() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const userId = urlParams.get('user_id');
                 if (userId) {
-                    window.location.href = `/django/index/?user_id=${userId}`;
+                    window.location.href = `/django/agi/index/?user_id=${userId}`;
                 } else {
-                    window.location.href = '/django/';
+                    window.location.href = '/django/agi/';
                 }
             }, 1000);
             

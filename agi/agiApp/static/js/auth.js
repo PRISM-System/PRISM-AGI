@@ -115,7 +115,7 @@ async function checkEmailDuplicate(email) {
     if (!isValidEmail(email)) return;
     
     try {
-        const response = await fetch('/django/api/check-email/', {
+        const response = await fetch('/django/agi/check-email/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

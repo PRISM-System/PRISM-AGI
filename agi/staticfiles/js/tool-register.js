@@ -134,7 +134,7 @@ class ToolRegister {
             }
 
             // API 요청 - 외부 API를 통해 도구 등록
-            const response = await fetch('/django/api/tools/', {
+            const response = await fetch('/django/agi/api/tools/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

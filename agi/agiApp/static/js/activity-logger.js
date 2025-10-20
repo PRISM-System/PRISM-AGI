@@ -19,12 +19,14 @@ function getCurrentUserId() {
 
 class ActivityLogger {
     constructor() {
-        this.apiUrl = '/django/api/user-logs/';
+        this.apiUrl = '/django/agi/api/user-logs/';
         this.userId = getCurrentUserId(); // 기관별 사용자 ID 가져오기
         this.isEnabled = this.userId ? true : false; // user_id가 없으면 로깅 비활성화
         
         if (!this.userId) {
             console.warn('user_id가 없어 ActivityLogger를 비활성화합니다.');
+        } else {
+            console.log(`ActivityLogger 초기화 완료. user_id: ${this.userId}`);
         }
     }
 
@@ -49,6 +51,8 @@ class ActivityLogger {
                 details: details,
                 user_id: this.userId
             };
+            
+            console.log('로그 전송 중:', logData);
 
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
@@ -64,7 +68,7 @@ class ActivityLogger {
             }
 
             const result = await response.json();
-            //console.log('Activity logged:', result);
+            console.log('로그 전송 성공:', result);
             return result;
 
         } catch (error) {

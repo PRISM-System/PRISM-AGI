@@ -21,9 +21,9 @@ class AgentManager {
                 const urlParams = new URLSearchParams(window.location.search);
                 const userId = urlParams.get('user_id');
                 if (userId) {
-                    window.location.href = `/django/create-agent/?user_id=${userId}`;
+                    window.location.href = `/django/agi/create-agent/?user_id=${userId}`;
                 } else {
-                    window.location.href = '/django/create-agent/';
+                    window.location.href = '/django/agi/create-agent/';
                 }
             });
         }
@@ -135,7 +135,7 @@ class AgentManager {
     async fetchAgentsFromAPI() {
         try {
             // 외부 API에서 에이전트 목록 가져오기
-            const response = await fetch('/django/api/agents/');
+            const response = await fetch('/django/agi/api/agents/');
 
             if (!response.ok) {
                 throw new Error(`API 요청 실패: ${response.status}`);
@@ -385,7 +385,7 @@ class AgentManager {
     //     }
     //     
     //     // 에이전트 편집 페이지로 이동 - agent.name을 사용
-    //     window.location.href = `/django/create-agent/?edit=${encodeURIComponent(agent.name)}`;
+    //     window.location.href = `/django/agi/create-agent/?edit=${encodeURIComponent(agent.name)}`;
     // }
 
     deleteAgent(agent) {
@@ -405,7 +405,7 @@ class AgentManager {
             }
 
             // API 호출로 에이전트 삭제
-            const response = await fetch(`/django/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
+            const response = await fetch(`/django/agi/api/agents/${encodeURIComponent(this.selectedAgent.name)}/`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

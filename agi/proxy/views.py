@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 # 원격 서버 설정
 # settings.py에서 PROXY_REMOTE_SERVER 값을 가져오고, 없으면 기본값 사용
 REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://192.168.0.57:8000')
+LLM_SERVER = 'http://192.168.11.105:11300'
+LLM_MODEL = '/root/models/openai/gpt-oss-120b'
 
 def create_cors_response():
     """CORS Preflight 응답 생성"""
@@ -223,7 +225,7 @@ def proxy_generate(request):
 def proxy_tool_detail(request, tool_name):
     """
     개별 도구에 대한 API 요청을 원격 서버로 프록시합니다.
-    /django/api/tools/<tool_name> -> http://192.168.0.57:8000/django/api/tools/<tool_name>
+    /django/agi/api/tools/<tool_name> -> http://192.168.0.57:8000/django/agi/api/tools/<tool_name>
     """
     
     # OPTIONS 요청 처리
@@ -234,7 +236,7 @@ def proxy_tool_detail(request, tool_name):
     TOOL_SERVER = "http://192.168.0.57:8000"
     
     try:
-        url = f"{TOOL_SERVER}/django/api/tools/{tool_name}"
+        url = f"{TOOL_SERVER}/django/agi/api/tools/{tool_name}"
         logger.info(f"Proxying {request.method} request to {url}")
         
         # 요청 메서드에 따라 처리
@@ -933,4 +935,96 @@ def proxy_orchestrate(request):
             "Orchestrate API 호출 실패",
             503,
             details={"message": str(e), "orchestrate_server": "http://192.168.0.57:8100"}
+        )
+
+
+@csrf_exempt
+def proxy_llm_agent(request):
+    """
+    LLM Agent API 프록시 - 192.168.11.105:11300의 gpt-oss-120b 모델 호출
+    /django/llm_agent/ -> http://192.168.11.105:11300/v1/chat/completions
+    """
+    
+    # OPTIONS 요청 처리 (CORS preflight)
+    if request.method == 'OPTIONS':
+        return create_cors_response()
+    
+    # POST 요청만 허용
+    if request.method != 'POST':
+        return create_error_response("Only POST method is allowed", 405)
+    
+    try:
+        # 요청 데이터 파싱
+        if request.body:
+            request_data = json.loads(request.body)
+        else:
+            request_data = {}
+        
+        # 모델이 지정되지 않은 경우 기본 모델 사용
+        if 'model' not in request_data:
+            request_data['model'] = LLM_MODEL
+        
+        # LLM 서버로 요청 전달
+        url = f"{LLM_SERVER}/v1/chat/completions"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer TEST'
+        }
+        
+        logger.info(f"Proxying LLM request to {url}")
+        logger.info(f"Request data: {json.dumps(request_data, ensure_ascii=False)[:200]}...")
+        
+        # 원격 LLM 서버 호출
+        remote_response = requests.post(
+            url,
+            json=request_data,
+            headers=headers,
+            timeout=60  # LLM 응답 대기 시간
+        )
+        
+        logger.info(f"LLM server response: {remote_response.status_code}")
+        
+        # 응답 처리
+        try:
+            data = remote_response.json()
+            response = JsonResponse(data, safe=False, status=remote_response.status_code)
+        except json.JSONDecodeError:
+            # JSON 파싱 실패 시 원본 응답 전달
+            response = HttpResponse(
+                remote_response.content,
+                content_type=remote_response.headers.get('content-type', 'application/json'),
+                status=remote_response.status_code
+            )
+        
+        # CORS 헤더 추가
+        add_cors_headers(response)
+        return response
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in request: {e}")
+        return create_error_response(
+            "Invalid JSON in request body",
+            400,
+            details={"message": str(e)}
+        )
+    except requests.exceptions.Timeout:
+        logger.error("LLM server timeout")
+        return create_error_response(
+            "LLM server timeout",
+            504,
+            details={"message": "Request to LLM server timed out", "llm_server": LLM_SERVER}
+        )
+    except requests.exceptions.RequestException as e:
+        logger.error(f"LLM server connection failed: {e}")
+        return create_error_response(
+            "LLM server connection failed",
+            503,
+            details={"message": str(e), "llm_server": LLM_SERVER}
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in LLM proxy: {e}")
+        return create_error_response(
+            "Internal server error",
+            500,
+            details={"message": str(e)}
         )

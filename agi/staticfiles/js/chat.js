@@ -23,7 +23,7 @@ class WebSocketManager {
         this.currentSessionId = sessionId;
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsHost = 'grnd.bimatrix.co.kr';
-        const wsUrl = `${wsProtocol}//${wsHost}/django/ws/orchestrate/${sessionId}/`;
+        const wsUrl = `${wsProtocol}//${wsHost}/django/agi/ws/orchestrate/${sessionId}/`;
         
         // console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
         // console.log(`📡 Session ID: ${sessionId}`);
@@ -842,8 +842,8 @@ class ChatSessionManager {
             const loadingEl = document.getElementById('loadingSessions');
             if (loadingEl) loadingEl.style.display = 'flex';
 
-            // console.log('채팅 세션 로드 시작...', `${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
-            const response = await fetch(`${API_BASE}/django/api/chat/sessions/?user_id=${this.userId}`);
+            // console.log('채팅 세션 로드 시작...', `${API_BASE}/django/agi/chat/sessions/?user_id=${this.userId}`);
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/?user_id=${this.userId}`);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -941,9 +941,9 @@ class ChatSessionManager {
                 const urlParams = new URLSearchParams(window.location.search);
                 const userId = urlParams.get('user_id');
                 if (userId) {
-                    window.location.href = `/django/index/?user_id=${userId}&session=${session.id}`;
+                    window.location.href = `/django/agi/index/?user_id=${userId}&session=${session.id}`;
                 } else {
-                    window.location.href = `/django/index/?session=${session.id}`;
+                    window.location.href = `/django/agi/index/?session=${session.id}`;
                 }
             }
         });
@@ -970,7 +970,7 @@ class ChatSessionManager {
         // console.log(`🆕 [${startTime}] 새 세션 생성 시작...`, 'CSRF 토큰:', getCSRFToken());
         
         try {
-            const response = await fetch(`${API_BASE}/django/api/chat/sessions/`, {
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify({
@@ -999,9 +999,9 @@ class ChatSessionManager {
             
             // URL 업데이트
             if (this.userId) {
-                window.history.pushState({}, '', `/django/index/?user_id=${this.userId}&session=${newSession.id}`);
+                window.history.pushState({}, '', `/django/agi/index/?user_id=${this.userId}&session=${newSession.id}`);
             } else {
-                window.history.pushState({}, '', `/django/index/?session=${newSession.id}`);
+                window.history.pushState({}, '', `/django/agi/index/?session=${newSession.id}`);
             }
             
             // 사용자 활동 로그 기록
@@ -1034,8 +1034,8 @@ class ChatSessionManager {
             if (currentUrl.searchParams.get('session') !== sessionId) {
                 const userId = currentUrl.searchParams.get('user_id');
                 const newUrl = userId ? 
-                    `/django/index/?user_id=${userId}&session=${sessionId}` : 
-                    `/django/index/?session=${sessionId}`;
+                    `/django/agi/index/?user_id=${userId}&session=${sessionId}` : 
+                    `/django/agi/index/?session=${sessionId}`;
                 window.history.pushState({}, '', newUrl);
             }
             
@@ -1043,7 +1043,7 @@ class ChatSessionManager {
             this.updateActiveSession();
             
             // 메시지 로드
-            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/messages/`);
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/${sessionId}/messages/`);
             const data = await response.json();
             
             // 채팅 화면에 메시지들 표시
@@ -1268,7 +1268,7 @@ class ChatSessionManager {
                 ...additionalMetadata
             };
 
-            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${this.currentSessionId}/messages/`, {
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/${this.currentSessionId}/messages/`, {
                 method: 'POST',
                 headers: getDefaultHeaders(),
                 body: JSON.stringify({
@@ -1357,7 +1357,7 @@ class ChatSessionManager {
             }
 
             try {
-                const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/update-title/`, {
+                const response = await fetch(`${API_BASE}/django/agi/chat/sessions/${sessionId}/update-title/`, {
                     method: 'POST',
                     headers: getDefaultHeaders(),
                     body: JSON.stringify({
@@ -1432,7 +1432,7 @@ class ChatSessionManager {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(`${API_BASE}/django/api/chat/sessions/${sessionId}/`, {
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/${sessionId}/`, {
                 method: 'DELETE',
                 headers: getDefaultHeaders()
             });
@@ -1775,24 +1775,42 @@ class ProcessManager {
             }
         }
         
-        this.updateStatus('처리 완료', 'success');
+    this.updateStatus('처리 완료', 'success');
         
         // 모든 에이전트 비활성화
         this.deactivateAgents();
         
-        this.finalizeLiveDashboard();
+        // finalizeLiveDashboard touches DOM elements under processDetails - guard against missing
+        if (this.processDetails) {
+            this.finalizeLiveDashboard();
+        } else {
+            console.warn('processDetails element not found, skipping finalizeLiveDashboard');
+        }
     }
     
     finalizeLiveDashboard() {
+        if (!this.processDetails) {
+            console.warn('processDetails element not found, cannot finalize live dashboard');
+            return;
+        }
+
         const liveBadge = this.processDetails.querySelector('.live-badge');
         if (liveBadge) {
-            liveBadge.textContent = '완료';
-            liveBadge.className = 'completion-badge';
+            try {
+                liveBadge.textContent = '완료';
+                liveBadge.className = 'completion-badge';
+            } catch (e) {
+                console.warn('Failed to update liveBadge:', e);
+            }
         }
         
         const dashboardTitle = this.processDetails.querySelector('.dashboard-title');
         if (dashboardTitle) {
-            dashboardTitle.textContent = '🎯 작업 완료 대시보드';
+            try {
+                dashboardTitle.textContent = '🎯 작업 완료 대시보드';
+            } catch (e) {
+                console.warn('Failed to update dashboardTitle:', e);
+            }
         }
     }
     
@@ -2406,7 +2424,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             console.log('2. chatSessionManager.currentSessionId:', chatSessionManager.currentSessionId);
             try {
                 // 현재 세션의 메시지를 가져와서 session_user_id 확인
-                const messagesResponse = await fetch(`${API_BASE}/django/api/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
+                const messagesResponse = await fetch(`${API_BASE}/django/agi/chat/sessions/${chatSessionManager.currentSessionId}/messages/`);
                 if (messagesResponse.ok) {
                     const messagesData = await messagesResponse.json();
                     const lastMessage = messagesData[messagesData.length - 1];
@@ -2460,7 +2478,7 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
         // console.log('새로운 orchestrate API 요청:', requestBody);
 
         // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
-        const response = await fetch('/django/api/v1/orchestrate/', {
+        const response = await fetch('/django/agi/api/v1/orchestrate/', {
             method: 'POST',
             headers: {
                 ...getDefaultHeaders(),
@@ -2666,7 +2684,7 @@ async function sendMessageToSelectedAgent(message, agentName, thinkingMessageId)
         };
 
         // 에이전트별 invoke 엔드포인트로 POST 요청
-        const response = await fetch(`/django/api/agents/${agentName}/invoke`, {
+        const response = await fetch(`/django/agi/api/agents/${agentName}/invoke`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -3517,9 +3535,9 @@ function initSidebarMenuEvents() {
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             if (userId) {
-                window.location.href = `/django/create-agent/?user_id=${userId}`;
+                window.location.href = `/django/agi/create-agent/?user_id=${userId}`;
             } else {
-                window.location.href = '/django/create-agent/';
+                window.location.href = '/django/agi/create-agent/';
             }
         });
     }
@@ -3529,9 +3547,9 @@ function initSidebarMenuEvents() {
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             if (userId) {
-                window.location.href = `/django/manage-agents/?user_id=${userId}`;
+                window.location.href = `/django/agi/manage-agents/?user_id=${userId}`;
             } else {
-                window.location.href = '/django/manage-agents/';
+                window.location.href = '/django/agi/manage-agents/';
             }
         });
     }
@@ -3541,9 +3559,9 @@ function initSidebarMenuEvents() {
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('user_id');
             if (userId) {
-                window.location.href = `/django/register-tool/?user_id=${userId}`;
+                window.location.href = `/django/agi/register-tool/?user_id=${userId}`;
             } else {
-                window.location.href = '/django/register-tool/';
+                window.location.href = '/django/agi/register-tool/';
             }
         });
     }
@@ -3620,11 +3638,11 @@ class SidebarAgentManager {
 
         try {
             //console.log('에이전트 목록 로딩 시작...');
-            // console.log('요청 URL: /django/api/agents/');
+            // console.log('요청 URL: /django/agi/api/agents/');
             this.showLoading();
 
             // API에서 에이전트 목록 가져오기
-            const response = await fetch('/django/api/agents/');
+            const response = await fetch('/django/agi/api/agents/');
             //console.log('응답 상태:', response.status, response.statusText);
             //console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
             
@@ -3928,43 +3946,43 @@ function getCurrentUserId() {
 // 페이지 네비게이션 함수들
 function goToChat() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/index/?user_id=${userId}` : '/django/index/';
+    const url = userId ? `/django/agi/index/?user_id=${userId}` : '/django/agi/index/';
     window.location.href = url;
 }
 
 function goToManageTools() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/manage-tools/?user_id=${userId}` : '/django/manage-tools/';
+    const url = userId ? `/django/agi/manage-tools/?user_id=${userId}` : '/django/agi/manage-tools/';
     window.location.href = url;
 }
 
 function goToUserLogs() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/user-logs/?user_id=${userId}` : '/django/user-logs/';
+    const url = userId ? `/django/agi/user-logs/?user_id=${userId}` : '/django/agi/user-logs/';
     window.location.href = url;
 }
 
 function goToServerLogs() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/server-logs/?user_id=${userId}` : '/django/server-logs/';
+    const url = userId ? `/django/agi/server-logs/?user_id=${userId}` : '/django/agi/server-logs/';
     window.location.href = url;
 }
 
 function goToManageRegulations() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/manage-regulations/?user_id=${userId}` : '/django/manage-regulations/';
+    const url = userId ? `/django/agi/manage-regulations/?user_id=${userId}` : '/django/agi/manage-regulations/';
     window.location.href = url;
 }
 
 function goToDashboard() {
     const userId = getCurrentUserId();
-    const url = userId ? `/django/dashboard/?user_id=${userId}` : '/django/dashboard/';
+    const url = userId ? `/django/agi/dashboard/?user_id=${userId}` : '/django/agi/dashboard/';
     window.location.href = url;
 }
 
 // Sidebar 로그아웃 함수
 function handleSidebarLogout() {
     if (confirm('로그아웃하시겠습니까? 기관 선택 페이지로 이동합니다.')) {
-        window.location.href = '/django/';
+        window.location.href = '/django/agi/';
     }
 }
