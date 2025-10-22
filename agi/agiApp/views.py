@@ -38,12 +38,26 @@ def landing(request):
     return render(request, 'landing.html')
 
 def index(request):
+    """채팅 페이지 - 로그인 필수"""
+    # 세션 검증
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
+    
     context = get_user_context(request)
+    # 세션의 user_id도 컨텍스트에 추가
+    context['user_id'] = request.session.get('user_id', context['user_id'])
+    context['institution_name'] = request.session.get('institution', context['institution_name'])
     return render(request, 'index.html', context)
 
 def dashboard_view(request):
-    """대시보드 페이지 렌더링"""
+    """대시보드 페이지 렌더링 - 로그인 필수"""
+    # 세션 검증
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
+    
     context = get_user_context(request)
+    context['user_id'] = request.session.get('user_id', context['user_id'])
+    context['institution_name'] = request.session.get('institution', context['institution_name'])
     return render(request, 'dashboard.html', context)
 
 def login_view(request):
@@ -177,37 +191,51 @@ def check_email_api(request):
 
 
 def create_agent_page(request):
-    """에이전트 생성 페이지"""
+    """에이전트 생성 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'create_agent.html', context)
 
 def manage_agents_page(request):
-    """에이전트 관리 페이지"""
+    """에이전트 관리 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'manage_agents.html', context)
 
 def register_tool_page(request):
-    """도구 등록 페이지"""
+    """도구 등록 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'register_tool.html', context)
 
 def manage_tools_page(request):
-    """도구 관리 페이지"""
+    """도구 관리 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'manage_tools.html', context)
 
 def manage_regulations_page(request):
-    """규정 관리 페이지"""
+    """규정 관리 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'manage_regulations.html', context)
 
 def user_logs_page(request):
-    """사용자 로그 페이지"""
+    """사용자 로그 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     context = get_user_context(request)
     return render(request, 'user_logs.html', context)
 
 def server_logs_page(request):
-    """서버 로그 페이지"""
+    """서버 로그 페이지 - 로그인 필수"""
+    if not request.session.get('is_authenticated'):
+        return redirect('/django/agi/')
     from django.conf import settings
     
     # 사용자 컨텍스트 가져오기

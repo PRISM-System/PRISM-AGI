@@ -17,10 +17,31 @@ function getCurrentUserId() {
     return userId;
 }
 
-// 로그아웃 함수 (기관 선택 페이지로 이동)
-function handleLogout() {
-    if (confirm('로그아웃하시겠습니까? 기관 선택 페이지로 이동합니다.')) {
-        window.location.href = '/django/agi/';
+// 로그아웃 함수 (세션 클리어 후 기관 선택 페이지로 이동)
+async function handleLogout() {
+    if (confirm('로그아웃하시겠습니까? 로그인 페이지로 이동합니다.')) {
+        try {
+            // 로그아웃 API 호출
+            const response = await fetch('/django/agi/api/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                console.log('로그아웃 성공:', data.message);
+            } else {
+                console.error('로그아웃 실패:', data.message);
+            }
+        } catch (error) {
+            console.error('로그아웃 API 호출 오류:', error);
+        } finally {
+            // API 성공/실패 여부와 관계없이 landing 페이지로 이동
+            window.location.href = '/django/agi/';
+        }
     }
 }
 

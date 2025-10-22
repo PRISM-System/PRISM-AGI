@@ -31,6 +31,12 @@ urlpatterns = [
 
     # 사용자 활동 로그 API
     path('api/user-logs/', api_views.UserActivityLogsView.as_view(), name='user_logs_api'),
+    
+    # 로그인 API
+    path('api/login/', api_views.LoginView.as_view(), name='login_api'),
+    
+    # 로그아웃 API
+    path('api/logout/', api_views.LogoutView.as_view(), name='logout_api'),
 
     # 에이전트 관리 API는 프록시를 통해 외부 서버로 처리됨 (main urls.py에서 처리)
     # path('django/agi/api/agents/', api_views.AgentsListView.as_view(), name='agents_api'),

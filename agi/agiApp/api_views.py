@@ -2038,3 +2038,98 @@ class CoreDatabaseTableQueryView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def options(self, request, *args, **kwargs):
         return Response(status=status.HTTP_200_OK)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LoginView(APIView):
+    """
+    POST /api/login/
+    기관 계정 로그인 API
+    """
+    permission_classes = [AllowAny]
+    
+    # 기관별 계정 정보
+    INSTITUTION_ACCOUNTS = {
+        'seoul': {'password': 'seoul1234', 'user_id': 'user_1111', 'institution': '서울대학교', 'username': 'seoul'},
+        'hanyang': {'password': 'hanyang1234', 'user_id': 'user_2222', 'institution': '한양대학교', 'username': 'hanyang'},
+        'sunkyunkwan': {'password': 'skku1234', 'user_id': 'user_3333', 'institution': '성균관대학교', 'username': 'sunkyunkwan'},
+        'kaist': {'password': 'kaist1234', 'user_id': 'user_4444', 'institution': '카이스트', 'username': 'kaist'},
+        'bimatrix': {'password': 'bimatrix1234', 'user_id': 'user_1234', 'institution': '비아이매트릭스', 'username': 'bimatrix'},
+    }
+    
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        return response
+    
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        try:
+            username = request.data.get('username', '').strip().lower()
+            password = request.data.get('password', '')
+            
+            if not username or not password:
+                return Response({'success': False, 'message': '아이디와 비밀번호를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            account = self.INSTITUTION_ACCOUNTS.get(username)
+            
+            if account and account['password'] == password:
+                # 세션에 사용자 정보 저장
+                request.session['user_id'] = account['user_id']
+                request.session['institution'] = account['institution']
+                request.session['username'] = account['username']
+                request.session['is_authenticated'] = True
+                
+                return Response({'success': True, 'user_id': account['user_id'], 'institution': account['institution'], 'username': account['username']}, status=status.HTTP_200_OK)
+            else:
+                return Response({'success': False, 'message': '아이디 또는 비밀번호가 올바르지 않습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+                
+        except Exception as e:
+            return Response({'success': False, 'message': f'로그인 처리 중 오류가 발생했습니다: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(APIView):
+    """
+    POST /api/logout/
+    로그아웃 API - 세션 삭제
+    """
+    permission_classes = [AllowAny]
+    
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        return response
+    
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """
+        로그아웃 처리 - 세션 클리어
+        
+        Response:
+        {
+            "success": true,
+            "message": "로그아웃되었습니다."
+        }
+        """
+        try:
+            # 세션 전체 삭제
+            request.session.flush()
+            
+            return Response({
+                'success': True,
+                'message': '로그아웃되었습니다.'
+            }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'로그아웃 처리 중 오류가 발생했습니다: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
