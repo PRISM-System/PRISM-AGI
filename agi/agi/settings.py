@@ -37,6 +37,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://192.168.0.57:8100",  # orchestrate 서버 IP 추가
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -108,12 +110,18 @@ TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/django/static/'
+# STATIC_URL = '/django/static/'
+# STATICFILES_DIRS = [BASE_DIR / 'agiApp' / 'static']
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
 STATICFILES_DIRS = [BASE_DIR / 'agiApp' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = 'media/'
+# MEDIA_URL = 'media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = f'{FORCE_SCRIPT_NAME}/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
