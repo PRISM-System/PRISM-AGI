@@ -17,7 +17,7 @@ class Command(BaseRunserverCommand):
         addrport = options['addrport']
         if not addrport:
             addr = '127.0.0.1'
-            port = '8000'
+            port = '8200'
         else:
             if ':' in addrport:
                 addr, port = addrport.rsplit(':', 1)
