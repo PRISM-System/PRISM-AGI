@@ -3,13 +3,16 @@ Django settings for agi project.
 """
 
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-h^l^qa_6n@e9!qj#u*!_f&501fx&9)t3m0bpnjwow(b#@nmepf'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
-FORCE_SCRIPT_NAME = '/django/agi'
+# Configure script name prefix via environment to avoid double-prefixing behind proxies
+# If unset, Django will serve at root (no prefix)
+FORCE_SCRIPT_NAME = os.getenv('FORCE_SCRIPT_NAME', '')
 
 
 # ----------------------
@@ -114,14 +117,14 @@ USE_TZ = True
 # STATICFILES_DIRS = [BASE_DIR / 'agiApp' / 'static']
 # STATIC_ROOT = BASE_DIR / 'staticfiles'
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/'
+STATIC_URL = f'{FORCE_SCRIPT_NAME}/static/' if FORCE_SCRIPT_NAME else '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'agiApp' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # MEDIA_URL = 'media/'
 # MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = f'{FORCE_SCRIPT_NAME}/media/'
+MEDIA_URL = f'{FORCE_SCRIPT_NAME}/media/' if FORCE_SCRIPT_NAME else '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
