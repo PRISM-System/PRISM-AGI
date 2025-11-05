@@ -26,6 +26,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://192.168.0.57:8000",  # 클라이언트 IP 추가
     "http://192.168.0.57:8100",  # orchestrate 서버 IP 추가
+    "http://147.47.39.119:8100", # 외부 orchestrate 서버 IP 추가
+    "http://147.47.39.119:8002", # 외부 monitoring 서버 IP 추가
+    "http://147.47.39.119:8003", # 외부 prediction 서버 IP 추가
+    "http://147.47.39.119:8500", # 외부 autocontrol 서버 IP 추가
 ]
 CORS_ALLOW_CREDENTIALS = False  # 세션/쿠키 cross-site 필요 시 True로 (그땐 화이트리스트 필수)
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -38,6 +42,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://192.168.0.57:8000",  # 클라이언트 IP 추가
     "http://192.168.0.57:8100",  # orchestrate 서버 IP 추가
+    "http://147.47.39.119:8100", # 외부 orchestrate 서버 IP 추가
+    "http://147.47.39.119:8002", # 외부 monitoring 서버 IP 추가
+    "http://147.47.39.119:8003", # 외부 prediction 서버 IP 추가
+    "http://147.47.39.119:8500", # 외부 autocontrol 서버 IP 추가
+
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -168,8 +177,9 @@ OPENAI_API_KEY = ''
 ANTHROPIC_API_KEY = ''
 
 # Proxy Server 설정
-PROXY_REMOTE_SERVER = 'http://192.168.0.57:8000'
-
+#PROXY_REMOTE_SERVER = 'http://192.168.0.57:8000'
+#PROXY_REMOTE_SERVER = 'http://147.47.39.144:8000'
+PROXY_REMOTE_SERVER = 'http://127.0.0.1:8000'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

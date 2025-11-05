@@ -2080,3 +2080,127 @@ body {
         padding: 2px 6px;
     }
 }
+
+/* 기본 시나리오 드롭다운 스타일 */
+.preset-options-container {
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 10;
+}
+
+.preset-dropdown-button {
+    width: 100%;
+    padding: 14px 18px;
+    background: #40414f;
+    border: 2px solid #565869;
+    border-radius: 12px;
+    color: #ececf1;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.preset-dropdown-button:hover {
+    background: #4d4f5f;
+    border-color: #6e6e80;
+}
+
+.preset-dropdown-button:focus {
+    outline: none;
+    border-color: #10a37f;
+}
+
+.preset-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #40414f;
+    border: 2px solid #565869;
+    border-radius: 12px;
+    padding: 8px;
+    display: none;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+}
+
+.preset-dropdown-menu.active {
+    display: block;
+}
+
+.preset-option {
+    padding: 14px 16px;
+    margin-bottom: 6px;
+    background: #343541;
+    border: 1px solid #565869;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-option:last-child {
+    margin-bottom: 0;
+}
+
+.preset-option:hover {
+    background: #444654;
+    border-color: #10a37f;
+}
+
+.preset-title {
+    color: #ececf1;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.preset-description {
+    color: #8e8ea0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* 드롭다운 메뉴 스크롤바 */
+.preset-dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.preset-dropdown-menu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.preset-dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.preset-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .preset-dropdown-button {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+    
+    .preset-option {
+        padding: 12px 14px;
+    }
+    
+    .preset-title {
+        font-size: 14px;
+    }
+    
+    .preset-description {
+        font-size: 12px;
+    }
+}

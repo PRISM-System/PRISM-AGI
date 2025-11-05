@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # 원격 서버 설정
 # settings.py에서 PROXY_REMOTE_SERVER 값을 가져오고, 없으면 기본값 사용
-REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://192.168.0.57:8000')
+REMOTE_SERVER = getattr(settings, 'PROXY_REMOTE_SERVER', 'http://localhost:8000')
 LLM_SERVER = 'http://192.168.11.105:11300'
 LLM_MODEL = '/root/models/openai/gpt-oss-120b'
 
@@ -41,14 +41,14 @@ def create_error_response(message, status_code, details=None):
     return response
 
 # 일반 API 프록시 (경로 기반)
-# /proxy/api/<path> -> 192.168.0.57:8000/<path>
-# 단, api/agents와 api/tools는 192.168.0.57:8000으로 전달
+# /proxy/api/<path> -> localhost:8000/<path>
+# 단, api/agents와 api/tools는 localhost:8000/core/api/...로 전달
 @csrf_exempt
 def proxy_api(request, path):
     """
     일반적인 API 요청을 원격 서버로 프록시합니다.
     /proxy/api/<path> -> {REMOTE_SERVER}/<path>
-    단, api/agents와 api/tools 경로는 192.168.0.57:8000으로 전달
+    단, api/agents와 api/tools 경로는 localhost:8000/core/api/...로 전달
     """
     
     # OPTIONS 요청 처리
@@ -58,10 +58,12 @@ def proxy_api(request, path):
     try:
         # 에이전트 API와 도구 API는 별도 서버로 전달
         if path.startswith('api/agents') or path.startswith('api/tools'):
-            target_server = "http://192.168.0.57:8000"
+            target_server = "http://localhost:8000"
+            # api/agents -> core/api/agents, api/tools -> core/api/tools로 변환
+            path = f"core/{path}"
         else:
             target_server = REMOTE_SERVER
-        
+
         url = f"{target_server}/{path}"
         logger.info(f"Proxying {request.method} request to {url}")
         
@@ -169,7 +171,7 @@ def proxy_tools(request):
             details={"message": str(e), "remote_server": REMOTE_SERVER}
         )
 
-# 텍스트 생성 API 프록시(테스트용, 실제 자연어 질의는 192.168.0.57:8100 서버에서 처리)
+# 텍스트 생성 API 프록시(테스트용, 실제 자연어 질의는 147.47.39.119:8100 서버에서 처리)
 @csrf_exempt
 def proxy_generate(request):
     """
@@ -225,7 +227,7 @@ def proxy_generate(request):
 def proxy_tool_detail(request, tool_name):
     """
     개별 도구에 대한 API 요청을 원격 서버로 프록시합니다.
-    /django/agi/api/tools/<tool_name> -> http://192.168.0.57:8000/django/agi/api/tools/<tool_name>
+    /django/agi/api/tools/<tool_name> -> http://localhost:8000/core/api/tools/<tool_name>
     """
     
     # OPTIONS 요청 처리
@@ -233,10 +235,10 @@ def proxy_tool_detail(request, tool_name):
         return create_cors_response()
     
     # 도구 전용 서버 URL
-    TOOL_SERVER = "http://192.168.0.57:8000"
-    
+    TOOL_SERVER = "http://localhost:8000"
+
     try:
-        url = f"{TOOL_SERVER}/django/agi/api/tools/{tool_name}"
+        url = f"{TOOL_SERVER}/core/api/tools/{tool_name}"
         logger.info(f"Proxying {request.method} request to {url}")
         
         # 요청 메서드에 따라 처리
@@ -294,7 +296,7 @@ def agents_api(request, agent_name=None):
     if request.method == 'GET':
         try:
             # 외부 API에서 에이전트 목록 가져오기
-            external_api_url = "http://192.168.0.57:8000/api/agents"
+            external_api_url = "http://localhost:8000/core/api/agents"
             
             external_response = requests.get(
                 external_api_url,
@@ -357,8 +359,8 @@ def agents_api(request, agent_name=None):
                 )
             
             # 외부 API로 전달
-            external_api_url = "http://192.168.0.57:8000/api/agents"
-            
+            external_api_url = "http://localhost:8000/core/api/agents"
+
             try:
                 # 외부 API 호출
                 external_response = requests.post(
@@ -424,7 +426,7 @@ def agents_api(request, agent_name=None):
                 return create_error_response("에이전트 이름이 필요합니다.", 400)
             
             # 외부 API로 DELETE 요청
-            external_api_url = f"http://192.168.0.57:8000/api/agents/{agent_name}"
+            external_api_url = f"http://localhost:8000/core/api/agents/{agent_name}"
             
             try:
                 external_response = requests.delete(
@@ -476,7 +478,7 @@ def tools_api(request):
     if request.method == 'GET':
         try:
             # 외부 API에서 도구 목록 가져오기
-            external_api_url = "http://192.168.0.57:8000/api/clients/user/tools"
+            external_api_url = "http://localhost:8000/core/api/tools"
             
             external_response = requests.get(
                 external_api_url,
@@ -552,8 +554,8 @@ def tools_api(request):
                     )
             
             # 외부 API로 전달
-            external_api_url = "http://192.168.0.57:8000/api/clients/user/tools"
-            
+            external_api_url = "http://localhost:8000/core/api/tools"
+
             try:
                 external_response = requests.post(
                     external_api_url,
@@ -608,7 +610,7 @@ def tools_api(request):
 def proxy_agent_detail(request, agent_name):
     """
     개별 에이전트에 대한 API 요청을 원격 서버로 프록시합니다.
-    /api/agents/<agent_name> -> http://192.168.0.57:8000/api/agents/<agent_name>
+    /api/agents/<agent_name> -> http://localhost:8000/core/api/agents/<agent_name>
     """
     
     # OPTIONS 요청 처리
@@ -616,10 +618,10 @@ def proxy_agent_detail(request, agent_name):
         return create_cors_response()
     
     # 에이전트 전용 서버 URL
-    AGENT_SERVER = "http://192.168.0.57:8000"
-    
+    AGENT_SERVER = "http://localhost:8000"
+
     try:
-        url = f"{AGENT_SERVER}/api/agents/{agent_name}"
+        url = f"{AGENT_SERVER}/core/api/agents/{agent_name}"
         logger.info(f"Proxying {request.method} request to {url}")
         
         # 요청 메서드에 따라 처리
@@ -665,7 +667,7 @@ def proxy_agent_detail(request, agent_name):
 def proxy_agent_invoke(request, agent_name):
     """
     에이전트 호출(invoke) API 요청을 원격 서버로 프록시합니다.
-    /api/agents/<agent_name>/invoke -> http://192.168.0.57:8000/api/agents/<agent_name>/invoke
+    /api/agents/<agent_name>/invoke -> http://localhost:8000/core/api/agents/<agent_name>/invoke
     """
     
     # OPTIONS 요청 처리
@@ -677,10 +679,10 @@ def proxy_agent_invoke(request, agent_name):
         return create_error_response("Method not allowed. Use POST for agent invocation.", 405)
     
     # 에이전트 전용 서버 URL
-    AGENT_SERVER = "http://192.168.0.57:8000"
-    
+    AGENT_SERVER = "http://localhost:8000"
+
     try:
-        url = f"{AGENT_SERVER}/api/agents/{agent_name}/invoke"
+        url = f"{AGENT_SERVER}/core/api/agents/{agent_name}/invoke"
         logger.info(f"Proxying agent invoke request to {url}")
         
         # POST 데이터 전달
@@ -736,7 +738,7 @@ def proxy_orchestrate(request):
     
     try:
         # orchestrate 서버로 요청 전달
-        orchestrate_server = "http://192.168.0.57:8100"
+        orchestrate_server = "http://147.47.39.119:8100"
         url = f"{orchestrate_server}/api/v1/orchestrate/"
         logger.info(f"Proxying {request.method} request to {url}")
         
@@ -777,7 +779,7 @@ def proxy_orchestrate(request):
         return create_error_response(
             "orchestrate API 호출 실패",
             503,
-            details={"message": str(e), "orchestrate_server": "http://192.168.0.57:8100"}
+            details={"message": str(e), "orchestrate_server": "http://147.47.39.119:8100"}
         )
 
 
@@ -844,7 +846,7 @@ def proxy_orchestrate(request):
         logger.info(f"사용자 메시지 저장됨 - session_id: {session_id}, user_id: {user_id}")
         
         # 외부 Orchestrate API 호출
-        orchestrate_url = "http://192.168.0.57:8100/api/v1/orchestrate/"
+        orchestrate_url = "http://147.47.39.119:8100/api/v1/orchestrate/"
         
         logger.info(f"Proxying POST request to {orchestrate_url}")
         logger.info(f"Orchestrate request body: {json.dumps(body_data, ensure_ascii=False)}")
@@ -934,7 +936,7 @@ def proxy_orchestrate(request):
         return create_error_response(
             "Orchestrate API 호출 실패",
             503,
-            details={"message": str(e), "orchestrate_server": "http://192.168.0.57:8100"}
+            details={"message": str(e), "orchestrate_server": "http://147.47.39.119:8100"}
         )
 
 

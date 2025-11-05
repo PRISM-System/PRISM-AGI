@@ -41,23 +41,14 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', agi_views.landing, name='landing'),  # 루트는 랜딩 페이지
-    path('', include('agiApp.urls')),
-    path('admin/', admin.site.urls),
-    
-    # Swagger API 문서
-    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    
-    # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치
+    # API 엔드포인트들 - 더 구체적인 것부터 먼저 배치 (includes 보다 앞에 위치)
     path('llm_agent/', proxy_views.proxy_llm_agent, name='proxy-llm-agent'),  # LLM Agent API (192.168.11.105:11300)
     path('api/generate/', include('proxy.urls')),  # 프록시를 통한 외부 API 연결
     path('api/v1/orchestrate/', agi_proxy_views.proxy_orchestrate, name='proxy-orchestrate'),  # orchestrate API 프록시
-    
+
     # WebSocket API 엔드포인트 - 외부에서 단계별 업데이트를 받는 엔드포인트
     path('api/websocket/orchestrate/update/', agi_proxy_views.WebSocketUpdateView.as_view(), name='websocket_update_endpoint'),
-    
+
     # PRISM-Core API - Agents (새로운 API)
     path('core/api/agents/', include([
         path('', api_views.CoreAgentsView.as_view(), name='prism_core_api'),
@@ -65,7 +56,7 @@ urlpatterns = [
         path('<str:agent_name>/tools/', api_views.CoreAgentToolsView.as_view(), name='prism_core_api_tools'),
         path('<str:agent_name>/invoke/', api_views.CoreAgentInvokeView.as_view(), name='prism_core_api_invoke'),
     ])),
-    
+
     # PRISM-Core API - Tools (새로운 API)
     path('core/api/tools/', include([
         path('', api_views.CoreToolsView.as_view(), name='prism_core_tools'),
@@ -74,7 +65,7 @@ urlpatterns = [
         path('<str:tool_name>/', api_views.CoreToolDetailView.as_view(), name='prism_core_tools_detail'),
         path('<str:tool_name>/config/', api_views.CoreToolConfigView.as_view(), name='prism_core_tools_config'),
     ])),
-    
+
     # PRISM-Core API - Database (새로운 API)
     path('core/api/db/', include([
         path('', api_views.CoreDatabaseInfoView.as_view(), name='prism_core_db_info'),
@@ -84,20 +75,54 @@ urlpatterns = [
         path('query/', api_views.CoreDatabaseQueryView.as_view(), name='prism_core_db_query'),
         path('tables/<str:table_name>/query/', api_views.CoreDatabaseTableQueryView.as_view(), name='prism_core_db_table_query'),
     ])),
-    
-    # 도구 관리 API - 외부 서버로 프록시 (192.168.0.57:8000) - 구 API, 곧 제거 예정
+
+    # 도구 관리 API - 외부 서버로 프록시 (127.0.0.1:8000) - 구 API, 곧 제거 예정
     path('api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list'),
     path('api/tools/<str:tool_name>/', proxy_views.proxy_tool_detail, name='proxy-tool-detail'),
-    
-    # 에이전트 관리 API - 외부 서버로 프록시 (192.168.0.57:8000)
+
+    # 에이전트 관리 API - 외부 서버로 프록시 (127.0.0.1:8000)
     path('api/agents/', proxy_views.proxy_api, {'path': 'api/agents'}, name='proxy-agents-list'),
     path('api/agents/<str:agent_name>/invoke', proxy_views.proxy_agent_invoke, name='proxy-agent-invoke'),
     path('api/agents/<str:agent_name>/', proxy_views.proxy_agent_detail, name='proxy-agent-detail'),
-    
+
+    # 에이전트 관리 API (/django/agi/ 경로 아래)
+    path('django/agi/api/agents/', proxy_views.proxy_api, {'path': 'api/agents'}, name='proxy-agents-list-agi'),
+    path('django/agi/api/agents/<str:agent_name>/invoke', proxy_views.proxy_agent_invoke, name='proxy-agent-invoke-agi'),
+    path('django/agi/api/agents/<str:agent_name>/', proxy_views.proxy_agent_detail, name='proxy-agent-detail-agi'),
+
+    # 도구 관리 API (/django/agi/ 경로 아래)
+    path('django/agi/api/tools/', proxy_views.proxy_api, {'path': 'api/tools'}, name='proxy-tools-list-agi'),
+    path('django/agi/api/tools/<str:tool_name>/', proxy_views.proxy_tool_detail, name='proxy-tool-detail-agi'),
+
+    # Orchestrate API (/django/agi/ 경로 아래)
+    path('django/agi/api/v1/orchestrate/', agi_proxy_views.proxy_orchestrate, name='proxy-orchestrate-agi'),
+
+    # WebSocket API (/django/agi/ 경로 아래)
+    path('django/agi/api/websocket/orchestrate/update/', agi_proxy_views.WebSocketUpdateView.as_view(), name='websocket_update_endpoint_agi'),
+
+    # Agent-specific API endpoints
     path('api/monitoring/', include('agents.monitoring_agent.urls')),
     path('api/prediction/', include('agents.prediction_agent.urls')),
     path('api/control/', include('agents.control_agent.urls')),
     path('api/orchestration/', include('agents.orchestration_agent.urls')),
+
+    # Swagger API 문서 (루트 레벨)
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    # Swagger API 문서 (/django/agi/ 경로 아래)
+    path('django/agi/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json-agi'),
+    path('django/agi/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui-agi'),
+    path('django/agi/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc-agi'),
+
+    # Admin
+    path('admin/', admin.site.urls),
+
+    # Landing page and app includes (comes last to avoid catching specific API routes)
+    path('', agi_views.landing, name='landing'),  # 루트는 랜딩 페이지
+    path('', include('agiApp.urls')),
+    path('django/agi/', include('agiApp.urls')),  # /django/agi/ 경로 추가
 ]
 
 # 개발 환경에서 미디어 파일 서빙

@@ -1132,13 +1132,39 @@ class ChatSessionManager {
         chatMessages.innerHTML = `
             <div class="welcome-message">
                 <h2 class="welcome-title">무엇을 도와드릴까요?</h2>
-                
+
                 <div class="welcome-input-area">
+                    <div class="preset-options-container">
+                        <button class="preset-dropdown-button" id="presetDropdownButton">
+                            <span>기본 시나리오 선택</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 8px;">
+                                <path d="M7 10l5 5 5-5z"/>
+                            </svg>
+                        </button>
+                        <div class="preset-dropdown-menu" id="presetDropdownMenu">
+                            <div class="preset-option" data-query="CMP 공정에서 Slurry 유량이 불안정합니다. 현재 상황을 분석해주세요." data-session="cmp_session_20250501_001">
+                                <div class="preset-title">시나리오 1: CMP 공정 분석</div>
+                                <div class="preset-description">Slurry 유량 불안정 모니터링</div>
+                            </div>
+                            <div class="preset-option" data-query="Etching 공정의 PRESSURE가 계속 상승하고 있습니다. 언제 임계치에 도달할지 예측해주세요." data-session="etch_session_20250501_002">
+                                <div class="preset-title">시나리오 2: Etching 압력 예측</div>
+                                <div class="preset-description">압력 상승 추이 및 임계치 도달 예측</div>
+                            </div>
+                            <div class="preset-option" data-query="Deposition 공정의 TEMPERATURE가 불안정합니다. 자동으로 안정화시켜주세요." data-session="dep_session_20250501_003">
+                                <div class="preset-title">시나리오 3: Deposition 온도 제어</div>
+                                <div class="preset-description">온도 불안정 자동 안정화 제어</div>
+                            </div>
+                            <div class="preset-option" data-query="반도체 공정에서 RF_POWER가 증가 추세입니다. 예측 및 제어를 수행하고 규제 준수 여부를 확인해주세요." data-session="fab_session_20250501_004">
+                                <div class="preset-title">시나리오 4: RF 파워 전체 검증</div>
+                                <div class="preset-description">RF 파워 제어 및 규제 준수 검증</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="chat-input-container">
-                        <textarea 
-                            class="chat-input" 
-                            id="chatInput" 
-                            placeholder="PRISM-AGI Assistant에게 무엇이든 물어보세요."
+                        <textarea
+                            class="chat-input"
+                            id="chatInput"
+                            placeholder="PRISM-AGI Assistant에게 무엇이든 물어보세요. 또는 위에서 기본 시나리오를 선택하세요."
                             rows="1"
                         ></textarea>
                         <button class="send-button" id="sendButton">
@@ -1159,7 +1185,9 @@ class ChatSessionManager {
         // 새로 생성된 환영 메시지의 입력창과 버튼에 이벤트 리스너 등록
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
-        
+        const presetDropdownButton = document.getElementById('presetDropdownButton');
+        const presetDropdownMenu = document.getElementById('presetDropdownMenu');
+
         if (chatInput && sendButton) {
             // 전송 버튼 클릭 이벤트
             sendButton.addEventListener('click', () => {
@@ -1169,7 +1197,7 @@ class ChatSessionManager {
                     console.error('sendMessage not found in window');
                 }
             });
-            
+
             // 입력창 Enter 키 이벤트
             chatInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1181,17 +1209,56 @@ class ChatSessionManager {
                     }
                 }
             });
-            
+
             // 입력창 자동 높이 조절
             chatInput.addEventListener('input', function () {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
-            
+
             // 입력창 포커스
             chatInput.focus();
         }
-        
+
+        // 프리셋 드롭다운 기능
+        if (presetDropdownButton && presetDropdownMenu) {
+            // 드롭다운 버튼 클릭 이벤트
+            presetDropdownButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                presetDropdownMenu.classList.toggle('active');
+            });
+
+            // 프리셋 옵션 선택 이벤트
+            const presetOptions = presetDropdownMenu.querySelectorAll('.preset-option');
+            presetOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const query = option.getAttribute('data-query');
+                    const sessionId = option.getAttribute('data-session');
+
+                    // textarea에 query 채우기
+                    if (chatInput) {
+                        chatInput.value = query;
+                        chatInput.style.height = 'auto';
+                        chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+                        chatInput.focus();
+                    }
+
+                    // session_id를 전역 변수에 저장 (sendMessage에서 사용)
+                    window.presetSessionId = sessionId;
+
+                    // 드롭다운 닫기
+                    presetDropdownMenu.classList.remove('active');
+                });
+            });
+
+            // 드롭다운 외부 클릭 시 닫기
+            document.addEventListener('click', (e) => {
+                if (!presetDropdownButton.contains(e.target) && !presetDropdownMenu.contains(e.target)) {
+                    presetDropdownMenu.classList.remove('active');
+                }
+            });
+        }
+
         // 커스텀 이벤트도 발생시켜서 다른 곳에서도 반응할 수 있도록
         window.dispatchEvent(new CustomEvent('chatInputsRecreated'));
     }

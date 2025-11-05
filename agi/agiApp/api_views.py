@@ -807,17 +807,17 @@ class LLMAgentView(APIView):
 class CoreAgentsView(APIView):
     """
     PRISM Core Agents API Proxy
-    GET /django/agi/core/api/agents/ -> http://192.168.0.57:8000/api/agents
+    GET /django/agi/core/api/agents/ -> http://147.47.39.144:8000/api/agents
     
     외부 PRISM Core 서버의 에이전트 목록을 프록시합니다.
     """
     permission_classes = [AllowAny]
     
     # 외부 Core 서버 설정
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
-        operation_description="PRISM Core 서버의 에이전트 목록 조회 (192.168.0.57:8000/api/agents)",
+        operation_description="PRISM Core 서버의 에이전트 목록 조회 (147.47.39.144:8000/api/agents)",
         responses={
             200: openapi.Response(
                 description='에이전트 목록',
@@ -894,7 +894,7 @@ class CoreAgentsView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @swagger_auto_schema(
-        operation_description="PRISM Core 서버에 새 에이전트 생성 (192.168.0.57:8000/api/agents)",
+        operation_description="PRISM Core 서버에 새 에이전트 생성 (147.47.39.144:8000/api/agents)",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['name', 'description', 'role_prompt'],
@@ -1024,17 +1024,17 @@ class CoreAgentsView(APIView):
 class CoreAgentDetailView(APIView):
     """
     PRISM Core Agent Detail API Proxy
-    DELETE /django/agi/core/api/agents/{agent_name}/ -> http://192.168.0.57:8000/api/agents/{agent_name}
+    DELETE /django/agi/core/api/agents/{agent_name}/ -> http://147.47.39.144:8000/api/agents/{agent_name}
     
     외부 PRISM Core 서버의 특정 에이전트를 삭제합니다.
     """
     permission_classes = [AllowAny]
     
     # 외부 Core 서버 설정
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
-        operation_description="PRISM Core 서버에서 특정 에이전트 삭제 (192.168.0.57:8000/api/agents/{agent_name})",
+        operation_description="PRISM Core 서버에서 특정 에이전트 삭제 (147.47.39.144:8000/api/agents/{agent_name})",
         responses={
             200: openapi.Response(
                 description='에이전트 삭제 성공',
@@ -1115,17 +1115,17 @@ class CoreAgentDetailView(APIView):
 class CoreAgentToolsView(APIView):
     """
     PRISM Core Agent Tools API Proxy
-    POST /django/agi/core/api/agents/{agent_name}/tools -> http://192.168.0.57:8000/api/agents/{agent_name}/tools
+    POST /django/agi/core/api/agents/{agent_name}/tools -> http://147.47.39.144:8000/api/agents/{agent_name}/tools
     
     에이전트에 도구를 추가합니다.
     """
     permission_classes = [AllowAny]
     
     # 외부 Core 서버 설정
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
-        operation_description="PRISM Core 서버의 에이전트에 도구 추가 (192.168.0.57:8000/api/agents/{agent_name}/tools)",
+        operation_description="PRISM Core 서버의 에이전트에 도구 추가 (147.47.39.144:8000/api/agents/{agent_name}/tools)",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['agent_name', 'tool_names'],
@@ -1252,17 +1252,17 @@ class CoreAgentToolsView(APIView):
 class CoreAgentInvokeView(APIView):
     """
     PRISM Core Agent Invoke API Proxy
-    POST /django/agi/core/api/agents/{agent_name}/invoke -> http://192.168.0.57:8000/api/agents/{agent_name}/invoke
+    POST /django/agi/core/api/agents/{agent_name}/invoke -> http://147.47.39.144:8000/api/agents/{agent_name}/invoke
     
     에이전트를 호출하여 응답을 생성합니다.
     """
     permission_classes = [AllowAny]
     
     # 외부 Core 서버 설정
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
-        operation_description="PRISM Core 서버의 에이전트 호출 (192.168.0.57:8000/api/agents/{agent_name}/invoke)",
+        operation_description="PRISM Core 서버의 에이전트 호출 (147.47.39.144:8000/api/agents/{agent_name}/invoke)",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['prompt'],
@@ -1443,13 +1443,13 @@ class CoreAgentInvokeView(APIView):
 class CoreToolsView(APIView):
     """
     PRISM Core Tools API Proxy
-    GET /django/agi/core/api/tools/ -> http://192.168.0.57:8000/api/tools
-    POST /django/agi/core/api/tools/ -> http://192.168.0.57:8000/api/tools
+    GET /django/agi/core/api/tools/ -> http://147.47.39.144:8000/api/tools
+    POST /django/agi/core/api/tools/ -> http://147.47.39.144:8000/api/tools
     
     도구 목록 조회 및 도구 생성
     """
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="PRISM Core 서버의 도구 목록 조회",
@@ -1597,12 +1597,12 @@ class CoreToolsView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreToolsRegisterWithCodeView(APIView):
     """
-    POST /django/agi/core/api/tools/register-with-code/ -> http://192.168.0.57:8000/api/tools/register-with-code
+    POST /django/agi/core/api/tools/register-with-code/ -> http://147.47.39.144:8000/api/tools/register-with-code
     
     코드와 함께 도구 등록
     """
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="코드와 함께 도구 등록",
@@ -1668,13 +1668,13 @@ class CoreToolsRegisterWithCodeView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreToolDetailView(APIView):
     """
-    GET /django/agi/core/api/tools/{tool_name}/ -> http://192.168.0.57:8000/api/tools/{tool_name}
-    DELETE /django/agi/core/api/tools/{tool_name}/ -> http://192.168.0.57:8000/api/tools/{tool_name}
+    GET /django/agi/core/api/tools/{tool_name}/ -> http://147.47.39.144:8000/api/tools/{tool_name}
+    DELETE /django/agi/core/api/tools/{tool_name}/ -> http://147.47.39.144:8000/api/tools/{tool_name}
     
     특정 도구 조회 및 삭제
     """
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="특정 도구 정보 조회",
@@ -1730,12 +1730,12 @@ class CoreToolDetailView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreToolConfigView(APIView):
     """
-    PUT /django/agi/core/api/tools/{tool_name}/config/ -> http://192.168.0.57:8000/api/tools/{tool_name}/config
+    PUT /django/agi/core/api/tools/{tool_name}/config/ -> http://147.47.39.144:8000/api/tools/{tool_name}/config
     
     도구 설정 업데이트
     """
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="도구 설정 업데이트",
@@ -1776,12 +1776,12 @@ class CoreToolConfigView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreToolExecuteView(APIView):
     """
-    POST /django/agi/core/api/tools/execute/ -> http://192.168.0.57:8000/api/tools/execute
+    POST /django/agi/core/api/tools/execute/ -> http://147.47.39.144:8000/api/tools/execute
     
     도구 실행
     """
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="도구 실행",
@@ -1845,9 +1845,9 @@ class CoreToolExecuteView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreDatabaseInfoView(APIView):
-    """GET /django/agi/core/api/db/ -> http://192.168.0.57:8000/api/db"""
+    """GET /django/agi/core/api/db/ -> http://147.47.39.144:8000/api/db"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="데이터베이스 통계 및 정보 조회",
@@ -1869,9 +1869,9 @@ class CoreDatabaseInfoView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CoreDatabaseTablesView(APIView):
-    """GET /django/agi/core/api/db/tables/ -> http://192.168.0.57:8000/api/db/tables"""
+    """GET /django/agi/core/api/db/tables/ -> http://147.47.39.144:8000/api/db/tables"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="데이터베이스 테이블 목록 조회",
@@ -1894,7 +1894,7 @@ class CoreDatabaseTablesView(APIView):
 class CoreDatabaseTableSchemaView(APIView):
     """GET /django/agi/core/api/db/tables/{table_name}/schema/"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="특정 테이블의 스키마 조회",
@@ -1919,7 +1919,7 @@ class CoreDatabaseTableSchemaView(APIView):
 class CoreDatabaseTableDataView(APIView):
     """GET /django/agi/core/api/db/tables/{table_name}/data/"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="특정 테이블의 데이터 조회",
@@ -1959,7 +1959,7 @@ class CoreDatabaseTableDataView(APIView):
 class CoreDatabaseQueryView(APIView):
     """POST /django/agi/core/api/db/query/"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="SELECT 쿼리 실행 (SELECT만 허용)",
@@ -1998,7 +1998,7 @@ class CoreDatabaseQueryView(APIView):
 class CoreDatabaseTableQueryView(APIView):
     """POST /django/agi/core/api/db/tables/{table_name}/query/"""
     permission_classes = [AllowAny]
-    CORE_SERVER = 'http://192.168.0.57:8000'
+    CORE_SERVER = 'http://147.47.39.144:8000'
     
     @swagger_auto_schema(
         operation_description="특정 테이블 쿼리 (조건부 조회)",
