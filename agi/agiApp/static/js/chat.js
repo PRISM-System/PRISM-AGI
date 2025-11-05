@@ -178,7 +178,26 @@ class WebSocketManager {
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.querySelector('svg').style.transform = 'rotate(-90deg)';
             } else {
-                // 펼치기
+                // 아코디언: 같은 Agent 그룹 내의 다른 스텝 카드들 모두 닫기
+                const parentGroup = messageDiv.closest('.agent-group-steps');
+                if (parentGroup) {
+                    const allStepCards = parentGroup.querySelectorAll('.step-card-content');
+                    allStepCards.forEach(card => {
+                        if (card !== contentArea && card.getAttribute('data-expanded') === 'true') {
+                            card.setAttribute('data-expanded', 'false');
+                            const otherToggle = card.parentElement.querySelector('.step-collapse-toggle');
+                            if (otherToggle) {
+                                otherToggle.setAttribute('aria-expanded', 'false');
+                                const otherSvg = otherToggle.querySelector('svg');
+                                if (otherSvg) {
+                                    otherSvg.style.transform = 'rotate(-90deg)';
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 현재 스텝 카드 펼치기
                 contentArea.setAttribute('data-expanded', 'true');
                 toggle.setAttribute('aria-expanded', 'true');
                 toggle.querySelector('svg').style.transform = 'rotate(0deg)';
@@ -304,19 +323,26 @@ class WebSocketManager {
         groupDiv.className = `agent-group ${agentInfo.class}`;
         groupDiv.setAttribute('data-agent', agentInfo.class);
 
+        // 기존 그룹 개수 확인 (첫 번째 그룹만 펼친 상태로 시작)
+        const processSteps = document.getElementById('processSteps');
+        const existingGroups = processSteps ? processSteps.querySelectorAll('.agent-group').length : 0;
+        const isFirstGroup = existingGroups === 0;
+
+        console.log(`📦 Agent 그룹 생성: ${agentInfo.name}, 첫 번째 그룹: ${isFirstGroup}`);
+
         groupDiv.innerHTML = `
             <div class="agent-group-header">
                 <div class="agent-group-title">
                     <span class="agent-group-icon">${agentInfo.icon}</span>
                     <span class="agent-group-name">${agentInfo.name}</span>
                 </div>
-                <button class="agent-group-toggle" aria-label="그룹 펼치기/접기">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="agent-group-toggle" aria-label="그룹 펼치기/접기" aria-expanded="${isFirstGroup}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(${isFirstGroup ? '0' : '-90'}deg);">
                         <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </button>
             </div>
-            <div class="agent-group-steps" data-expanded="true">
+            <div class="agent-group-steps" data-expanded="${isFirstGroup}">
                 <!-- Steps will be added here -->
             </div>
         `;
@@ -328,17 +354,44 @@ class WebSocketManager {
 
         const toggleGroup = () => {
             const isExpanded = stepsContainer.getAttribute('data-expanded') === 'true';
+            console.log(`🔄 토글 클릭: ${agentInfo.name}, 현재 상태: ${isExpanded ? '펼침' : '접힘'}`);
 
             if (isExpanded) {
                 // 접기
                 stepsContainer.setAttribute('data-expanded', 'false');
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.querySelector('svg').style.transform = 'rotate(-90deg)';
+                console.log(`📁 ${agentInfo.name} 접기 완료`);
             } else {
-                // 펼치기
+                // 아코디언: 다른 모든 Agent 그룹 닫기
+                const allAgentGroups = document.querySelectorAll('.agent-group');
+                console.log(`🔍 전체 Agent 그룹 수: ${allAgentGroups.length}`);
+
+                let closedCount = 0;
+                allAgentGroups.forEach(group => {
+                    if (group !== groupDiv) {
+                        const otherStepsContainer = group.querySelector('.agent-group-steps');
+                        const otherToggle = group.querySelector('.agent-group-toggle');
+                        if (otherStepsContainer && otherStepsContainer.getAttribute('data-expanded') === 'true') {
+                            otherStepsContainer.setAttribute('data-expanded', 'false');
+                            if (otherToggle) {
+                                otherToggle.setAttribute('aria-expanded', 'false');
+                                const otherSvg = otherToggle.querySelector('svg');
+                                if (otherSvg) {
+                                    otherSvg.style.transform = 'rotate(-90deg)';
+                                }
+                            }
+                            closedCount++;
+                        }
+                    }
+                });
+                console.log(`📁 다른 ${closedCount}개 그룹 닫기 완료`);
+
+                // 현재 그룹 펼치기
                 stepsContainer.setAttribute('data-expanded', 'true');
                 toggle.setAttribute('aria-expanded', 'true');
                 toggle.querySelector('svg').style.transform = 'rotate(0deg)';
+                console.log(`📂 ${agentInfo.name} 펼치기 완료`);
             }
         };
 
@@ -486,32 +539,40 @@ class WebSocketManager {
         
         // ✅ 100% 완료 시 완료 상태로 표시
         if (progress === 100) {
-            // console.log('🎯 진행률 100% 달성 - 완료 상태로 변경');
+            console.log('🎯 진행률 100% 달성 - 모든 Agent 완료 처리');
             setTimeout(() => {
                 const progressFill = document.getElementById('overallProgressFill');
                 const progressText = document.getElementById('overallProgressText');
-                
+
                 if (progressFill) {
                     progressFill.style.width = '100%';
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-                    // console.log('✅ 진행률 바 100% 완료 스타일 적용');
+                    // 초록색 배경 제거 (기본 파란색 유지)
+                    console.log('✅ 진행률 바 100% 완료');
                 }
-                
+
                 if (progressText) {
-                    progressText.textContent = '100% 완료';
-                    progressText.style.color = '#059669';
+                    progressText.textContent = '100%';
                     progressText.style.fontWeight = 'bold';
-                    // console.log('✅ 진행률 텍스트 완료 스타일 적용');
+                    console.log('✅ 진행률 텍스트 완료');
                 }
-                
-                // 완료 효과 추가
-                const processHeader = processSidebar.querySelector('.process-header');
-                if (processHeader) {
-                    processHeader.style.background = 'linear-gradient(135deg, #059669, #047857)';
-                    processHeader.style.transition = 'background 0.5s ease';
-                    // console.log('✅ 헤더 완료 스타일 적용');
-                }
-                
+
+                // 모든 Agent를 완료 상태로 변경
+                const allAgentIds = ['agentOrchestration', 'agentMonitoring', 'agentPrediction', 'agentControl'];
+                allAgentIds.forEach(agentId => {
+                    const agentElement = document.getElementById(agentId);
+                    if (agentElement) {
+                        const badge = agentElement.querySelector('.agent-badge');
+                        if (badge) {
+                            badge.classList.remove('pending', 'active', 'error');
+                            badge.classList.add('completed');
+                            badge.textContent = '완료';
+                            agentElement.style.border = '2px solid #10b981';
+                            agentElement.style.boxShadow = '0 2px 12px rgba(16, 185, 129, 0.5)';
+                            console.log(`✅ ${agentId} -> 완료 상태로 변경`);
+                        }
+                    }
+                });
+
             }, 300); // 0.3초 후 스타일 적용
         }
     }
@@ -531,61 +592,59 @@ class WebSocketManager {
             'prediction': 'agentPrediction',
             'control': 'agentControl',
             'autocontrol': 'agentControl',
-            'orchestration': 'agentOrchestration'
+            'orchestration': 'agentOrchestration',
+            'orchestrator': 'agentOrchestration'
         };
 
         // Agent 이름에서 ID 찾기
-        let activeAgentId = null;
+        let targetAgentId = null;
         for (const [key, value] of Object.entries(agentMapping)) {
             if (agentName && (agentName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(agentName.toLowerCase()))) {
-                activeAgentId = value;
+                targetAgentId = value;
                 break;
             }
         }
 
-        if (!activeAgentId) {
+        if (!targetAgentId) {
             console.warn(`⚠️ 매핑되지 않은 Agent 이름: ${agentName}`);
-            // agent_name이 없으면 모두 대기중으로
-            this.resetAllAgentsToPending();
             return;
         }
 
-        // 모든 Agent를 "대기중"으로 초기화
-        const allAgentIds = ['agentOrchestration', 'agentMonitoring', 'agentPrediction', 'agentControl'];
-
-        allAgentIds.forEach(agentId => {
-            const agentElement = document.getElementById(agentId);
-            if (agentElement) {
-                const badge = agentElement.querySelector('.agent-badge');
-                const agentContainer = agentElement;
-
-                if (badge) {
-                    badge.classList.remove('pending', 'active', 'completed', 'error');
-                    badge.classList.add('pending');
-                    badge.textContent = '대기중';
-                }
-
-                // 테두리 색상 초기화 (노란색)
-                agentContainer.style.border = '2px solid #facc15';
-                agentContainer.style.boxShadow = '0 2px 8px rgba(250, 204, 21, 0.3)';
-            }
-        });
-
-        // 현재 활성 Agent만 "작동중"으로 설정
-        const activeElement = document.getElementById(activeAgentId);
-        if (activeElement) {
-            const badge = activeElement.querySelector('.agent-badge');
+        // 해당 Agent의 상태 업데이트
+        const targetElement = document.getElementById(targetAgentId);
+        if (targetElement) {
+            const badge = targetElement.querySelector('.agent-badge');
 
             if (badge) {
                 badge.classList.remove('pending', 'active', 'completed', 'error');
-                badge.classList.add('active');
-                badge.textContent = '작동중';
-                console.log(`✅ ${agentName} -> 작동중`);
-            }
 
-            // 초록색 테두리 및 강조 효과
-            activeElement.style.border = '2px solid #10b981';
-            activeElement.style.boxShadow = '0 2px 12px rgba(16, 185, 129, 0.5)';
+                // status에 따라 다른 스타일 적용
+                if (status === 'completed') {
+                    badge.classList.add('completed');
+                    badge.textContent = '완료';
+                    targetElement.style.border = '2px solid #10b981';
+                    targetElement.style.boxShadow = '0 2px 12px rgba(16, 185, 129, 0.5)';
+                    console.log(`✅ ${agentName} -> 완료`);
+                } else if (status === 'in_progress' || status === 'running') {
+                    badge.classList.add('active');
+                    badge.textContent = '작동중';
+                    targetElement.style.border = '2px solid #3b82f6';
+                    targetElement.style.boxShadow = '0 2px 12px rgba(59, 130, 246, 0.5)';
+                    console.log(`⚙️ ${agentName} -> 작동중`);
+                } else if (status === 'error') {
+                    badge.classList.add('error');
+                    badge.textContent = '오류';
+                    targetElement.style.border = '2px solid #ef4444';
+                    targetElement.style.boxShadow = '0 2px 12px rgba(239, 68, 68, 0.5)';
+                    console.log(`❌ ${agentName} -> 오류`);
+                } else {
+                    // 기본값: 대기중
+                    badge.classList.add('pending');
+                    badge.textContent = '대기중';
+                    targetElement.style.border = '2px solid #facc15';
+                    targetElement.style.boxShadow = '0 2px 8px rgba(250, 204, 21, 0.3)';
+                }
+            }
         }
     }
 
@@ -819,51 +878,52 @@ class WebSocketManager {
 
     // ✅ 직접 진행률 설정 함수 추가
     updateOverallProgressDirect(progress) {
-        console.log(`📊 진행률 업데이트: ${progress}%`);
+        console.log(`📊 진행률 업데이트 요청: ${progress}%`);
 
         const progressFill = document.getElementById('overallProgressFill');
         const progressText = document.getElementById('overallProgressText');
 
-        if (progressFill) {
-            // width를 강제로 설정 (important 대신 requestAnimationFrame 사용)
-            requestAnimationFrame(() => {
-                progressFill.style.width = `${progress}%`;
-                console.log(`🎨 Progress bar width 설정: ${progress}%`);
-                console.log(`🔍 실제 적용된 width: ${progressFill.style.width}`);
-
-                // 진행률에 따른 색상 변경
-                if (progress === 100) {
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
-                    progressFill.style.backgroundSize = '200% 100%';
-                    console.log('🎨 100% 완료 색상 적용');
-                } else if (progress >= 75) {
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
-                    progressFill.style.backgroundSize = '200% 100%';
-                } else if (progress >= 50) {
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
-                    progressFill.style.backgroundSize = '200% 100%';
-                } else {
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
-                    progressFill.style.backgroundSize = '200% 100%';
-                }
-            });
-        } else {
+        if (!progressFill) {
             console.error('❌ progressFill 요소를 찾을 수 없습니다!');
+            return;
         }
 
-        if (progressText) {
-            progressText.textContent = `${progress}%`;
-
-            if (progress === 100) {
-                progressText.style.color = '#10b981';
-                progressText.style.fontWeight = '700';
-                progressText.style.textShadow = '0 2px 4px rgba(0, 0, 0, 0.3)';
-            }
-        } else {
+        if (!progressText) {
             console.error('❌ progressText 요소를 찾을 수 없습니다!');
+            return;
         }
 
-        console.log(`✅ 진행률 ${progress}% 업데이트 완료`);
+        // 진행률 값 검증 (0-100 범위로 제한)
+        const validProgress = Math.max(0, Math.min(100, progress));
+        console.log(`✅ 검증된 진행률: ${validProgress}%`);
+
+        // width와 텍스트 즉시 업데이트 (requestAnimationFrame 제거 - 더 빠른 반응성)
+        progressFill.style.width = `${validProgress}%`;
+        progressText.textContent = `${validProgress}%`;
+
+        console.log(`🎨 Progress bar width 설정: ${validProgress}%`);
+        console.log(`🔍 실제 적용된 width: ${progressFill.style.width}`);
+
+        // 진행률에 따른 색상 변경 (100%일 때는 초록색 배경 없이 기본 파란색 유지)
+        if (validProgress === 100) {
+            // 100% 완료 시 초록색 배경 제거 - 기본 CSS 그라데이션 유지
+            progressText.style.fontWeight = '700';
+            console.log('🎨 100% 완료 (기본 색상 유지)');
+        } else if (validProgress >= 75) {
+            progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
+            progressFill.style.backgroundSize = '200% 100%';
+            console.log('🎨 75%+ 색상 (초록색) 적용');
+        } else if (validProgress >= 50) {
+            progressFill.style.background = 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)';
+            progressFill.style.backgroundSize = '200% 100%';
+            console.log('🎨 50%+ 색상 (초록색) 적용');
+        } else {
+            progressFill.style.background = 'linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd)';
+            progressFill.style.backgroundSize = '200% 100%';
+            console.log('🎨 0-50% 색상 (파란색) 적용');
+        }
+
+        console.log(`✅ 진행률 ${validProgress}% 업데이트 완료`);
     }
 
     handleOrchestrateUpdate(data) {
