@@ -842,6 +842,60 @@ body {
     font-style: italic;
 }
 
+/* 메시지 컨텐츠 내 모든 텍스트 요소 색상 강제 - 어두운 글씨 방지 */
+.message-content,
+.message-content p,
+.message-content span,
+.message-content div,
+.message-content li,
+.message-content a,
+.message-content em,
+.message-content i,
+.message-content u,
+.message-content del,
+.message-content mark,
+.message-content small,
+.message-content sub,
+.message-content sup {
+    color: #e2e8f0 !important;
+}
+
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+    color: #f1f5f9 !important;
+}
+
+.message-content strong,
+.message-content b {
+    color: #f1f5f9 !important;
+    font-weight: 600 !important;
+}
+
+.message-content code {
+    color: #f1f5f9 !important;
+    background: #1e293b !important;
+}
+
+.message-content pre {
+    background: #1e293b !important;
+}
+
+.message-content pre code {
+    color: #e2e8f0 !important;
+}
+
+.message-content a {
+    color: #60a5fa !important;
+}
+
+.message-content a:hover {
+    color: #93c5fd !important;
+}
+
 .message.user {
     flex-direction: row-reverse;
     margin-left: auto;

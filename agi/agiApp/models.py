@@ -160,3 +160,35 @@ class ChatMessage(models.Model):
             next_task_num = 1
         
         return f"{user_id}_task_{next_task_num}"
+
+
+class OrchestrateStepUpdate(models.Model):
+    """
+    WebSocket을 통해 전달되는 오케스트레이션 단계별 업데이트 저장
+    이전 채팅 기록을 재확인할 때 우측 사이드바를 재구성하기 위해 필요
+    """
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='step_updates')
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name='step_updates', null=True, blank=True)
+    session_user_id = models.CharField(max_length=100, help_text="user_1234_task_숫자 형식")
+
+    # WebSocket 업데이트 필드
+    agent_name = models.CharField(max_length=100, blank=True, help_text="담당 에이전트 이름")
+    step_name = models.CharField(max_length=100, help_text="단계 이름")
+    content = models.TextField(help_text="단계별 업데이트 내용 (Markdown)")
+    status = models.CharField(max_length=20, default='completed', help_text="completed, in_progress, error, running")
+    progress = models.IntegerField(default=0, help_text="진행률 (0-100)")
+    end_time = models.DateTimeField(null=True, blank=True)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    # 순서 보장
+    sequence = models.IntegerField(default=0, help_text="업데이트 순서")
+
+    class Meta:
+        ordering = ['session', 'sequence', 'timestamp']
+        indexes = [
+            models.Index(fields=['session', 'sequence']),
+            models.Index(fields=['session_user_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.agent_name} - {self.step_name}: {self.content[:50]}..."

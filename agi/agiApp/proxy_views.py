@@ -19,6 +19,8 @@ from rest_framework.permissions import AllowAny
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.utils.dateparse import parse_datetime
+from .models import ChatSession, ChatMessage, OrchestrateStepUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +270,7 @@ class WebSocketUpdateView(APIView):
                         }, status=status.HTTP_404_NOT_FOUND)
             
             # WebSocket으로 업데이트 전송 (이제 완전한 세션 ID 사용)
-            send_websocket_update(session_id, {
+            update_data = {
                 'type': 'step_update',
                 'agent_name': data.get('agent_name'),
                 'step_name': data.get('step_name'),
@@ -276,13 +278,64 @@ class WebSocketUpdateView(APIView):
                 'end_time': data.get('end_time'),
                 'status': data.get('status', 'completed'),
                 'progress': data.get('progress', 100)
-            })
-            
+            }
+            send_websocket_update(session_id, update_data)
+
+            # 📦 데이터베이스에 업데이트 저장 (이전 채팅 기록 재현용)
+            try:
+                # session_id에서 실제 UUID 세션 찾기
+                # session_id 형식: user_1111_task_721
+                # ChatMessage의 session_user_id와 매칭
+                from .models import ChatMessage, OrchestrateStepUpdate
+
+                # 가장 최근 메시지 찾기 (session_user_id 기준)
+                latest_message = ChatMessage.objects.filter(
+                    session_user_id=session_id,
+                    role='user'
+                ).order_by('-timestamp').first()
+
+                if latest_message:
+                    # 해당 세션의 현재 sequence 번호 확인
+                    last_update = OrchestrateStepUpdate.objects.filter(
+                        session=latest_message.session
+                    ).order_by('-sequence').first()
+
+                    next_sequence = (last_update.sequence + 1) if last_update else 1
+
+                    # end_time 파싱
+                    end_time_parsed = None
+                    if data.get('end_time'):
+                        try:
+                            end_time_parsed = parse_datetime(data.get('end_time'))
+                        except:
+                            pass
+
+                    # 업데이트 저장
+                    OrchestrateStepUpdate.objects.create(
+                        session=latest_message.session,
+                        message=latest_message,
+                        session_user_id=session_id,
+                        agent_name=data.get('agent_name', ''),
+                        step_name=data.get('step_name', ''),
+                        content=data.get('content', ''),
+                        status=data.get('status', 'completed'),
+                        progress=data.get('progress', 100),
+                        end_time=end_time_parsed,
+                        sequence=next_sequence
+                    )
+                    logger.info(f"✅ Step update saved to DB: session={session_id}, agent={data.get('agent_name')}, step={data.get('step_name')}, seq={next_sequence}")
+                else:
+                    logger.warning(f"⚠️ No matching ChatMessage found for session_id={session_id}, step update not saved to DB")
+            except Exception as db_error:
+                logger.error(f"❌ Failed to save step update to DB: {db_error}")
+                # Continue anyway - WebSocket was sent successfully
+
+            # 성공 응답 반환
             return Response({
                 'status': 'success',
-                'message': 'WebSocket update sent'
+                'message': 'WebSocket update sent successfully'
             }, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             logger.error(f"WebSocket update endpoint error: {e}")
             return Response({

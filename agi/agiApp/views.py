@@ -491,38 +491,38 @@ def websocket_test(request):
     <script>
         const sessionId = 'user_1234_task_1';
         const wsUrl = `ws://127.0.0.1:8000/ws/orchestrate/${sessionId}/`;
-        
+
         // console.log('Attempting WebSocket connection to:', wsUrl);
-        
+
         const socket = new WebSocket(wsUrl);
-        
+
         socket.onopen = function(event) {
             // console.log('WebSocket connected!');
             document.getElementById('status').innerHTML = '<span style="color: green;">Connected!</span>';
-            
+
             // Test sending a message
             socket.send(JSON.stringify({
                 'type': 'test_message',
                 'message': 'Hello from test client'
             }));
         };
-        
+
         socket.onmessage = function(event) {
             // console.log('Received message:', event.data);
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML += `<div>Received: ${event.data}</div>`;
         };
-        
+
         socket.onerror = function(error) {
             console.error('WebSocket error:', error);
             document.getElementById('status').innerHTML = '<span style="color: red;">Error occurred!</span>';
         };
-        
+
         socket.onclose = function(event) {
             // console.log('WebSocket closed:', event.code, event.reason);
             document.getElementById('status').innerHTML = '<span style="color: orange;">Connection closed</span>';
         };
-        
+
         // Test button
         function sendTestMessage() {
             if (socket.readyState === WebSocket.OPEN) {
@@ -533,9 +533,79 @@ def websocket_test(request):
             }
         }
     </script>
-    
+
     <button onclick="sendTestMessage()">Send Test Message</button>
 </body>
 </html>
     """
     return HttpResponse(html_content)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_session_step_updates(request):
+    """
+    특정 세션의 저장된 단계별 업데이트를 조회하는 API
+    이전 채팅 기록을 볼 때 우측 사이드바를 재구성하는데 사용
+
+    Query Parameters:
+        - session_id: ChatSession의 UUID
+
+    Returns:
+        - updates: 시간순으로 정렬된 단계별 업데이트 목록
+    """
+    from .models import ChatSession, OrchestrateStepUpdate
+
+    try:
+        session_id = request.GET.get('session_id')
+
+        if not session_id:
+            return JsonResponse({
+                'error': 'session_id parameter is required'
+            }, status=400)
+
+        # 세션 존재 확인
+        try:
+            session = ChatSession.objects.get(id=session_id)
+        except ChatSession.DoesNotExist:
+            return JsonResponse({
+                'error': f'Session not found: {session_id}'
+            }, status=404)
+
+        # 해당 세션의 모든 단계별 업데이트 가져오기 (순서대로)
+        updates = OrchestrateStepUpdate.objects.filter(
+            session=session
+        ).order_by('sequence', 'timestamp').values(
+            'session_user_id',
+            'agent_name',
+            'step_name',
+            'content',
+            'status',
+            'progress',
+            'end_time',
+            'timestamp',
+            'sequence'
+        )
+
+        # 날짜를 ISO 형식 문자열로 변환
+        updates_list = []
+        for update in updates:
+            update_dict = dict(update)
+            if update_dict.get('end_time'):
+                update_dict['end_time'] = update_dict['end_time'].isoformat()
+            if update_dict.get('timestamp'):
+                update_dict['timestamp'] = update_dict['timestamp'].isoformat()
+            updates_list.append(update_dict)
+
+        return JsonResponse({
+            'success': True,
+            'session_id': str(session_id),
+            'count': len(updates_list),
+            'updates': updates_list
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': 'Failed to retrieve step updates',
+            'details': str(e)
+        }, status=500)

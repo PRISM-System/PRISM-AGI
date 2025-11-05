@@ -1557,31 +1557,118 @@ class ChatSessionManager {
         try {
             // 현재 세션 설정
             this.currentSessionId = sessionId;
-            
+
             // URL 업데이트 (클릭으로 오지 않은 경우만)
             const currentUrl = new URL(window.location);
             if (currentUrl.searchParams.get('session') !== sessionId) {
                 const userId = currentUrl.searchParams.get('user_id');
-                const newUrl = userId ? 
-                    `/django/agi/index/?user_id=${userId}&session=${sessionId}` : 
+                const newUrl = userId ?
+                    `/django/agi/index/?user_id=${userId}&session=${sessionId}` :
                     `/django/agi/index/?session=${sessionId}`;
                 window.history.pushState({}, '', newUrl);
             }
-            
+
             // UI 업데이트
             this.updateActiveSession();
-            
+
             // 메시지 로드
             const response = await fetch(`${API_BASE}/django/agi/chat/sessions/${sessionId}/messages/`);
             const data = await response.json();
-            
+
             // 채팅 화면에 메시지들 표시
             this.displayMessages(data.messages);
-            
+
+            // 📦 저장된 단계별 업데이트 로드 및 재생 (이전 채팅 기록용)
+            await this.loadAndReplayStepUpdates(sessionId);
+
             // console.log('채팅 세션 로드됨:', sessionId);
         } catch (error) {
             console.error('채팅 세션 로드 실패:', error);
         }
+    }
+
+    async loadAndReplayStepUpdates(sessionId) {
+        try {
+            console.log(`📦 Loading saved step updates for session: ${sessionId}`);
+
+            // API에서 저장된 업데이트 가져오기
+            const response = await fetch(`${API_BASE}/django/agi/chat/sessions/step-updates/?session_id=${sessionId}`);
+
+            if (!response.ok) {
+                console.log('No saved step updates found or error occurred');
+                return;
+            }
+
+            const data = await response.json();
+
+            if (!data.success || !data.updates || data.updates.length === 0) {
+                console.log('No step updates to replay');
+                return;
+            }
+
+            console.log(`✅ Found ${data.count} saved step updates, replaying...`);
+
+            // 우측 사이드바 초기화
+            this.resetProcessSidebar();
+
+            // 순서대로 재생 (sequence 순으로 정렬되어 있음)
+            for (const update of data.updates) {
+                // 데이터 포맷을 handleStepUpdate가 이해할 수 있는 형식으로 변환
+                const stepUpdateData = {
+                    type: 'step_update',
+                    agent_name: update.agent_name,
+                    step_name: update.step_name,
+                    content: update.content,
+                    status: update.status,
+                    progress: update.progress,
+                    end_time: update.end_time
+                };
+
+                // 기존의 handleStepUpdate 함수로 처리
+                this.handleStepUpdate(stepUpdateData);
+
+                // 약간의 딜레이를 주어 자연스럽게 재생 (선택사항)
+                // await new Promise(resolve => setTimeout(resolve, 50));
+            }
+
+            console.log('✅ Step updates replay completed');
+
+        } catch (error) {
+            console.error('Failed to load and replay step updates:', error);
+        }
+    }
+
+    resetProcessSidebar() {
+        // 우측 사이드바의 단계 목록 초기화
+        const processSteps = document.getElementById('processSteps');
+        if (processSteps) {
+            processSteps.innerHTML = '';
+        }
+
+        // 전체 진행률 초기화
+        const overallProgressFill = document.getElementById('overallProgressFill');
+        const overallProgressText = document.getElementById('overallProgressText');
+        if (overallProgressFill) {
+            overallProgressFill.style.width = '0%';
+        }
+        if (overallProgressText) {
+            overallProgressText.textContent = '0%';
+        }
+
+        // 에이전트 상태 초기화
+        const agentStatuses = ['agentOrchestration', 'agentMonitoring', 'agentPrediction', 'agentControl'];
+        agentStatuses.forEach(agentId => {
+            const agentElement = document.getElementById(agentId);
+            if (agentElement) {
+                const badge = agentElement.querySelector('.agent-badge');
+                if (badge) {
+                    badge.className = 'agent-badge pending';
+                    badge.textContent = '대기중';
+                }
+            }
+        });
+
+        console.log('🔄 Process sidebar reset');
     }
 
     updateActiveSession() {
