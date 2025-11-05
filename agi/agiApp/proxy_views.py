@@ -177,6 +177,10 @@ class WebSocketUpdateView(APIView):
                     type=openapi.TYPE_STRING,
                     description='WebSocket 세션 ID (예: user_1234_task_940)'
                 ),
+                'agent_name': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='담당 에이전트 이름 (예: Monitoring Agent, Prediction Agent, Control Agent, Orchestration Agent)'
+                ),
                 'step_name': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description='현재 단계 이름 (예: monitoring, analysis)'
@@ -200,6 +204,7 @@ class WebSocketUpdateView(APIView):
             },
             example={
                 "session_id": "user_1234_task_940",
+                "agent_name": "Monitoring Agent",
                 "step_name": "monitoring",
                 "content": "## 🔍 모니터링 완료\n\n**시스템 상태:** 정상\n**검출된 이슈:** 없음",
                 "end_time": "2025-09-03T10:45:30Z",
@@ -265,6 +270,7 @@ class WebSocketUpdateView(APIView):
             # WebSocket으로 업데이트 전송 (이제 완전한 세션 ID 사용)
             send_websocket_update(session_id, {
                 'type': 'step_update',
+                'agent_name': data.get('agent_name'),
                 'step_name': data.get('step_name'),
                 'content': data.get('content'),
                 'end_time': data.get('end_time'),

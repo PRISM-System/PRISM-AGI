@@ -79,13 +79,68 @@
 
         <!-- 우측 공정 진행 상태 사이드바 -->
         <div class="process-sidebar" id="processSidebar">
+            <!-- 토글 버튼 -->
+            <button class="sidebar-toggle-btn" id="processSidebarToggle" aria-label="사이드바 토글">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
             <!-- 크기 조절 핸들 -->
             <div class="resize-handle" id="resizeHandle"></div>
-            
-            <!-- WebSocket 데이터로 동적으로 생성될 컨텐츠 영역 -->
+
+            <!-- 헤더 -->
+            <div class="process-header">
+                <!-- 에이전트 상태 표시 -->
+                <div class="agent-status-container">
+                    <div class="agent-status" id="agentOrchestration" data-agent="orchestration">
+                        <span class="agent-icon">🎯</span>
+                        <span class="agent-name">Orchestration</span>
+                        <span class="agent-badge pending">대기중</span>
+                    </div>
+                    <div class="agent-status" id="agentMonitoring" data-agent="monitoring">
+                        <span class="agent-icon">🔍</span>
+                        <span class="agent-name">Monitoring</span>
+                        <span class="agent-badge pending">대기중</span>
+                    </div>
+                    <div class="agent-status" id="agentPrediction" data-agent="prediction">
+                        <span class="agent-icon">📊</span>
+                        <span class="agent-name">Prediction</span>
+                        <span class="agent-badge pending">대기중</span>
+                    </div>
+                    <div class="agent-status" id="agentControl" data-agent="control">
+                        <span class="agent-icon">⚙️</span>
+                        <span class="agent-name">Control</span>
+                        <span class="agent-badge pending">대기중</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 전체 진행률 -->
+            <div class="overall-progress">
+                <div class="progress-header">
+                    <span class="progress-label">전체 진행률</span>
+                    <span class="progress-text" id="overallProgressText">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="overallProgressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- 진행 단계 목록 -->
+            <div class="process-content" id="processContent">
+                <div class="process-steps" id="processSteps">
+                    <!-- WebSocket 데이터로 동적으로 생성될 단계 메시지들 -->
+                </div>
+                <div class="process-details" id="processDetails">
+                    <!-- 상세 정보 영역 (필요시) -->
+                </div>
+            </div>
         </div>
     </div>
     
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
     <script src="{% static 'js/logout-handler.js' %}"></script>
     <script src="{% static 'js/activity-logger.js' %}"></script>
     <script src="{% static 'js/chat.js' %}"></script>

@@ -22,42 +22,49 @@ class WebSocketManager {
 
         this.currentSessionId = sessionId;
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsHost = 'grnd.bimatrix.co.kr';
-        const wsUrl = `${wsProtocol}//${wsHost}/django/agi/ws/orchestrate/${sessionId}/`;
-        
-        // console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
-        // console.log(`📡 Session ID: ${sessionId}`);
+        const wsHost = window.location.host;
+
+        // 현재 페이지의 경로에서 base path 추출 (예: /django/agi)
+        const pathPrefix = window.location.pathname.match(/^(\/[^\/]+\/[^\/]+)?/)?.[1] || '';
+
+        // WebSocket URL 구성: 프록시 경로를 포함
+        const wsUrl = `${wsProtocol}//${wsHost}${pathPrefix}/ws/orchestrate/${sessionId}/`;
+
+        console.log(`🔗 Connecting to WebSocket: ${wsUrl}`);
+        console.log(`📡 Session ID: ${sessionId}`);
+        console.log(`📍 Path Prefix: ${pathPrefix}`);
         
         this.orchestrateSocket = new WebSocket(wsUrl);
 
         this.orchestrateSocket.onopen = (event) => {
-            // console.log('✅ Orchestrate WebSocket 연결 성공!');
-            // console.log('연결된 세션 ID:', this.currentSessionId);
-            // console.log('WebSocket 상태:', this.orchestrateSocket.readyState);
+            console.log('✅ Orchestrate WebSocket 연결 성공!');
+            console.log('연결된 세션 ID:', this.currentSessionId);
+            console.log('WebSocket 상태:', this.orchestrateSocket.readyState);
+            console.log('WebSocket URL:', wsUrl);
             this.reconnectAttempts = 0;
         };
 
         this.orchestrateSocket.onmessage = (event) => {
-            // console.log('=== 📨 RAW WebSocket Message Received ===');
-            // console.log('Event:', event);
-            // console.log('현재 시간:', new Date().toLocaleTimeString());
-            // console.log('세션 ID:', this.currentSessionId);
-            // console.log('Event data:', event.data);
-            // console.log('Event data type:', typeof event.data);
-            
+            console.log('=== 📨 RAW WebSocket Message Received ===');
+            console.log('Event:', event);
+            console.log('현재 시간:', new Date().toLocaleTimeString());
+            console.log('세션 ID:', this.currentSessionId);
+            console.log('Event data:', event.data);
+            console.log('Event data type:', typeof event.data);
+
             try {
                 const data = JSON.parse(event.data);
-                // console.log('Parsed WebSocket data:', data);
-                // console.log('Message type:', data.type);
-                
+                console.log('Parsed WebSocket data:', data);
+                console.log('Message type:', data.type);
+
                 if (data.type === 'step_update') {
-                    // console.log('Handling step_update');
+                    console.log('Handling step_update');
                     this.handleStepUpdate(data);
                 } else if (data.type === 'orchestrate_update') {
-                    // console.log('Handling orchestrate_update');
+                    console.log('Handling orchestrate_update');
                     this.handleOrchestrateUpdate(data);
                 } else {
-                    // console.log('Unknown message type:', data.type);
+                    console.log('Unknown message type:', data.type);
                 }
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
@@ -66,7 +73,10 @@ class WebSocketManager {
         };
 
         this.orchestrateSocket.onclose = (event) => {
-            // console.log('Orchestrate WebSocket disconnected');
+            console.log('⚠️ Orchestrate WebSocket disconnected');
+            console.log('Close code:', event.code);
+            console.log('Close reason:', event.reason);
+            console.log('Was clean:', event.wasClean);
             this.reconnectSocket();
         };
 
@@ -78,20 +88,20 @@ class WebSocketManager {
     }
 
     handleStepUpdate(data) {
-        // console.log('=== handleStepUpdate 호출됨 ===');
-        // console.log('Step update data:', data);
-        
+        console.log('=== handleStepUpdate 호출됨 ===');
+        console.log('Step update data:', data);
+
         const { step_name, status, content, progress } = data;
-        // console.log('Extracted data:', { step_name, status, content, progress });
-        
+        console.log('Extracted data:', { step_name, status, content, progress });
+
         // ✅ 채팅창에는 표시하지 않고 사이드바에만 표시
-        // console.log('🔄 사이드바 업데이트만 진행 (채팅창 업데이트 제외)');
-        
+        console.log('🔄 사이드바 업데이트만 진행 (채팅창 업데이트 제외)');
+
         // 사이드바 업데이트
         this.updateProcessSidebar(data);
     }
 
-    // 우측 사이드바에 단계별 메시지 카드 생성
+    // 우측 사이드바에 단계별 메시지 카드 생성 (개선된 버전)
     createStepMessage(stepName, status, content, progress) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'process-step step-message';
@@ -100,20 +110,50 @@ class WebSocketManager {
         const stepNameKorean = this.getKoreanStepName(stepName);
         const statusIcon = this.getStatusIcon(status);
         const statusClass = this.getStatusClass(status);
+        const statusText = this.getStatusText(status);
+
+        // Progress가 undefined면 0으로 설정
+        const progressValue = progress !== undefined ? progress : 0;
 
         messageDiv.innerHTML = `
-            <div class="step-header">
-                <div class="step-info">
-                    <span class="step-icon ${statusClass}">${statusIcon}</span>
-                    <span class="step-name">${stepNameKorean}</span>
+            <div class="step-card ${statusClass}">
+                <!-- 헤더 영역 -->
+                <div class="step-card-header">
+                    <div class="step-title-row">
+                        <div class="step-icon-wrapper ${statusClass}">
+                            <span class="step-icon-emoji">${statusIcon}</span>
+                        </div>
+                        <div class="step-title-info">
+                            <h4 class="step-title">${stepNameKorean}</h4>
+                            <span class="step-status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                    <div class="step-progress-info">
+                        <span class="step-progress-text">${progressValue}%</span>
+                    </div>
                 </div>
-                <span class="step-progress">${progress}%</span>
-            </div>
-            <div class="step-content">
-                <p class="step-description">${this.formatContent(content)}</p>
+
+                <!-- Progress Bar -->
+                <div class="step-progress-bar">
+                    <div class="step-progress-fill ${statusClass}" style="width: ${progressValue}%"></div>
+                </div>
+
+                <!-- 내용 영역 -->
+                <div class="step-card-content">
+                    <div class="step-content-text">${this.formatContent(content)}</div>
+                </div>
+
+                <!-- 타임스탬프 영역 (end_time이 있을 때만) -->
+                <div class="step-timestamp" style="display: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span class="timestamp-text"></span>
+                </div>
             </div>
         `;
-        
+
         messageDiv.className = `process-step ${statusClass}`;
 
         return messageDiv;
@@ -122,79 +162,184 @@ class WebSocketManager {
     updateStepMessage(messageElement, status, content, progress) {
         const statusIcon = this.getStatusIcon(status);
         const statusClass = this.getStatusClass(status);
-        
-        const iconElement = messageElement.querySelector('.step-icon');
-        const progressElement = messageElement.querySelector('.step-progress');
-        const contentElement = messageElement.querySelector('.step-description');
+        const statusText = this.getStatusText(status);
 
+        // Progress가 undefined면 기존 값 유지
+        const progressValue = progress !== undefined ? progress : 0;
+
+        // 아이콘 업데이트
+        const iconElement = messageElement.querySelector('.step-icon-emoji');
         if (iconElement) {
-            iconElement.className = `step-icon ${statusClass}`;
             iconElement.textContent = statusIcon;
         }
 
-        if (progressElement) {
-            progressElement.textContent = `${progress}%`;
+        // 아이콘 wrapper 업데이트
+        const iconWrapper = messageElement.querySelector('.step-icon-wrapper');
+        if (iconWrapper) {
+            iconWrapper.className = `step-icon-wrapper ${statusClass}`;
         }
 
+        // 상태 배지 업데이트
+        const statusBadge = messageElement.querySelector('.step-status-badge');
+        if (statusBadge) {
+            statusBadge.className = `step-status-badge ${statusClass}`;
+            statusBadge.textContent = statusText;
+        }
+
+        // Progress 텍스트 업데이트
+        const progressText = messageElement.querySelector('.step-progress-text');
+        if (progressText) {
+            progressText.textContent = `${progressValue}%`;
+        }
+
+        // Progress bar 업데이트
+        const progressFill = messageElement.querySelector('.step-progress-fill');
+        if (progressFill) {
+            progressFill.className = `step-progress-fill ${statusClass}`;
+            progressFill.style.width = `${progressValue}%`;
+        }
+
+        // 내용 업데이트
+        const contentElement = messageElement.querySelector('.step-content-text');
         if (contentElement && content) {
             contentElement.innerHTML = this.formatContent(content);
         }
-        
+
+        // 카드 전체 클래스 업데이트
+        const cardElement = messageElement.querySelector('.step-card');
+        if (cardElement) {
+            cardElement.className = `step-card ${statusClass}`;
+        }
+
         // 전체 요소 클래스 업데이트
         messageElement.className = `process-step ${statusClass}`;
     }
 
     getStatusText(status) {
         const statusMap = {
-            'processing': '처리 중...',
+            'processing': '진행 중',
+            'in_progress': '진행 중',
+            'running': '실행 중',
             'completed': '완료',
-            'failed': '실패'
+            'failed': '실패',
+            'error': '오류',
+            'pending': '대기 중'
         };
         return statusMap[status] || status;
     }
 
     formatContent(content) {
         if (!content) return '';
-        
-        // 마크다운 형식이면 간단히 처리
-        return content
+
+        // 더 나은 마크다운 렌더링
+        let formatted = content
+            // 코드 블록 처리
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+            // 인라인 코드 처리
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            // Bold 처리
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Italic 처리
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // 헤더 처리
+            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+            // 링크 처리
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+            // 리스트 처리 (간단한 버전)
+            .replace(/^\- (.*$)/gm, '<li>$1</li>')
+            .replace(/^\* (.*$)/gm, '<li>$1</li>')
+            .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
+            // 테이블 구분선 제거 (간단 처리)
+            .replace(/\|[-:\s|]+\|/g, '')
+            // 줄바꿈 처리
+            .replace(/\n\n/g, '<br><br>')
             .replace(/\n/g, '<br>');
+
+        // <li> 태그들을 <ul>로 감싸기
+        formatted = formatted.replace(/(<li>.*?<\/li>(?:<br>)?)+/gs, '<ul>$&</ul>');
+
+        return formatted;
+    }
+
+    formatTimestamp(endTime) {
+        if (!endTime) return '';
+
+        try {
+            const date = new Date(endTime);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSecs = Math.floor(diffMs / 1000);
+            const diffMins = Math.floor(diffSecs / 60);
+            const diffHours = Math.floor(diffMins / 60);
+
+            if (diffSecs < 60) {
+                return `${diffSecs}초 전 완료`;
+            } else if (diffMins < 60) {
+                return `${diffMins}분 전 완료`;
+            } else if (diffHours < 24) {
+                return `${diffHours}시간 전 완료`;
+            } else {
+                return date.toLocaleString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        } catch (e) {
+            return '';
+        }
     }
 
     updateProcessSidebar(data) {
-        // console.log('=== updateProcessSidebar 호출됨 ===');
-        // console.log('Sidebar update data:', data);
-        
+        console.log('=== updateProcessSidebar 호출됨 ===');
+        console.log('Sidebar update data:', data);
+        console.log('🔍 데이터 필드 체크:', {
+            step_name: data.step_name,
+            status: data.status,
+            content: data.content ? data.content.substring(0, 50) + '...' : 'null',
+            progress: data.progress,
+            end_time: data.end_time
+        });
+
         const { step_name, status, content, progress, end_time } = data;
         const processSidebar = document.getElementById('processSidebar');
-        
+
         if (!processSidebar) {
-            console.warn('processSidebar element not found');
+            console.error('❌ processSidebar element NOT FOUND in DOM!');
+            console.log('🔍 Available elements with "sidebar":',
+                Array.from(document.querySelectorAll('[id*="sidebar"]')).map(el => el.id));
             return;
         }
+        console.log('✅ processSidebar 요소 찾음:', processSidebar);
+        console.log('📏 processSidebar display:', window.getComputedStyle(processSidebar).display);
+        console.log('📏 processSidebar visibility:', window.getComputedStyle(processSidebar).visibility);
 
         // 사이드바가 비어있으면 초기 구조 생성
         if (!processSidebar.querySelector('.process-header')) {
+            console.log('⚠️ process-header가 없음, initializeProcessSidebar 호출 필요 없음 (HTML에 이미 있어야 함)');
             this.initializeProcessSidebar(processSidebar);
+        } else {
+            console.log('✅ process-header 이미 존재함');
         }
 
         // 단계별 정보 업데이트
         this.updateProcessStep(step_name, status, content, progress, end_time);
-        
+
         // ✅ 전체 진행률 업데이트 (progress 값 직접 사용)
         if (progress !== undefined) {
-            // console.log(`🎯 진행률 직접 설정: ${progress}%`);
+            console.log(`🎯 진행률 직접 설정: ${progress}%`);
             this.updateOverallProgressDirect(progress);
         } else {
             this.updateOverallProgress(); // 기존 방식
         }
-        
+
         // 사이드바 표시
         processSidebar.classList.add('active');
         processSidebar.style.display = 'flex';
-        // console.log('📱 사이드바 활성화됨');
+        console.log('📱 사이드바 활성화됨');
         
         // ✅ 100% 완료 시 완료 상태로 표시
         if (progress === 100) {
@@ -267,15 +412,16 @@ class WebSocketManager {
 
     updateProcessStep(stepName, status, content, progress, endTime) {
         console.log('=== updateProcessStep 호출됨 ===');
-        console.log('Step 데이터:', { stepName, status, content, progress, endTime });
-        
+        console.log('Step 데이터:', { stepName, status, content: content ? content.substring(0, 50) : null, progress, endTime });
+
         const processSteps = document.getElementById('processSteps');
         if (!processSteps) {
-            console.warn('processSteps element not found');
+            console.error('❌ processSteps element NOT FOUND!');
             return;
         }
-        
+
         console.log('✅ processSteps 요소 찾음:', processSteps);
+        console.log('📏 processSteps children count:', processSteps.children.length);
 
         // 기존 단계 메시지 찾기
         let stepElement = document.getElementById(`step-${stepName}`);
@@ -294,13 +440,15 @@ class WebSocketManager {
         
         // 완료 시간 추가/업데이트
         if (endTime) {
-            let timeElement = stepElement.querySelector('.step-time');
-            if (!timeElement) {
-                timeElement = document.createElement('span');
-                timeElement.className = 'step-time';
-                stepElement.querySelector('.step-content').appendChild(timeElement);
+            const timestampContainer = stepElement.querySelector('.step-timestamp');
+            if (timestampContainer) {
+                const timestampText = timestampContainer.querySelector('.timestamp-text');
+                if (timestampText) {
+                    timestampText.textContent = this.formatTimestamp(endTime);
+                    timestampContainer.style.display = 'flex';
+                    console.log('⏰ 타임스탬프 표시:', this.formatTimestamp(endTime));
+                }
             }
-            timeElement.textContent = new Date(endTime).toLocaleTimeString();
         }
         
         console.log('✅ 단계 메시지 업데이트 완료');
@@ -309,30 +457,44 @@ class WebSocketManager {
 
     getKoreanStepName(stepName) {
         const nameMap = {
-            'Query Refinement': '질의 분석',
-            'Monitoring': '모니터링',
-            'Prediction': '예측 분석',
-            'Autonomous Control': '자율 제어',
-            'Orchestration': '오케스트레이션'
+            'Query Refinement': '질의 분석 및 계획',
+            'query_analysis': '질의 분석',
+            'agent_execution': '에이전트 실행',
+            'Monitoring': '실시간 모니터링',
+            'Prediction': 'AI 예측 분석',
+            'Autonomous Control': '자율 제어 시스템',
+            'Orchestration': '통합 오케스트레이션',
+            'data_collection': '데이터 수집',
+            'preprocessing': '데이터 전처리',
+            'analysis': '분석 수행',
+            'validation': '결과 검증',
+            'report_generation': '보고서 생성'
         };
-        return nameMap[stepName] || stepName;
+        return nameMap[stepName] || stepName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
     getStatusIcon(status) {
         const iconMap = {
-            'running': '🔄',
+            'running': '⚡',
+            'in_progress': '⚡',
+            'processing': '🔄',
             'completed': '✅',
             'failed': '❌',
-            'pending': '⏳'
+            'error': '⚠️',
+            'pending': '⏳',
+            'waiting': '⏸️'
         };
-        return iconMap[status] || '⏳';
+        return iconMap[status] || '📌';
     }
 
     getStatusClass(status) {
         const classMap = {
             'running': 'status-running',
+            'in_progress': 'status-running',
+            'processing': 'status-running',
             'completed': 'status-completed',
             'failed': 'status-failed',
+            'error': 'status-failed',
             'pending': 'status-pending'
         };
         return classMap[status] || 'status-pending';
@@ -736,8 +898,9 @@ class WebSocketManager {
 // 전역 WebSocket 매니저 인스턴스
 const webSocketManager = new WebSocketManager();
 
-const API_BASE = 'https://grnd.bimatrix.co.kr'; // 외부 웹 도메인
-const USE_PROXY = true;                   // 항상 프록시 사용 (로컬 API 제거됨)
+// 프록시 사용하지 않고 현재 호스트로 직접 연결
+const API_BASE = window.location.origin; // 현재 호스트 사용 (예: http://localhost:8000)
+const USE_PROXY = false;                  // 프록시 사용 안 함
 const USE_GET_FOR_LIST = false;           // true면 GET으로 목록 우래(프리플라이트 줄이기)
 const USE_CREDENTIALS = false;            // 세션/쿠키 사용 시 true + 서버 CORS allow_credentials 필요
 const ACCESS_TOKEN_KEY = 'access_token';  // 로컬스토리지 토큰 키 이름
@@ -1142,19 +1305,19 @@ class ChatSessionManager {
                             </svg>
                         </button>
                         <div class="preset-dropdown-menu" id="presetDropdownMenu">
-                            <div class="preset-option" data-query="CMP 공정에서 Slurry 유량이 불안정합니다. 현재 상황을 분석해주세요." data-session="cmp_session_20250501_001">
+                            <div class="preset-option" data-query="CMP 공정에서 Slurry 유량이 불안정합니다. 현재 상황을 분석해주세요.">
                                 <div class="preset-title">시나리오 1: CMP 공정 분석</div>
                                 <div class="preset-description">Slurry 유량 불안정 모니터링</div>
                             </div>
-                            <div class="preset-option" data-query="Etching 공정의 PRESSURE가 계속 상승하고 있습니다. 언제 임계치에 도달할지 예측해주세요." data-session="etch_session_20250501_002">
+                            <div class="preset-option" data-query="Etching 공정의 PRESSURE가 계속 상승하고 있습니다. 언제 임계치에 도달할지 예측해주세요.">
                                 <div class="preset-title">시나리오 2: Etching 압력 예측</div>
                                 <div class="preset-description">압력 상승 추이 및 임계치 도달 예측</div>
                             </div>
-                            <div class="preset-option" data-query="Deposition 공정의 TEMPERATURE가 불안정합니다. 자동으로 안정화시켜주세요." data-session="dep_session_20250501_003">
+                            <div class="preset-option" data-query="Deposition 공정의 TEMPERATURE가 불안정합니다. 자동으로 안정화시켜주세요.">
                                 <div class="preset-title">시나리오 3: Deposition 온도 제어</div>
                                 <div class="preset-description">온도 불안정 자동 안정화 제어</div>
                             </div>
-                            <div class="preset-option" data-query="반도체 공정에서 RF_POWER가 증가 추세입니다. 예측 및 제어를 수행하고 규제 준수 여부를 확인해주세요." data-session="fab_session_20250501_004">
+                            <div class="preset-option" data-query="반도체 공정에서 RF_POWER가 증가 추세입니다. 예측 및 제어를 수행하고 규제 준수 여부를 확인해주세요.">
                                 <div class="preset-title">시나리오 4: RF 파워 전체 검증</div>
                                 <div class="preset-description">RF 파워 제어 및 규제 준수 검증</div>
                             </div>
@@ -1231,9 +1394,8 @@ class ChatSessionManager {
             // 프리셋 옵션 선택 이벤트
             const presetOptions = presetDropdownMenu.querySelectorAll('.preset-option');
             presetOptions.forEach(option => {
-                option.addEventListener('click', (e) => {
+                option.addEventListener('click', () => {
                     const query = option.getAttribute('data-query');
-                    const sessionId = option.getAttribute('data-session');
 
                     // textarea에 query 채우기
                     if (chatInput) {
@@ -1242,9 +1404,6 @@ class ChatSessionManager {
                         chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
                         chatInput.focus();
                     }
-
-                    // session_id를 전역 변수에 저장 (sendMessage에서 사용)
-                    window.presetSessionId = sessionId;
 
                     // 드롭다운 닫기
                     presetDropdownMenu.classList.remove('active');
@@ -2426,11 +2585,12 @@ async function sendMessage() {
     // 즉시 "생각하는 중..." 메시지 표시
     const thinkingMessageId = showThinkingMessage();
 
-    // 공정 사이드바 활성화 및 단계 초기화
+    // 공정 사이드바 활성화 (단계는 WebSocket으로 동적 생성)
     if (window.processManager) {
         window.processManager.showSidebar();
         window.processManager.updateStatus('요청 분석 중...', 'processing');
-        window.processManager.initializeSteps(message);
+        // WebSocket으로 실제 단계를 받으므로 initializeSteps 비활성화
+        // window.processManager.initializeSteps(message);
     }
 
     // 사용자 메시지를 기반으로 텍스트 생성 요청
@@ -2542,10 +2702,10 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             }
         };
 
-        // console.log('새로운 orchestrate API 요청:', requestBody);
+        console.log('새로운 orchestrate API 요청:', requestBody);
 
-        // 프록시를 통한 orchestrate 엔드포인트로 POST 요청
-        const response = await fetch('/django/agi/api/v1/orchestrate/', {
+        // 직접 orchestrate 엔드포인트로 POST 요청 (프록시 사용 안 함)
+        const response = await fetch('/api/v1/orchestrate/', {
             method: 'POST',
             headers: {
                 ...getDefaultHeaders(),
@@ -2579,14 +2739,18 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             
             // orchestrate API 응답에서 텍스트 추출 (실제 응답 구조에 맞춰)
             let basicResponseText = '';
-            
-            // orchestrate API의 실제 응답 구조에서 final_answer 필드 사용
-            if (responseData.final_answer) {
-                basicResponseText = responseData.final_answer;
-                console.log('final_answer 사용:', basicResponseText);
-            } else if (responseData.final_markdown) {
+
+            // 디버깅: 실제 응답 구조 확인
+            console.log('📦 전체 responseData:', responseData);
+            console.log('📦 responseData의 키들:', Object.keys(responseData));
+
+            // orchestrate API의 실제 응답 구조에서 final_markdown 우선 사용
+            if (responseData.final_markdown) {
                 basicResponseText = responseData.final_markdown;
-                console.log('final_markdown 사용:', basicResponseText);
+                console.log('✅ final_markdown 사용 (마크다운 렌더링):', basicResponseText.substring(0, 100));
+            } else if (responseData.final_answer) {
+                basicResponseText = responseData.final_answer;
+                console.log('✅ final_answer 사용:', basicResponseText.substring(0, 100));
             } else if (responseData.response) {
                 basicResponseText = responseData.response;
                 console.log('response 사용:', basicResponseText);
@@ -2599,8 +2763,15 @@ async function sendMessageToDefaultAI(message, thinkingMessageId) {
             } else if (responseData.message) {
                 basicResponseText = responseData.message;
                 console.log('message 사용:', basicResponseText);
+            } else if (responseData.error) {
+                basicResponseText = `오류가 발생했습니다: ${responseData.error}`;
+                console.log('error 필드 발견:', responseData.error);
+            } else if (typeof responseData === 'string') {
+                basicResponseText = responseData;
+                console.log('string 응답 사용:', basicResponseText);
             } else {
-                basicResponseText = '응답을 받았지만 내용을 추출할 수 없습니다.';
+                console.error('❌ 예상치 못한 응답 구조:', responseData);
+                basicResponseText = '응답을 받았지만 내용을 추출할 수 없습니다.\n\n디버깅을 위해 콘솔을 확인해주세요.';
             }
             
             // <think> 태그 내용만 제거하고 나머지는 모두 출력
@@ -2950,21 +3121,52 @@ function startTypingEffect(contentDiv, text, speed = 5) {
     let index = 0;
     let displayText = '';
     
-    // 마크다운을 HTML로 변환 (개선된 버전)
+    // 마크다운을 HTML로 변환 (강화된 버전)
     const convertMarkdownToHtml = (markdown) => {
-        return markdown
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
-            .replace(/^\* (.*$)/gim, '<li>$1</li>')
-            .replace(/^\- (.*$)/gim, '<li>$1</li>')
-            .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>');
+        let html = markdown;
+
+        // 1. 코드 블록 처리 (```로 감싸진 부분)
+        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+            return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
+        });
+
+        // 2. 테이블 처리
+        html = html.replace(/\|(.+)\|[\r\n]+\|[-:\s|]+\|[\r\n]+((?:\|.+\|[\r\n]*)+)/g, (match, header, body) => {
+            const headers = header.split('|').filter(h => h.trim()).map(h => `<th>${h.trim()}</th>`).join('');
+            const rows = body.trim().split('\n').map(row => {
+                const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+            return `<table class="markdown-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+        });
+
+        // 3. 헤더 처리
+        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+        // 4. 리스트 처리
+        html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+        html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+        html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+
+        // 5. <li> 태그들을 <ul>로 감싸기
+        html = html.replace(/(<li>.*?<\/li>[\r\n]*)+/g, '<ul>$&</ul>');
+
+        // 6. Bold, Italic, Inline Code
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // 7. 링크 처리
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+        // 8. 줄바꿈 처리
+        html = html.replace(/\n\n/g, '</p><p>');
+        html = html.replace(/\n/g, '<br>');
+
+        return html;
     };
     
     // 커서 스타일 추가
@@ -2981,14 +3183,79 @@ function startTypingEffect(contentDiv, text, speed = 5) {
                 51%, 100% { opacity: 0; }
             }
             .message-content h1, .message-content h2, .message-content h3, .message-content h4 {
-                margin: 10px 0;
+                margin: 16px 0 12px 0;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+            .message-content h1 { font-size: 1.8em; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+            .message-content h2 { font-size: 1.5em; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+            .message-content h3 { font-size: 1.3em; }
+            .message-content h4 { font-size: 1.1em; }
+            .message-content ul {
+                margin: 8px 0;
+                padding-left: 20px;
             }
             .message-content li {
-                margin-left: 20px;
+                margin: 4px 0;
+                line-height: 1.6;
             }
             .message-content code {
-                padding: 2px 4px;
+                padding: 2px 6px;
                 border-radius: 3px;
+                background-color: #f3f4f6;
+                color: #dc2626;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9em;
+            }
+            .message-content pre {
+                background-color: #1e293b;
+                border-radius: 6px;
+                padding: 12px;
+                overflow-x: auto;
+                margin: 12px 0;
+            }
+            .message-content pre code {
+                background-color: transparent;
+                color: #e2e8f0;
+                padding: 0;
+            }
+            .message-content .markdown-table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 12px 0;
+                font-size: 0.95em;
+            }
+            .message-content .markdown-table th,
+            .message-content .markdown-table td {
+                border: 1px solid #e5e7eb;
+                padding: 8px 12px;
+                text-align: left;
+            }
+            .message-content .markdown-table th {
+                background-color: #f9fafb;
+                font-weight: 600;
+                color: #374151;
+            }
+            .message-content .markdown-table tr:nth-child(even) {
+                background-color: #f9fafb;
+            }
+            .message-content .markdown-table tr:hover {
+                background-color: #f3f4f6;
+            }
+            .message-content a {
+                color: #3b82f6;
+                text-decoration: none;
+            }
+            .message-content a:hover {
+                text-decoration: underline;
+            }
+            .message-content strong {
+                font-weight: 600;
+                color: #1f2937;
+            }
+            .message-content em {
+                font-style: italic;
+                color: #4b5563;
             }
         `;
         document.head.appendChild(style);

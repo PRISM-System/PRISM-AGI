@@ -659,13 +659,153 @@ body {
 
 .message-content {
     flex: 1;
-    line-height: 1.6;
-    color: #ececf1;
+    line-height: 1.8;
+    color: #ffffff;
+    font-size: 15px;
 }
 
 .message.user .message-content {
     color: #ffffff;
     text-align: right;
+}
+
+/* 마크다운 요소 스타일 강화 */
+.message-content h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 16px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.message-content h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 14px 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.message-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 12px 0 8px 0;
+}
+
+.message-content code {
+    background: rgba(110, 118, 129, 0.4);
+    color: #f9826c;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+
+.message-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+}
+
+.message-content pre code {
+    background: transparent;
+    color: #abe338;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.message-content strong {
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.message-content em {
+    font-style: italic;
+    color: #e5e7eb;
+}
+
+.message-content ul,
+.message-content ol {
+    margin: 12px 0;
+    padding-left: 24px;
+    color: #ffffff;
+}
+
+.message-content li {
+    margin: 6px 0;
+    line-height: 1.6;
+}
+
+.message-content a {
+    color: #60a5fa;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+    transition: all 0.2s ease;
+}
+
+.message-content a:hover {
+    color: #93c5fd;
+    border-bottom-color: rgba(147, 197, 253, 0.6);
+}
+
+.message-content p {
+    margin: 8px 0;
+    color: #ffffff;
+}
+
+.message-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.message-content th,
+.message-content td {
+    border: 1px solid #4b5563;
+    padding: 12px 16px;
+    text-align: left;
+    color: #e5e7eb;
+}
+
+.message-content th {
+    background: #374151;
+    font-weight: 600;
+    color: #f9fafb;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.message-content tbody tr:nth-child(even) {
+    background: #111827;
+}
+
+.message-content tbody tr:nth-child(odd) {
+    background: #1f2937;
+}
+
+.message-content tbody tr:hover {
+    background: #2d3748;
+    transition: background 0.2s ease;
+}
+
+.message-content blockquote {
+    border-left: 4px solid #60a5fa;
+    padding-left: 16px;
+    margin: 12px 0;
+    color: #e5e7eb;
+    font-style: italic;
 }
 
 .message.user {
@@ -776,6 +916,49 @@ body {
     min-width: 400px; /* active 상태에서만 최소 너비 적용 */
 }
 
+/* 우측 사이드바 토글 버튼 */
+.sidebar-toggle-btn {
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 64px;
+    background: #1a1b26;
+    border: 1px solid #4d4d4f;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;
+    color: #9ca3af;
+}
+
+.sidebar-toggle-btn:hover {
+    background: #202123;
+    color: #3b82f6;
+    left: -42px;
+}
+
+.sidebar-toggle-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.process-sidebar:not(.active) .sidebar-toggle-btn svg {
+    transform: rotate(180deg);
+}
+
+.process-sidebar.active .sidebar-toggle-btn {
+    opacity: 1;
+}
+
+.process-sidebar:not(.active) .sidebar-toggle-btn {
+    opacity: 0.7;
+}
+
 /* 크기 조절 핸들 */
 .resize-handle {
     position: absolute;
@@ -837,10 +1020,11 @@ body {
     flex-wrap: wrap;
     width: 100%;
     margin-top: 12px;
-    padding: 8px;
-    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .agent-status {
@@ -848,9 +1032,11 @@ body {
     align-items: center;
     gap: clamp(6px, 0.6vw, 10px);
     padding: clamp(8px, 0.8vw, 12px) clamp(12px, 1.2vw, 16px);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.12);
     border-radius: clamp(10px, 1.0vw, 16px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    /* 기본 테두리: 노란색 (대기중) */
+    border: 2px solid #facc15;
+    box-shadow: 0 2px 8px rgba(250, 204, 21, 0.3);
     font-size: clamp(12px, 1.2vw, 14px);
     font-weight: 600;
     color: #ffffff;
@@ -862,10 +1048,10 @@ body {
 }
 
 .agent-status:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 /* 통신 중일 때 배경 효과 */
@@ -914,8 +1100,78 @@ body {
     100% { left: 100%; }
 }
 
+/* 에이전트 상태 뱃지 스타일 */
+.agent-icon {
+    font-size: 18px;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.agent-name {
+    font-size: clamp(11px, 1.1vw, 13px);
+    font-weight: 700;
+    z-index: 2;
+    color: #f3f4f6;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.3px;
+}
+
+.agent-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: clamp(10px, 1.0vw, 11px);
+    font-weight: 700;
+    z-index: 2;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.agent-badge.pending {
+    background: rgba(107, 114, 128, 0.4);
+    color: #d1d5db;
+    border: 1px solid rgba(156, 163, 175, 0.6);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.agent-badge.active {
+    background: rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    border: 1px solid rgba(96, 165, 250, 0.8);
+    animation: badge-pulse 1.5s infinite;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.agent-badge.completed {
+    background: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+    border: 1px solid rgba(52, 211, 153, 0.8);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.agent-badge.error {
+    background: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes badge-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
 @keyframes comm-pulse {
-    0% { 
+    0% {
         transform: scale(1);
         opacity: 1;
     }
@@ -1027,9 +1283,10 @@ body {
 
 .process-title {
     font-size: 18px; /* 16px에서 18px로 증가 */
-    font-weight: 600;
-    color: #ffffff;
+    font-weight: 700;
+    color: #f0f0f0;
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .process-close-btn {
@@ -1064,7 +1321,9 @@ body {
     border-radius: 10px; /* 8px에서 10px로 증가 */
     margin-bottom: 24px; /* 20px에서 24px로 증가 */
     font-size: 15px; /* 14px에서 15px로 증가 */
-    font-weight: 500;
+    font-weight: 600;
+    color: #e5e7eb;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .status-indicator {
@@ -1089,6 +1348,14 @@ body {
 
 .status-indicator.error {
     background: #ef4444;
+}
+
+.status-indicator.completed {
+    background: #10b981;
+}
+
+.status-indicator.pending {
+    background: #6b7280;
 }
 
 @keyframes pulse {
@@ -1233,17 +1500,17 @@ body {
     color: #6b7280;
 }
 
-/* 기존 세로 스타일은 숨김 */
+/* 기존 가로 진행바 스타일 (더 이상 사용하지 않음) - 주석 처리됨 */
 
-/* 기존 세로 스타일은 숨김 */
+/*
 .process-step {
-    display: none; /* 가로 진행바 사용시 숨김 */
+    display: none;
     align-items: flex-start;
-    gap: 16px; /* 12px에서 16px로 증가 */
-    padding: 16px 0; /* 12px에서 16px로 증가 */
-    border-left: 3px solid #374151; /* 2px에서 3px로 증가 */
-    padding-left: 20px; /* 16px에서 20px로 증가 */
-    margin-left: 8px; /* 6px에서 8px로 증가 */
+    gap: 16px;
+    padding: 16px 0;
+    border-left: 3px solid #374151;
+    padding-left: 20px;
+    margin-left: 8px;
     position: relative;
 }
 
@@ -1258,6 +1525,7 @@ body {
 .process-step.error {
     border-left-color: #ef4444;
 }
+*/
 
 .step-indicator {
     width: 24px; /* 20px에서 24px로 증가 */
@@ -1362,6 +1630,169 @@ body {
 
 .process-content::-webkit-scrollbar-thumb:hover {
     background: #6f7079;
+}
+
+/* ===============================
+   Step Card Agent Badge 스타일
+   =============================== */
+
+.step-agent-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: auto;
+    border: 2px solid;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.step-agent-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.step-agent-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.step-agent-name {
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+/* Agent별 색상 - 확연한 차이 */
+.agent-monitoring {
+    background: rgba(59, 130, 246, 0.3);
+    color: #bfdbfe;
+    border-color: #60a5fa;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.agent-prediction {
+    background: rgba(168, 85, 247, 0.3);
+    color: #e9d5ff;
+    border-color: #c084fc;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
+}
+
+.agent-control {
+    background: rgba(249, 115, 22, 0.3);
+    color: #fed7aa;
+    border-color: #fb923c;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+}
+
+.agent-orchestration {
+    background: rgba(16, 185, 129, 0.3);
+    color: #a7f3d0;
+    border-color: #34d399;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.agent-query {
+    background: rgba(236, 72, 153, 0.3);
+    color: #fbcfe8;
+    border-color: #f472b6;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+}
+
+/* Step Card에 Agent별 배경색 적용 */
+.step-card.agent-monitoring {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(29, 78, 216, 0.06));
+    border-left: 5px solid #60a5fa !important;
+}
+
+.step-card.agent-prediction {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(126, 34, 206, 0.06));
+    border-left: 5px solid #c084fc !important;
+}
+
+.step-card.agent-control {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(234, 88, 12, 0.06));
+    border-left: 5px solid #fb923c !important;
+}
+
+.step-card.agent-orchestration {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.06));
+    border-left: 5px solid #34d399 !important;
+}
+
+.step-card.agent-query {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(219, 39, 119, 0.06));
+    border-left: 5px solid #f472b6 !important;
+}
+
+/* 펼치기/접기 버튼 */
+.step-collapse-toggle {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #8e8ea0;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+.step-collapse-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.step-collapse-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+.step-card-content[data-expanded="false"] ~ .step-collapse-toggle svg,
+.step-card-header[data-collapsible="true"]:has(+ .step-card-content[data-expanded="false"]) .step-collapse-toggle svg {
+    transform: rotate(-90deg);
+}
+
+/* 접기 애니메이션 */
+.step-card-content {
+    max-height: 1000px; /* 충분히 큰 기본값 */
+    overflow: visible;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+    opacity: 1;
+}
+
+.step-card-content[data-expanded="true"] {
+    max-height: 1000px;
+    overflow: visible;
+    opacity: 1;
+}
+
+.step-card-content[data-expanded="false"] {
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+/* 헤더를 클릭 가능하게 */
+.step-card-header[data-collapsible="true"] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.step-card-header[data-collapsible="true"]:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* 타이틀 행 레이아웃 조정 */
+.step-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
 }
 
 /* ===============================
@@ -1853,38 +2284,93 @@ body {
    동적 공정 진행 상태 스타일
 ======================================== */
 
-/* 전체 진행률 표시 */
+/* 전체 진행률 표시 - 더 눈에 띄게 개선 */
 .overall-progress {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 10px;
     margin-top: 16px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
+    border-radius: 12px;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .progress-bar {
     flex: 1;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
     overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #10a37f, #1dd1a1);
-    border-radius: 4px;
-    transition: width 0.5s ease;
+    background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+    background-size: 200% 100%;
+    border-radius: 12px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    animation: progressShine 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    position: relative;
+    will-change: width;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: progressGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes progressGlow {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .progress-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #10a37f;
-    min-width: 40px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #10b981;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    min-width: 50px;
     text-align: right;
 }
 
@@ -1899,6 +2385,151 @@ body {
 }
 
 /* 개별 공정 단계 */
+/* Agent Group Styles */
+.agent-group {
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    min-height: 64px; /* 헤더가 항상 보이도록 최소 높이 설정 */
+}
+
+.agent-group:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Agent별 그룹 색상 */
+.agent-group.agent-orchestration {
+    border-left: 4px solid #8b5cf6;
+}
+
+.agent-group.agent-monitoring {
+    border-left: 4px solid #3b82f6;
+}
+
+.agent-group.agent-prediction {
+    border-left: 4px solid #f59e0b;
+}
+
+.agent-group.agent-control {
+    border-left: 4px solid #10b981;
+}
+
+/* Agent 그룹 헤더 */
+.agent-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.agent-group-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.agent-group-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.agent-group-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.agent-group-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f9fafb;
+    letter-spacing: 0.3px;
+}
+
+.agent-group-toggle {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.agent-group-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f9fafb;
+}
+
+.agent-group-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+/* Agent 그룹 내부 단계들 */
+.agent-group-steps {
+    padding: 12px;
+    max-height: 0; /* 초기 상태는 접힌 상태 */
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+    opacity: 0;
+}
+
+/* 펼쳐진 상태 */
+.agent-group-steps[data-expanded="true"] {
+    max-height: 600px; /* 최대 높이 제한 */
+    overflow-y: auto; /* 내용이 넘칠 때만 스크롤바 표시 */
+    overflow-x: hidden;
+    opacity: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+/* 접힌 상태 */
+.agent-group-steps[data-expanded="false"] {
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+/* 웹킷 브라우저용 스크롤바 스타일 */
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar {
+    width: 8px;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+    background-clip: padding-box;
+}
+
+.agent-group-steps .process-step {
+    margin-bottom: 12px;
+}
+
+.agent-group-steps .process-step:last-child {
+    margin-bottom: 0;
+}
+
 .process-step {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2203,4 +2834,405 @@ body {
     .preset-description {
         font-size: 12px;
     }
+}
+
+/* ===============================
+   개선된 Step Card 스타일
+   =============================== */
+
+.step-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible;
+}
+
+.step-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #6366f1;
+    transition: all 0.3s ease;
+}
+
+.step-card.status-running::before {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.step-card.status-completed::before {
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.step-card.status-failed::before {
+    background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.step-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* 헤더 영역 */
+.step-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 4px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.step-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.step-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+}
+
+.step-icon-wrapper.status-running {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border-color: rgba(59, 130, 246, 0.4);
+    animation: icon-pulse 2s ease-in-out infinite;
+}
+
+.step-icon-wrapper.status-completed {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.step-icon-wrapper.status-failed {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+@keyframes icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+    }
+}
+
+.step-icon-emoji {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.step-title-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.step-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.step-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+}
+
+.step-status-badge.status-running {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.step-status-badge.status-completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.step-status-badge.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.step-status-badge.status-pending {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.step-progress-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-progress-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #a855f7;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Progress Bar */
+.step-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.step-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+    border-radius: 8px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.step-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: progress-shimmer 2s infinite;
+}
+
+.step-progress-fill.status-running {
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.step-progress-fill.status-completed {
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+}
+
+.step-progress-fill.status-failed {
+    background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+}
+
+@keyframes progress-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* 내용 영역 */
+.step-card-content {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.step-content-text {
+    max-height: none !important;
+    overflow-y: visible !important;
+    overflow-x: visible !important;
+    padding-right: 8px;
+}
+
+.step-card-content[data-expanded="true"] .step-content-text {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.step-content-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+.step-content-text::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.step-content-text::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.step-content-text h1,
+.step-content-text h2,
+.step-content-text h3 {
+    color: #ffffff;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.step-content-text h1 {
+    font-size: 20px;
+}
+
+.step-content-text h2 {
+    font-size: 18px;
+}
+
+.step-content-text h3 {
+    font-size: 16px;
+}
+
+.step-content-text code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #a78bfa;
+}
+
+.step-content-text pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-content-text pre code {
+    background: none;
+    padding: 0;
+    color: #e0e0e0;
+}
+
+.step-content-text ul {
+    margin: 8px 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.step-content-text li {
+    padding-left: 20px;
+    position: relative;
+    margin: 4px 0;
+}
+
+.step-content-text li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: #8b5cf6;
+    font-weight: bold;
+}
+
+.step-content-text a {
+    color: #60a5fa;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.step-content-text a:hover {
+    border-bottom-color: #60a5fa;
+}
+
+.step-content-text strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* 테이블 스타일 - 다크모드 최적화 */
+.step-content-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.step-content-text th,
+.step-content-text td {
+    border: 1px solid #334155;
+    padding: 12px 16px;
+    text-align: left;
+    color: #e2e8f0;
+}
+
+.step-content-text th {
+    background: #334155;
+    font-weight: 600;
+    color: #f1f5f9;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.step-content-text tbody tr:nth-child(even) {
+    background: #1e293b;
+}
+
+.step-content-text tbody tr:nth-child(odd) {
+    background: #0f172a;
+}
+
+.step-content-text tbody tr:hover {
+    background: #334155;
+    transition: background 0.2s ease;
+}
+
+/* 타임스탬프 */
+.step-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}
+
+.step-timestamp svg {
+    stroke-width: 2;
+    opacity: 0.6;
+}
+
+.timestamp-text {
+    font-weight: 500;
 }
