@@ -2462,7 +2462,7 @@ body {
     text-align: right;
 }
 
-/* 공정 단계 컨테이너 */
+/* 공정 단계 컨테이너 - 전체 스크롤 관리 */
 .process-steps {
     padding: 20px;
     display: flex;
@@ -2470,6 +2470,29 @@ body {
     gap: 16px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+}
+
+/* 웹킷 브라우저용 스크롤바 스타일 */
+.process-steps::-webkit-scrollbar {
+    width: 8px;
+}
+
+.process-steps::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.process-steps::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.process-steps::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 /* 개별 공정 단계 */
@@ -2569,12 +2592,32 @@ body {
 
 /* 펼쳐진 상태 */
 .agent-group-steps[data-expanded="true"] {
-    max-height: 600px; /* 최대 높이 제한 */
-    overflow-y: auto; /* 내용이 넘칠 때만 스크롤바 표시 */
+    max-height: 50vh; /* Agent 그룹당 최대 높이 */
+    overflow-y: auto; /* 내용이 길면 스크롤 */
     overflow-x: hidden;
     opacity: 1;
+    padding: 12px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+/* 웹킷 브라우저용 스크롤바 */
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar {
+    width: 6px;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 /* 접힌 상태 */
@@ -2586,29 +2629,7 @@ body {
     opacity: 0;
 }
 
-/* 웹킷 브라우저용 스크롤바 스타일 */
-.agent-group-steps[data-expanded="true"]::-webkit-scrollbar {
-    width: 8px;
-}
-
-.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
-    margin: 4px 0;
-}
-
-.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 4px;
-    transition: background 0.2s ease;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-.agent-group-steps[data-expanded="true"]::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.6);
-    background-clip: padding-box;
-}
+/* 부모 컨테이너(.process-steps)가 스크롤을 관리하므로 여기서는 스크롤바 스타일 불필요 */
 
 .agent-group-steps .process-step {
     margin-bottom: 12px;
@@ -3158,15 +3179,17 @@ body {
 }
 
 .step-content-text {
-    max-height: none !important;
-    overflow-y: visible !important;
-    overflow-x: visible !important;
+    max-height: 30vh; /* 개별 카드 최대 높이 */
+    overflow-y: auto; /* 내용이 길면 스크롤 */
+    overflow-x: hidden;
     padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .step-card-content[data-expanded="true"] .step-content-text {
-    max-height: none !important;
-    overflow: visible !important;
+    max-height: 30vh;
+    overflow-y: auto;
 }
 
 .step-content-text::-webkit-scrollbar {

@@ -1727,7 +1727,13 @@ class ChatSessionManager {
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = content;
+
+        // AI 응답은 마크다운 렌더링, 사용자 메시지는 plain text
+        if (role === 'assistant') {
+            contentDiv.innerHTML = this.formatContent(content);
+        } else {
+            contentDiv.textContent = content;
+        }
 
         const timeDiv = document.createElement('div');
         timeDiv.className = 'message-time';

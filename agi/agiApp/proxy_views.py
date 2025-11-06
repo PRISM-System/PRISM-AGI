@@ -287,12 +287,24 @@ class WebSocketUpdateView(APIView):
                 # session_id 형식: user_1111_task_721
                 # ChatMessage의 session_user_id와 매칭
                 from .models import ChatMessage, OrchestrateStepUpdate
+                import re
 
-                # 가장 최근 메시지 찾기 (session_user_id 기준)
-                latest_message = ChatMessage.objects.filter(
-                    session_user_id=session_id,
-                    role='user'
-                ).order_by('-timestamp').first()
+                # session_id에서 user_id 부분 추출 (예: user_1111_task_721 -> user_1111)
+                user_id_match = re.match(r'(user_\d+)_task_\d+', session_id)
+
+                if user_id_match:
+                    user_id = user_id_match.group(1)
+                    # 해당 user_id로 시작하는 가장 최근 user 메시지 찾기
+                    latest_message = ChatMessage.objects.filter(
+                        session_user_id__startswith=user_id,
+                        role='user'
+                    ).order_by('-timestamp').first()
+                else:
+                    # 정확히 매칭 시도
+                    latest_message = ChatMessage.objects.filter(
+                        session_user_id=session_id,
+                        role='user'
+                    ).order_by('-timestamp').first()
 
                 if latest_message:
                     # 해당 세션의 현재 sequence 번호 확인
